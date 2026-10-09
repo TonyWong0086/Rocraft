@@ -12,7 +12,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * A Roblox Explosion: the Roblox blast effect (built client side from one rbx_explosion carrying the radius), its own
  * sound (no Minecraft boom), characters inside BlastRadius take `damage` (Float.MAX_VALUE = joints broken), everything
- * is pushed away, and every brick inside the radius breaks loose and flies off as physics debris (tools.Debris).
+ * is pushed away (Parts lose their joints), and every block inside the radius breaks loose and flies off as physics debris (tools.Debris).
  */
 final class Blast {
 	static void at(ServerLevel sl, Entity source, double radius, float damage, DamageSource src, String sound) {
@@ -21,6 +21,7 @@ final class Blast {
 		RbxSounds.play(source, RbxSounds.get(sound));
 		for (Entity e : sl.getEntities(source, source.getBoundingBox().inflate(radius), e -> e.distanceTo(source) <= radius)) {
 			var push = e.position().subtract(c).normalize().scale(0.8 * (1 - e.distanceTo(source) / radius) + 0.2);
+			if (e instanceof RobloxPart part) { part.breakJoints(part.getDeltaMovement().add(push.x, push.y + 0.3, push.z)); continue; }
 			e.push(push.x, push.y + 0.3, push.z);
 			e.hurtMarked = true;
 			if (e instanceof LivingEntity le) le.hurtServer(sl, src, damage);

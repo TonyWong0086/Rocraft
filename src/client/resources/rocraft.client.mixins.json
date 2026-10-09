@@ -3,6 +3,7 @@
 	"package": "com.rocraft.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"AdvancementToastAccessor",
 		"AvatarStateMixin",
 		"BobMixin",
 		"CameraMixin",
@@ -17,6 +18,7 @@
 		"ScreenFireMixin",
 		"ScrollMixin",
 		"SkinMixin",
+		"ToastMixin",
 		"TurnMixin",
 		"WalkMixin"
 	],

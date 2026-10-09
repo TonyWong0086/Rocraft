@@ -79,13 +79,15 @@ final class Hud2018 {
 		int total = nameW;
 		for (int i = 0; i < stats.length; i++) total += colW[i] = Math.max(60, Math.max(RbxFont.width(stats[i][0], 13, false), RbxFont.width(stats[i][1], 15, true)) + 22);
 		int nx = W - 24 - total;
-		RbxFont.draw(g, prof.name, nx, 3, 15, true, 0xFFFFFFFF);
+		// name, "Account: 13+" under it, and once health has been taken the health bar under that (2018 top bar)
+		RbxFont.draw(g, prof.name, nx, 1, 15, true, 0xFFFFFFFF);
+		RbxFont.draw(g, prof.guest ? "Guest" : "Account: 13+", nx, 16, 12, false, 0xFFDCDCDC);
 		float hp = Math.max(0, Math.min(1, mc.player.getHealth() / mc.player.getMaxHealth()));
 		if (hp < 1) {
-			bar(g, "TopBar/HealthBarBase.png", nx, 22, nameW, 0xFFFFFFFF);
+			bar(g, "TopBar/HealthBarBase.png", nx, 30, nameW, 4, 0xFFFFFFFF);
 			int col = hp > 0.5f ? 0xFF1BFC6B : hp > 0.25f ? 0xFFFFD21C : 0xFFFF1C00;
-			if (hp > 0) bar(g, "TopBar/HealthBar.png", nx, 22, Math.max(6, Math.round(nameW * hp)), col);
-		} else RbxFont.draw(g, prof.guest ? "Guest" : "Account: 13+", nx, 20, 12, false, 0xFFDCDCDC);
+			if (hp > 0) bar(g, "TopBar/HealthBar.png", nx, 30, Math.max(4, Math.round(nameW * hp)), 4, col);
+		}
 		int sx = nx + nameW;
 		for (int i = 0; i < stats.length; i++) {
 			int cw = colW[i];
@@ -95,6 +97,7 @@ final class Hud2018 {
 		}
 
 		RobloxChat.draw(g, mc, W, H, TOP);
+		RobloxNotify.draw(g, W, H);
 
 		// backpack hotbar: only filled slots, keeping their real number so 1-9 keys still match
 		var inv = mc.player.getInventory();
@@ -142,12 +145,13 @@ final class Hud2018 {
 		else g.blit(RenderPipelines.GUI_TEXTURED, t, x, y, 0, 0, w, h, w, h);
 	}
 
-	/** 7x6 rounded health bar texture as a 3-slice, drawn 2x tall. */
-	static void bar(GuiGraphicsExtractor g, String rel, int x, int y, int w, int argb) {
+	/** 7x6 rounded health bar texture as a 3-slice, h pixels tall. */
+	static void bar(GuiGraphicsExtractor g, String rel, int x, int y, int w, int h, int argb) {
 		Identifier t = RobloxAssets.tex(UI + rel);
-		if (t == null) { g.fill(x, y, x + w, y + 12, argb); return; }
-		g.blit(RenderPipelines.GUI_TEXTURED, t, x, y, 0, 0, 6, 12, 3, 6, 7, 6, argb);
-		if (w > 12) g.blit(RenderPipelines.GUI_TEXTURED, t, x + 6, y, 3, 0, w - 12, 12, 1, 6, 7, 6, argb);
-		g.blit(RenderPipelines.GUI_TEXTURED, t, x + w - 6, y, 4, 0, 6, 12, 3, 6, 7, 6, argb);
+		if (t == null) { g.fill(x, y, x + w, y + h, argb); return; }
+		int c = Math.min(h / 2, w / 2);
+		g.blit(RenderPipelines.GUI_TEXTURED, t, x, y, 0, 0, c, h, 3, 6, 7, 6, argb);
+		if (w > 2 * c) g.blit(RenderPipelines.GUI_TEXTURED, t, x + c, y, 3, 0, w - 2 * c, h, 1, 6, 7, 6, argb);
+		g.blit(RenderPipelines.GUI_TEXTURED, t, x + w - c, y, 4, 0, c, h, 3, 6, 7, 6, argb);
 	}
 }

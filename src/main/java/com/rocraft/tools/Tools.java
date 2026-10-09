@@ -59,6 +59,9 @@ public final class Tools {
 	public static EntityType<BombEntity> BOMB_ENTITY;
 	public static EntityType<Projectile> PROJECTILE;
 	public static EntityType<Debris> DEBRIS;
+	public static EntityType<RobloxPart> PART;
+	/** Spawn ForceField: a (re)spawned character can't be hurt for 10 s, like a default SpawnLocation's Duration. */
+	public static final int FORCEFIELD_TICKS = 10 * 20;
 	public static volatile long clientLungeAt; // local player's last lunge (client), drives the toollunge animation
 	/** Local player's current "using" grip (eating, drinking, hugging), client side. */
 	public static volatile Item clientUseItem;
@@ -104,6 +107,10 @@ public final class Tools {
 		DEBRIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, debrisKey,
 			EntityType.Builder.<Debris>of(Debris::new, MobCategory.MISC).sized(0.98f, 0.98f).clientTrackingRange(10).updateInterval(2).build(debrisKey));
 
+		var partKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("part"));
+		PART = Registry.register(BuiltInRegistries.ENTITY_TYPE, partKey,
+			EntityType.Builder.<RobloxPart>of(RobloxPart::new, MobCategory.MISC).sized(1.12f, 0.336f).clientTrackingRange(10).updateInterval(2).build(partKey));
+
 		// Rocraft page in the creative inventory: every classic tool
 		var tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Rocraft.id("gear"));
 		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()
@@ -116,6 +123,8 @@ public final class Tools {
 		ServerPlayerEvents.JOIN.register(Tools::starterPack);
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldP, newP, alive) -> starterPack(newP));
 		ServerTickEvents.END_SERVER_TICK.register(Tools::tick);
+		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, src, amount) ->
+			!(e instanceof Player p && p.tickCount < FORCEFIELD_TICKS) || src.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY));
 	}
 
 	private static Item item(String name, Function<Item.Properties, Item> make) {

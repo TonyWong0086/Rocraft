@@ -7,9 +7,10 @@ import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** 2018 Roblox: silent when hurt, "oof" on death. */
+/** 2018 Roblox: silent when hurt, "oof" on death, Roblox's Splash instead of Minecraft's (CharacterSounds). */
 @Mixin(Player.class)
 abstract class PlayerSoundMixin {
 	@Inject(method = "getDeathSound", at = @At("HEAD"), cancellable = true)
@@ -17,4 +18,7 @@ abstract class PlayerSoundMixin {
 
 	@Inject(method = "getHurtSound", at = @At("HEAD"), cancellable = true)
 	private void rocraft$silentHurt(DamageSource src, CallbackInfoReturnable<SoundEvent> cir) { cir.setReturnValue(null); }
+
+	@Inject(method = "doWaterSplashEffect", at = @At("HEAD"), cancellable = true)
+	private void rocraft$noSplash(CallbackInfo ci) { ci.cancel(); }
 }

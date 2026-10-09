@@ -30,7 +30,7 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 | Superball | A bouncy ball thrown at the cursor |
 | Slingshot | Fires pellets |
 | Bomb | The classic ticking bomb that speeds up, then explodes |
-| Trowel | Builds a wall where you click |
+| Trowel | Builds a wall of real Roblox Parts (studded 4×1.2×2 bricks) where you click |
 | Gravity Coil / Speed Coil | Lower gravity / higher walk speed while held |
 | Bloxy Cola, Taco, Burger, Chicken, Pizza | Drink and eat, with the Roblox poses and sounds |
 | Teddy | Says its classic lines |
@@ -65,9 +65,12 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
   - each name is colored by Roblox's own name-color algorithm;
   - messages fade after 30 seconds;
   - the classic hint `To chat click here or press "/" key`.
+- **Roblox notifications** replace Minecraft's "Advancement Made!" and "New Recipes Unlocked!" toasts.
+- A **ForceField** protects you for 10 s after spawning or respawning.
 - **Settings menu:** open it with the **Rocraft** button next to Friends on the title screen. The Avatar tab shows your loaded character. It looks like the 2018 Roblox settings menu and has **Avatar**, **Gameplay** and **Graphics** tabs.
 
 ### Sounds and particles
+- Roblox character sounds from your install (RbxCharacterSounds): footsteps, jump, landing, falling wind, climbing, swimming and splash, replacing Minecraft's.
 - Classic Roblox sounds: slash, lunge, unsheath, oof, coils, cola, the bomb tick and explosion, the rocket whoosh and boom, the superball boing, the slingshot and the trowel.
 - Roblox's own Fire, Smoke and Explosion effects, built from the install's particle textures and color/alpha ramps. Fire and explosions glow additively.
 - Burning in lava or fire shows Roblox Fire on your character, and the rocket trails its Fire (Heat 5, Size 2).

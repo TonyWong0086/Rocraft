@@ -29,6 +29,9 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// MP3 decoding for the Roblox character sounds in the user's install (Minecraft only plays OGG); bundled in the jar
+	include(implementation("javazoom:jlayer:1.0.1"))
 }
 
 processResources {

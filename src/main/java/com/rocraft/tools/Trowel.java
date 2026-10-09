@@ -1,12 +1,7 @@
 package com.rocraft.tools;
 
 import com.rocraft.sim.McFrame;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -16,30 +11,31 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Trowel (WallMaker): at the mouse, facing the look direction snapped to an axis, build a wall 12 studs wide and
- * 4 high, one brick every 0.04 s, all one random colour. In blocks that is 3 wide x 2 high (rounded up so it
- * still stops a character), built one block per tick from the bottom row up.
+ * 4 high out of default Parts (4 x 1.2 x 2 studs), one every 0.04 s, all one BrickColor.Random(). Rows go up by the
+ * brick height (0, 1.2, 2.4, 3.6) and each row is three bricks from -6 to +6 studs.
  */
 public final class Trowel extends Item {
-	static final String[] COLORS = {"red", "blue", "yellow", "lime", "orange", "purple", "white", "black", "green", "cyan"};
+	static final double WALL_WIDTH = 12, WALL_HEIGHT = 4;
 
 	public Trowel(Properties p) { super(p); }
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
 		if (!(level instanceof ServerLevel sl)) return InteractionResult.CONSUME;
-		Vec3 target = Tools.mouse(p), look = target.subtract(p.getEyePosition());
-		boolean alongX = Math.abs(look.x) > Math.abs(look.z); // snap(): wall faces the dominant axis
-		int width = (int) Math.round(12 * McFrame.STUD), height = (int) Math.ceil(4 * McFrame.STUD);
-		var block = BuiltInRegistries.BLOCK.getValue(Identifier.withDefaultNamespace(COLORS[p.getRandom().nextInt(COLORS.length)] + "_concrete")).defaultBlockState();
-		BlockPos base = BlockPos.containing(target);
-		if (!sl.getBlockState(base).isAir()) base = base.above();
+		Vec3 target = Tools.mouse(p), to = target.subtract(p.getEyePosition());
+		// snap(): the wall faces the dominant horizontal axis of (target - head)
+		boolean lookAlongX = Math.abs(to.x) > Math.abs(to.z);
+		Vec3 look = lookAlongX ? new Vec3(Math.signum(to.x), 0, 0) : new Vec3(0, 0, Math.signum(to.z));
+		Vec3 right = look.cross(new Vec3(0, 1, 0)); // CFrame.new(pos, pos + lookAt).RightVector
+		int color = Launcher.randomBrickColor(p);
 		com.rocraft.RbxSounds.play(p, com.rocraft.RbxSounds.get("trowel.build")); // BuildSound = bass.wav
+		double s = McFrame.STUD;
 		int n = 0;
-		for (int y = 0; y < height; y++)
-			for (int i = 0; i < width; i++) {
-				int off = i - width / 2;
-				BlockPos pos = alongX ? base.offset(0, y, off) : base.offset(off, y, 0);
-				Tools.later(++n, () -> { if (sl.getBlockState(pos).canBeReplaced()) sl.setBlockAndUpdate(pos, block); });
+		for (double y = 0; y < WALL_HEIGHT; y += 1.2)
+			for (double x = -WALL_WIDTH / 2; x < WALL_WIDTH / 2; x += 4) {
+				// brick.CFrame = cf * CFrame.new(pos + brick.Size / 2); entity origin is the brick's bottom centre
+				Vec3 at = target.add(right.scale((x + 2) * s)).add(0, y * s, 0).subtract(look.scale(1 * s));
+				Tools.later(++n, () -> RobloxPart.place(sl, at, !lookAlongX, color)); // wait(brickSpeed)
 			}
 		return InteractionResult.CONSUME;
 	}

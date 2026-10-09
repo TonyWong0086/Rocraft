@@ -35,6 +35,8 @@ final class RbxParticle extends SingleQuadParticle {
 	int tint = 0xFFFFFF;
 	String colorRamp, alphaRamp;
 	boolean add, bright, rampIsAlpha; // rampIsAlpha: the colour ramp's brightness is the alpha (Smoke)
+	net.minecraft.world.entity.Entity follow; // moves with this entity (ForceField), offset fixed at spawn
+	private double ox, oy, oz;
 	private final float row;
 
 	private RbxParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SimpleParticleType type, int life) {
@@ -60,12 +62,14 @@ final class RbxParticle extends SingleQuadParticle {
 	RbxParticle sizes(float studs0, float studs1) { size0 = studs0 * STUD; size1 = studs1 * STUD; return this; }
 
 	void add() {
+		if (follow != null) { ox = x - follow.getX(); oy = y - follow.getY(); oz = z - follow.getZ(); }
 		update();
 		Minecraft.getInstance().particleEngine.add(this);
 	}
 
 	@Override public void tick() {
 		super.tick();
+		if (follow != null) setPos(follow.getX() + ox, follow.getY() + oy, follow.getZ() + oz);
 		xd *= drag; yd *= drag; zd *= drag;
 		oRoll = roll;
 		roll += spin;
@@ -189,9 +193,25 @@ final class RbxParticle extends SingleQuadParticle {
 		}
 	}
 
+	/** One tick of a 2017 ForceField around a character: the soft blue glow shell and its spinning vortex rings. */
+	static void forceField(ClientLevel l, net.minecraft.world.entity.Entity e) {
+		double x = e.getX(), y = e.getY() + 3 * STUD, z = e.getZ();
+		var g = make(l, x, y, z, 0, 0, 0, RbxParticles.FORCEFIELD_GLOW, 0.5f);
+		if (g == null) return;
+		g.sizes(7.5f, 7.5f); g.colorRamp = "forcefield_glow_color"; g.alphaRamp = "forcefield_glow_alpha"; g.add = true; g.bright = true; g.follow = e;
+		g.add();
+		if ((e.tickCount & 1) == 0) {
+			var v = make(l, x, y, z, 0, 0, 0, RbxParticles.FORCEFIELD_VORTEX, 0.6f);
+			v.sizes(6.5f, 7.2f); v.colorRamp = "forcefield_vortex_color"; v.alphaRamp = "forcefield_alpha"; v.add = true; v.bright = true; v.follow = e;
+			v.spin = (l.getRandom().nextBoolean() ? 1 : -1) * 0.15f;
+			v.add();
+		}
+	}
+
 	static void register() {
 		var reg = ParticleProviderRegistry.getInstance();
-		for (var t : new SimpleParticleType[]{RbxParticles.SMOKE, RbxParticles.FIRE, RbxParticles.SPARK, RbxParticles.EXPLOSION_SMOKE, RbxParticles.SHOCKWAVE, RbxParticles.IMPLOSION})
+		for (var t : new SimpleParticleType[]{RbxParticles.SMOKE, RbxParticles.FIRE, RbxParticles.SPARK, RbxParticles.EXPLOSION_SMOKE, RbxParticles.SHOCKWAVE, RbxParticles.IMPLOSION,
+				RbxParticles.FORCEFIELD_GLOW, RbxParticles.FORCEFIELD_VORTEX})
 			reg.register(t, sprites -> { SPRITES.put(t, sprites); return (opt, level, x, y, z, vx, vy, vz, rand) -> null; });
 		// the server sends one rbx_explosion with the BlastRadius (studs) as its x speed; the whole effect is built here
 		reg.register(RbxParticles.EXPLOSION, sprites -> {
@@ -203,7 +223,8 @@ final class RbxParticle extends SingleQuadParticle {
 	/** Particle textures for the private pack: Roblox *_main.dds -> PNG. */
 	static final Map<String, String> TEXTURES = Map.of("rbx_smoke", "smoke_main", "rbx_fire", "fire_main", "rbx_spark", "fire_sparks_main",
 		"rbx_explosion", "explosion01_core_main", "rbx_explosion_smoke", "explosion01_smoke_main",
-		"rbx_shockwave", "explosion01_shockwave_main", "rbx_implosion", "explosion01_implosion_main");
+		"rbx_shockwave", "explosion01_shockwave_main", "rbx_implosion", "explosion01_implosion_main",
+		"rbx_forcefield_glow", "forcefield_glow_main", "rbx_forcefield_vortex", "forcefield_vortex_main");
 
 	static void writeTextures(java.nio.file.Path assets) {
 		for (var e : TEXTURES.entrySet()) try {

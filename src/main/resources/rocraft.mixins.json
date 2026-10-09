@@ -6,6 +6,8 @@
 		"FallingBlockAccessor",
 		"NoDeathPoofMixin",
 		"NoSprintDustMixin",
+		"PlayerLandSoundMixin",
+		"PlayerMoveSoundMixin",
 		"PlayerSoundMixin",
 		"SwingMixin"
 	],
