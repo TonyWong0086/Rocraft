@@ -6,6 +6,11 @@
 >
 > Inspired by [@coah80](https://x.com/coah80) on X.
 
+> [!IMPORTANT]
+> **You need two things before Rocraft will look like Roblox.** None of Roblox's assets ship with this mod; they're loaded from your PC and your account:
+> 1. **Roblox installed** on the same PC ([roblox.com/download](https://www.roblox.com/download)). Rocraft reads the R6 body, fonts, UI, particle textures and sounds from it. Without it, those fall back to plain Minecraft visuals.
+> 2. **A Roblox Open Cloud API key** (free; see [Getting an API key](#getting-an-api-key)). It downloads your avatar's clothes and accessories, the gear models, animations and sounds. Without it you only get the Guest's body colors, no animations and no gear models.
+
 ---
 
 ## Features
@@ -56,7 +61,7 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 - The **"oof"** sound when you die, and no Minecraft hurt sounds, sprint dust or death smoke.
 
 ### 2018 interface
-- **Top bar:** menu, chat and backpack buttons. Your name sits above "Account: 13+"; the health bar takes that spot when you're hurt.
+- **Top bar:** menu, chat and backpack buttons. Your name sits above "Account: 13+", with a health bar under them once you've been hurt.
 - **Leaderstats** (Level, KOs, Wipeouts) appear in the top bar, each with its heading above its value.
 - A **Backpack-style hotbar**: click a slot or press its number to equip it, then again to unequip. No player list.
 - The backpack icon turns blue while your inventory is open, and the chat icon shows a count of unread messages.
@@ -94,24 +99,30 @@ Rocraft **never launches or hooks the Roblox client**. It only reads files and c
 - Minecraft **26.2**
 - Fabric Loader **0.19+** and **Fabric API**
 - **Java 25**
-- **Roblox installed** on the same PC (Player or Studio)
-- *(Optional)* a **Roblox Open Cloud API key** to load your own avatar
+- **Roblox installed** on the same PC (the Roblox Player or Roblox Studio). Rocraft finds it automatically in `%LOCALAPPDATA%\Roblox\Versions`.
+- **A Roblox Open Cloud API key**, so the Roblox assets can be downloaded (see below)
 
 ### Getting an API key
-1. Go to <https://create.roblox.com/dashboard/credentials> and create an API key.
+The key is free and only needs read access. Rocraft uses it to download assets (avatar clothing and accessories, gear, animations, sounds) through Roblox's Asset Delivery API.
+
+1. Sign in at <https://create.roblox.com/dashboard/credentials> and click **Create API Key**.
 2. Give it these permissions:
    - `legacy-assets:manage` (asset delivery);
    - `users:read`.
-3. In Minecraft, click **Rocraft** on the title screen, open the **Avatar** tab, and enter your Roblox username and the key.
+3. Under **Accepted IP Addresses**, add `0.0.0.0/0` (or your own IP), then save and copy the key.
+4. In Minecraft, click the **Rocraft** button (next to Friends) on the title screen, open the **Avatar** tab, enter your Roblox username and the key, and press **Load Avatar**.
+5. Restart Minecraft once so the gear, animations and sounds download into the "Rocraft Roblox Assets" pack.
 
 The key is stored **only** in `config/rocraft.json` on your PC and is never logged. **Don't share it.** If it leaks, regenerate it.
 
 ---
 
 ## Install
-1. Install Fabric Loader for 26.2. Any launcher works; Modrinth App is tested.
-2. Put **Fabric API** and the **Rocraft jar** in the `mods` folder.
-3. Launch the game. Rocraft builds and turns on the "Rocraft Roblox Assets" pack the first time it runs.
+1. **Install Roblox** on this PC and open it once so it finishes downloading.
+2. **Create an Open Cloud API key** ([Getting an API key](#getting-an-api-key)).
+3. Install Fabric Loader for 26.2. Any launcher works; Modrinth App is tested.
+4. Put **Fabric API** and the **Rocraft jar** in the `mods` folder.
+5. Launch the game. The Rocraft settings open on first run: enter your username and API key there. Rocraft builds and turns on the "Rocraft Roblox Assets" pack automatically.
 
 ## Build from source
 ```bash
