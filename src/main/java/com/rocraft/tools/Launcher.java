@@ -11,7 +11,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/** Rocket Launcher, Superball and Slingshot: Tool.Activated fires at the mouse (Tools.mouse). */
+/**
+ * Rocket Launcher, Superball, Slingshot and Paintball Gun: Tool.Activated fires at the mouse (Tools.mouse).
+ * Reloads (Tool.Enabled off): Rocket Launcher 3 s, Slingshot 0.2 s, Paintball Gun 0.5 s; the Superball has none.
+ */
 public final class Launcher extends Item {
 	private final int kind;
 
@@ -19,6 +22,10 @@ public final class Launcher extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
+		var stack = p.getItemInHand(hand);
+		if (p.getCooldowns().isOnCooldown(stack)) return InteractionResult.FAIL;
+		int reload = kind == Projectile.ROCKET ? 60 : kind == Projectile.PELLET ? 4 : kind == Projectile.PAINTBALL ? 10 : 0;
+		if (reload > 0) p.getCooldowns().addCooldown(stack, reload);
 		if (!(level instanceof ServerLevel sl)) return InteractionResult.CONSUME;
 		double stud = McFrame.STUD;
 		Vec3 head = p.position().add(0, 4.5 * stud, 0), target = Tools.mouse(p);
@@ -32,6 +39,11 @@ public final class Launcher extends Item {
 				Vec3 root = p.position().add(0, 3 * stud, 0);
 				Projectile.spawn(sl, p, kind, root.add(dir.scale(5 * stud)), dir.scale(200), randomBrickColor(p));
 				com.rocraft.RbxSounds.play(p, com.rocraft.RbxSounds.get("superball.boing"));
+			}
+			case Projectile.PAINTBALL -> { // PaintballShooter: from the character, 8 studs out, one of seven paint colours
+				Vec3 root = p.position().add(0, 3 * stud, 0);
+				Projectile.spawn(sl, p, kind, root.add(dir.scale(8 * stud)), dir.scale(300), PAINT[p.getRandom().nextInt(PAINT.length)]);
+				com.rocraft.RbxSounds.play(p, com.rocraft.RbxSounds.get("paintball_gun.fire"));
 			}
 			default -> { // Slingshot: launch 5 studs out, lowest ballistic angle that reaches the mouse at 85 studs/s
 				Vec3 launch = head.add(dir.scale(5 * stud));
@@ -53,6 +65,9 @@ public final class Launcher extends Item {
 		double r = Math.sqrt(in);
 		return Math.min(Math.atan((v * v + r) / (g * dx)), Math.atan((v * v - r) / (g * dx)));
 	}
+
+	/** PaintballShooter colors = {45, 119, 21, 24, 23, 105, 104}. */
+	static final int[] PAINT = {0xFFB4D2E4, 0xFFA4BD47, 0xFFC4281C, 0xFFF5CD30, 0xFF0D69AC, 0xFFE29B40, 0xFF6B327C};
 
 	/** A few classic BrickColors, like BrickColor.Random() lands on. */
 	static int randomBrickColor(Player p) {

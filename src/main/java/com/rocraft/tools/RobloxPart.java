@@ -17,31 +17,36 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * A Roblox Part: Instance.new("Part"), the default 4 x 1.2 x 2 stud brick with studs on top and inlets underneath,
- * in a BrickColor. Solid (characters stand on it). It stays where it was built, jointed to its neighbours, until an
- * explosion breaks its joints; then it falls, bounces and settles with Roblox gravity. The long side runs along X
- * or Z. Creative players remove one by hitting it.
+ * A Roblox Part: a box of any stud size (Instance.new("Part") is 4 x 1.2 x 2) in a BrickColor, studs on top and
+ * inlets underneath. Solid (characters stand on it). Anchored ones stay put, jointed to their neighbours, until an
+ * explosion breaks the joints; unanchored ones fall, bounce and settle with Roblox gravity. Optional lifetime
+ * (BrickCleanup / Debris). Creative players remove one by hitting it.
  */
 public final class RobloxPart extends Entity {
-	static final double W = 4 * McFrame.STUD, H = 1.2 * McFrame.STUD, D = 2 * McFrame.STUD;
 	static final EntityDataAccessor<Integer> COLOR = SynchedEntityData.defineId(RobloxPart.class, EntityDataSerializers.INT);
-	static final EntityDataAccessor<Boolean> ALONG_X = SynchedEntityData.defineId(RobloxPart.class, EntityDataSerializers.BOOLEAN);
+	/** Size in studs along world X, Y, Z. */
+	static final EntityDataAccessor<org.joml.Vector3fc> SIZE = SynchedEntityData.defineId(RobloxPart.class, EntityDataSerializers.VECTOR3);
 	static final EntityDataAccessor<Boolean> ANCHORED = SynchedEntityData.defineId(RobloxPart.class, EntityDataSerializers.BOOLEAN);
 
 	public RobloxPart(EntityType<? extends RobloxPart> type, Level level) { super(type, level); }
 
-	/** A brick whose bottom centre is at pos. */
-	static RobloxPart place(ServerLevel level, Vec3 pos, boolean alongX, int argb) {
+	private int lifetime = -1; // ticks, -1 = forever
+
+	/** A part whose bottom centre is at pos; size in studs (world X, Y, Z). */
+	static RobloxPart place(ServerLevel level, Vec3 pos, float sx, float sy, float sz, int argb, boolean anchored, int lifetimeTicks) {
 		var p = new RobloxPart(Tools.PART, level);
 		p.entityData.set(COLOR, argb);
-		p.entityData.set(ALONG_X, alongX);
+		p.entityData.set(SIZE, new org.joml.Vector3f(sx, sy, sz));
+		p.entityData.set(ANCHORED, anchored);
+		p.lifetime = lifetimeTicks;
 		p.setPos(pos);
 		level.addFreshEntity(p);
 		return p;
 	}
 
 	public int color() { return entityData.get(COLOR); }
-	public boolean alongX() { return entityData != null && entityData.get(ALONG_X); }
+	public void paint(int argb) { entityData.set(COLOR, argb); }
+	public org.joml.Vector3fc size() { return entityData == null ? new org.joml.Vector3f(4, 1.2f, 2) : entityData.get(SIZE); }
 	public boolean anchored() { return entityData.get(ANCHORED); }
 
 	/** Explosion: joints broken, flung with the blast (blocks/tick). */
@@ -53,20 +58,21 @@ public final class RobloxPart extends Entity {
 
 	@Override protected void defineSynchedData(SynchedEntityData.Builder b) {
 		b.define(COLOR, 0xFFA3A2A5); // Medium stone grey, the default BrickColor
-		b.define(ALONG_X, true);
+		b.define(SIZE, new org.joml.Vector3f(4, 1.2f, 2));
 		b.define(ANCHORED, true);
 	}
 
 	@Override
 	protected AABB makeBoundingBox(Vec3 pos) {
-		double hx = (alongX() ? W : D) / 2, hz = (alongX() ? D : W) / 2;
-		return new AABB(pos.x - hx, pos.y, pos.z - hz, pos.x + hx, pos.y + H, pos.z + hz);
+		var s = size();
+		double k = McFrame.STUD, hx = s.x() * k / 2, hz = s.z() * k / 2;
+		return new AABB(pos.x - hx, pos.y, pos.z - hz, pos.x + hx, pos.y + s.y() * k, pos.z + hz);
 	}
 
 	@Override
 	public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
 		super.onSyncedDataUpdated(key);
-		if (ALONG_X.equals(key)) setBoundingBox(makeBoundingBox());
+		if (SIZE.equals(key)) setBoundingBox(makeBoundingBox());
 	}
 
 	@Override protected double getDefaultGravity() { return McFrame.GRAVITY; }
@@ -74,6 +80,7 @@ public final class RobloxPart extends Entity {
 	@Override
 	public void tick() {
 		super.tick();
+		if (lifetime >= 0 && tickCount > lifetime && !level().isClientSide()) { discard(); return; }
 		if (anchored()) { setDeltaMovement(Vec3.ZERO); return; }
 		applyGravity();
 		Vec3 want = getDeltaMovement();
@@ -98,14 +105,20 @@ public final class RobloxPart extends Entity {
 	@Override
 	protected void readAdditionalSaveData(ValueInput in) {
 		entityData.set(COLOR, in.getIntOr("color", 0xFFA3A2A5));
-		entityData.set(ALONG_X, in.getBooleanOr("along_x", true));
+		boolean alongX = in.getBooleanOr("along_x", true); // parts saved before sizes existed were 4 x 1.2 x 2 bricks
+		entityData.set(SIZE, new org.joml.Vector3f(in.getFloatOr("sx", alongX ? 4 : 2), in.getFloatOr("sy", 1.2f), in.getFloatOr("sz", alongX ? 2 : 4)));
+		lifetime = in.getIntOr("lifetime", -1);
 		entityData.set(ANCHORED, in.getBooleanOr("anchored", true));
 	}
 
 	@Override
 	protected void addAdditionalSaveData(ValueOutput out) {
 		out.putInt("color", color());
-		out.putBoolean("along_x", alongX());
+		var s = size();
+		out.putFloat("sx", s.x());
+		out.putFloat("sy", s.y());
+		out.putFloat("sz", s.z());
+		if (lifetime >= 0) out.putInt("lifetime", Math.max(0, lifetime - tickCount));
 		out.putBoolean("anchored", anchored());
 	}
 }

@@ -17,7 +17,11 @@
   "rbxasset://textures/SlingshotTexture.png": 12224131,
   "rbxasset://textures/TrowelTexture.png": 12229499,
   "rbxasset://textures/bombtex.png": 12222348,
-  "rbxasset://textures/rocketlaunchertex.png": 12224070
+  "rbxasset://textures/rocketlaunchertex.png": 12224070,
+  "rbxasset://fonts/PaintballGun.mesh": 11900867,
+  "rbxasset://textures/PaintballGunTex128.png": 12224033,
+  "rbxasset://Textures/PaintballIcon.png": 12229471,
+  "rbxasset://sounds//paintball.wav": 11900833
  },
  "tools": {
   "RocketLauncher": {

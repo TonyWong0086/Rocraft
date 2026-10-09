@@ -43,6 +43,7 @@ public final class Tools {
 		GEAR.put("slingshot", "legacy:Slingshot");
 		GEAR.put("bomb", "legacy:Timebomb");
 		GEAR.put("trowel", "legacy:Trowel");
+		GEAR.put("paintball_gun", "asset:47532"); // Roblox's ClassicPaintballGun model
 		GEAR.put("gravity_coil", "asset:16688968");
 		GEAR.put("speed_coil", "asset:99119158");
 		GEAR.put("bloxy_cola", "asset:10472779");
@@ -55,7 +56,7 @@ public final class Tools {
 	/** StarterPack (hotbar order); the rest are in the Rocraft creative tab. */
 	static final List<String> STARTER = List.of("linked_sword", "rocket_launcher", "superball", "slingshot", "bomb", "trowel", "bloxy_cola");
 
-	public static Item LINKED_SWORD, ROCKET_LAUNCHER, SUPERBALL, SLINGSHOT, BOMB, TROWEL, GRAVITY_COIL, SPEED_COIL,
+	public static Item LINKED_SWORD, ROCKET_LAUNCHER, SUPERBALL, SLINGSHOT, PAINTBALL_GUN, BOMB, TROWEL, GRAVITY_COIL, SPEED_COIL,
 		BLOXY_COLA, TACO, BURGER, CHICKEN, PIZZA, TEDDY;
 	public static EntityType<BombEntity> BOMB_ENTITY;
 	public static EntityType<Projectile> PROJECTILE;
@@ -79,13 +80,14 @@ public final class Tools {
 
 	public static void register() {
 		var swordAttrs = ItemAttributeModifiers.builder()
-			.add(Attributes.ATTACK_DAMAGE, new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, 1.0, Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND) // 1 + 1 = 2 (Roblox slash 10)
+			.add(Attributes.ATTACK_DAMAGE, new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, -1.0, Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND) // 1 - 1 = 0: the blade's touch does the damage (LinkedSword.touch)
 			.add(Attributes.ATTACK_SPEED, new AttributeModifier(Item.BASE_ATTACK_SPEED_ID, 16.0, Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND) // no charge-up, Roblox clicks
 			.build();
 		LINKED_SWORD = item("linked_sword", p -> new LinkedSword(p.attributes(swordAttrs)));
 		ROCKET_LAUNCHER = item("rocket_launcher", p -> new Launcher(p, Projectile.ROCKET));
 		SUPERBALL = item("superball", p -> new Launcher(p, Projectile.SUPERBALL));
 		SLINGSHOT = item("slingshot", p -> new Launcher(p, Projectile.PELLET));
+		PAINTBALL_GUN = item("paintball_gun", p -> new Launcher(p, Projectile.PAINTBALL));
 		BOMB = item("bomb", BombItem::new);
 		TROWEL = item("trowel", Trowel::new);
 		GRAVITY_COIL = item("gravity_coil", Item::new);
@@ -157,6 +159,7 @@ public final class Tools {
 				if (s != null) RbxSounds.play(p, s);
 				HELD.put(p.getUUID(), now);
 			}
+			if (now == LINKED_SWORD) LinkedSword.touch(p);
 			// Gravity Coil: BodyForce cancels 75% of gravity (JumpHeightPercentage 0.25). Speed Coil: WalkSpeed 16 -> 32.
 			coil(p, Attributes.GRAVITY, "gravity_coil", now == GRAVITY_COIL, -0.75);
 			coil(p, Attributes.MOVEMENT_SPEED, "speed_coil", now == SPEED_COIL, 1.0);

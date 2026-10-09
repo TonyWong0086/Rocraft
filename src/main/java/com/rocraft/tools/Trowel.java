@@ -35,7 +35,7 @@ public final class Trowel extends Item {
 			for (double x = -WALL_WIDTH / 2; x < WALL_WIDTH / 2; x += 4) {
 				// brick.CFrame = cf * CFrame.new(pos + brick.Size / 2); entity origin is the brick's bottom centre
 				Vec3 at = target.add(right.scale((x + 2) * s)).add(0, y * s, 0).subtract(look.scale(1 * s));
-				Tools.later(++n, () -> RobloxPart.place(sl, at, !lookAlongX, color)); // wait(brickSpeed)
+				Tools.later(++n, () -> RobloxPart.place(sl, at, lookAlongX ? 2 : 4, 1.2f, lookAlongX ? 4 : 2, color, true, -1)); // wait(brickSpeed)
 			}
 		return InteractionResult.CONSUME;
 	}

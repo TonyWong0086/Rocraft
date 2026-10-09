@@ -30,10 +30,11 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 
 | Gear | What it does |
 |---|---|
-| Linked Sword | Click to slash, double-click to lunge |
-| Rocket Launcher | Fires a rocket toward the cursor; it explodes Roblox-style |
-| Superball | A bouncy ball thrown at the cursor |
-| Slingshot | Fires pellets |
+| Linked Sword | The blade hurts whatever it touches: 5 just held, 10 when you click to slash, 30 when you click again quickly to lunge. The lunge throws you a little forward and up |
+| Rocket Launcher | 60 studs/s rocket, flies straight with no gravity, 3 s reload. Explodes on anything it touches (you included, once clear of you): radius 8, 60 damage, knockback. Other projectiles can shoot it down |
+| Superball | Random-color ball at 200 studs/s, 25 damage, halved on each bounce off a non-character |
+| Slingshot | Red 1-stud pellet at 85 studs/s, 0.2 s reload, 8 damage (it can hit you too), halved on each bounce and gone below 1 |
+| Paintball Gun | Roblox's ClassicPaintballGun: 300 studs/s paintball, 2 damage, 0.5 s reload. It paints the Part it hits and splats three plates of paint |
 | Bomb | The classic ticking bomb that speeds up, then explodes |
 | Trowel | Builds a wall of real Roblox Parts (studded 4×1.2×2 bricks) where you click |
 | Gravity Coil / Speed Coil | Lower gravity / higher walk speed while held |
@@ -41,7 +42,7 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 | Teddy | Says its classic lines |
 
 - Gear models, textures and icons come from Roblox, never redrawn.
-- Gear numbers (speeds, blast radius) follow the original tool scripts. Gear has no cooldown, except the sword lunge.
+- Gear numbers (speeds, damage, reloads, blast radius) follow the original tool scripts.
 - Using gear doesn't swing your arm; only the sword plays its slash and lunge.
 - Explosions are Roblox-style: flash, shockwave, fireball, sparks and smoke, with no Minecraft explosion effect.
 - **Bomb and Rocket Launcher blasts tear blocks loose.** They fly off and tumble with physics, and become item drops after resting for 5 s.
@@ -88,7 +89,7 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 1. **Your local Roblox install** (`%LOCALAPPDATA%\Roblox\Versions\...`): the R6 meshes, fonts, UI textures, particle textures, stud textures and character sounds.
 2. **The Roblox Open Cloud API**, using your own key: avatar accessories, faces, clothing, animations, gear meshes, textures and sounds.
 
-The classic StarterPack tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel and the foods) point at old built-in `rbxasset://` files, for example `rbxasset://fonts/timebomb.mesh`. Roblox no longer ships those files with the client; it keeps website copies of them with normal asset IDs. Rocraft carries only that list of IDs plus each tool's grip and size numbers (`classic_tools.json`), and downloads the actual meshes, textures and sounds with your key.
+The classic StarterPack tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel, Paintball Gun and the foods) point at old built-in `rbxasset://` files, for example `rbxasset://fonts/timebomb.mesh`. Roblox no longer ships those files with the client; it keeps website copies of them with normal asset IDs. Rocraft carries only that list of IDs plus each tool's grip and size numbers (`classic_tools.json`), and downloads the actual meshes, textures and sounds with your key.
 
 *(Optional, older method: `tools/export_classic_tools.luau` + `tools/receive_export.ps1` export the tools from Roblox Studio into `config/rocraft/legacy`. If that folder exists it's used first; you don't need it.)*
 

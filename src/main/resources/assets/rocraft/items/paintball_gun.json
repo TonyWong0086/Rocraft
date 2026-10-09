@@ -1,0 +1,11 @@
+{
+	"model": {
+		"type": "minecraft:select",
+		"property": "minecraft:display_context",
+		"cases": [
+			{"when": ["thirdperson_righthand", "thirdperson_lefthand"], "model": {"type": "minecraft:empty"}},
+			{"when": ["firstperson_righthand", "firstperson_lefthand"], "model": {"type": "minecraft:special", "base": "rocraft:item/paintball_gun", "model": {"type": "rocraft:gear", "gear": "paintball_gun"}}}
+		],
+		"fallback": {"type": "minecraft:model", "model": "rocraft:item/paintball_gun"}
+	}
+}

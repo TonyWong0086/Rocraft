@@ -23,7 +23,7 @@ import net.minecraft.resources.Identifier;
  * smooth sides, all tinted by the BrickColor (the texture is normalised so its flat plastic is white).
  */
 final class PartRenderer extends EntityRenderer<RobloxPart, PartRenderer.State> {
-	static final class State extends EntityRenderState { int color; boolean alongX; }
+	static final class State extends EntityRenderState { int color; float sx, sy, sz; }
 	static final float STUD = 0.28f;
 	private static Identifier studs, inlets;
 	private static boolean tried;
@@ -36,14 +36,15 @@ final class PartRenderer extends EntityRenderer<RobloxPart, PartRenderer.State> 
 	public void extractRenderState(RobloxPart e, State s, float partial) {
 		super.extractRenderState(e, s, partial);
 		s.color = e.color();
-		s.alongX = e.alongX();
+		var size = e.size();
+		s.sx = size.x(); s.sy = size.y(); s.sz = size.z();
 	}
 
 	@Override
 	public void submit(State s, PoseStack ps, SubmitNodeCollector out, CameraRenderState cam) {
 		textures();
-		float hx = (s.alongX ? 4 : 2) * STUD / 2, hz = (s.alongX ? 2 : 4) * STUD / 2, h = 1.2f * STUD;
-		int nx = s.alongX ? 4 : 2, nz = s.alongX ? 2 : 4, light = s.lightCoords, c = s.color | 0xFF000000;
+		float hx = s.sx * STUD / 2, hz = s.sz * STUD / 2, h = s.sy * STUD;
+		int nx = Math.max(1, Math.round(s.sx)), nz = Math.max(1, Math.round(s.sz)), light = s.lightCoords, c = s.color | 0xFF000000;
 		Identifier white = BombRenderer.BALL.texture();
 		out.submitCustomGeometry(ps, RenderTypes.entityCutout(studs != null ? studs : white), (pose, vc) -> {
 			for (int i = 0; i < nx; i++) for (int k = 0; k < nz; k++) { // one stud per cell

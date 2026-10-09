@@ -29,7 +29,8 @@ final class RobloxPack {
 	static final Map<String, long[]> SCRIPT_SOUNDS = Map.of("teddy", new long[]{12844799, 12844794, 12803520, 12803507, 12803498});
 	/** Classic rbxasset:// sounds the old tools use, from Roblox's library copies (collide.wav, clickfast.wav, ...). */
 	static final Map<String, Long> CLASSIC_SOUNDS = Map.of("bomb/tick", 12221976L, "bomb/explode", 12222084L, "rocket_launcher/swoosh", 12222095L,
-		"rocket_launcher/boom", 12221984L, "superball/boing", 12222124L, "slingshot/sling", 12222103L, "trowel/build", 12221944L);
+		"rocket_launcher/boom", 12221984L, "superball/boing", 12222124L, "slingshot/sling", 12222103L, "trowel/build", 12221944L,
+		"paintball_gun/fire", 11900833L);
 
 	/** Blocking; only fetches what's missing. ponytail: runs before the title screen; async it if first launch gets slow. */
 	static void build() {

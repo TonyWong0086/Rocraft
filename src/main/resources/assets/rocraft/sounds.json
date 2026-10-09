@@ -25,6 +25,7 @@
 	"rocket_launcher.boom": {"sounds": ["rocraft:rocket_launcher/boom"]},
 	"superball.boing": {"sounds": ["rocraft:superball/boing"]},
 	"slingshot.sling": {"sounds": ["rocraft:slingshot/sling"]},
+	"paintball_gun.fire": {"sounds": ["rocraft:paintball_gun/fire"]},
 	"trowel.build": {"sounds": ["rocraft:trowel/build"]},
 	"oof": {"sounds": ["rocraft:oof"]}
 }
