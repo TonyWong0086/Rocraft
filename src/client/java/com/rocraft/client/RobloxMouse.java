@@ -76,6 +76,11 @@ public final class RobloxMouse {
 			return true;
 		}
 		if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+			if (active() && press && com.rocraft.RocraftConfig.INSTANCE.hud2018) { // clicking a backpack slot equips / unequips it
+				var w = mc.getWindow();
+				int slot = Hud2018.slotAt(mc.mouseHandler.xpos() * w.getWidth() / w.getScreenWidth(), mc.mouseHandler.ypos() * w.getHeight() / w.getScreenHeight());
+				if (slot >= 0) { Hud2018.toggle(mc, slot); return true; }
+			}
 			if (!active() && !gear) return false; // first person, non-Roblox item: vanilla attack/mine
 			if (press) {
 				long now = System.currentTimeMillis();

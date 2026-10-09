@@ -9,13 +9,14 @@ import java.nio.charset.StandardCharsets;
 import javax.imageio.ImageIO;
 
 /**
- * Who the player is in Rocraft. No username -> Guest (2018 default look).
+ * Who the player is in Rocraft. No username -> Guest, dressed like Roblox's 2017 Guests: the look of the DefaultGuest
+ * account Roblox copied onto them (ROBLOX 'R' Baseball Cap, ROBLOX Jacket, Black Jeans, classic head and face).
  * Public endpoints give id + body colors; with an Open Cloud key the worn Shirt/Pants templates are downloaded too.
  */
 public final class RobloxProfile {
-	// head, torso, leftArm, rightArm, leftLeg, rightLeg as 0xRRGGBB (classic default: yellow/blue/yellow/green)
-	public static final int[] GUEST = {0xF5CD30, 0x0D69AC, 0xF5CD30, 0xF5CD30, 0xA4BD47, 0xA4BD47};
-	public static final RobloxProfile GUEST_PROFILE = new RobloxProfile();
+	// head, torso, leftArm, rightArm, leftLeg, rightLeg as 0xRRGGBB: DefaultGuest's body colours
+	public static final int[] GUEST = {0xF2F3F3, 0x635F62, 0xF2F3F3, 0xF2F3F3, 0x6E99CA, 0x6E99CA};
+	static final String GUEST_ACCOUNT = "DefaultGuest";
 
 	public String name = "Guest 1337";
 	public boolean guest = true;
@@ -32,7 +33,8 @@ public final class RobloxProfile {
 	/** username blank => Guest. Blocking; call off the render thread. */
 	public static RobloxProfile load(String username, String apiKey) {
 		RobloxProfile p = new RobloxProfile();
-		if (username == null || username.isBlank()) return p;
+		boolean guest = username == null || username.isBlank();
+		if (guest) username = GUEST_ACCOUNT;
 		try {
 			JsonObject body = new JsonObject();
 			body.add("usernames", GSON.toJsonTree(new String[]{username}));
@@ -42,8 +44,10 @@ public final class RobloxProfile {
 				.getAsJsonObject().getAsJsonArray("data");
 			if (d.isEmpty()) return p;
 			p.userId = d.get(0).getAsJsonObject().get("id").getAsLong();
-			p.name = d.get(0).getAsJsonObject().get("name").getAsString();
-			p.guest = false;
+			if (!guest) {
+				p.name = d.get(0).getAsJsonObject().get("name").getAsString();
+				p.guest = false;
+			}
 			JsonObject a = send(HttpRequest.newBuilder(URI.create("https://avatar.roblox.com/v2/avatar/users/" + p.userId + "/avatar")).build()).getAsJsonObject();
 			JsonObject c = a.getAsJsonObject("bodyColor3s");
 			String[] keys = {"headColor3", "torsoColor3", "leftArmColor3", "rightArmColor3", "leftLegColor3", "rightLegColor3"};
@@ -53,7 +57,7 @@ public final class RobloxProfile {
 				String type = o.getAsJsonObject("assetType").get("name").getAsString();
 				if (type.equals("Shirt")) p.shirt = template(o.get("id").getAsLong(), "ShirtTemplate");
 				if (type.equals("Pants")) p.pants = template(o.get("id").getAsLong(), "PantsTemplate");
-				if (type.equals("DynamicHead")) try { p.head = dynamicHead(o.get("id").getAsLong(), p.colors[0]); }
+				if (type.equals("DynamicHead") && !guest) try { p.head = dynamicHead(o.get("id").getAsLong(), p.colors[0]); }
 					catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("dynamic head skipped: {}", ex.toString()); }
 				if (type.equals("Face")) try { p.face = faceDecal(o.get("id").getAsLong()); }
 					catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("face skipped: {}", ex.toString()); }

@@ -3,6 +3,7 @@
 	"package": "com.rocraft.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"AvatarStateMixin",
 		"BobMixin",
 		"CameraMixin",
 		"ChatComponentAccessor",
@@ -11,7 +12,9 @@
 		"MouseMixin",
 		"SpecialRenderersAccessor",
 		"MoveAccessor",
+		"PickMixin",
 		"R6ModelMixin",
+		"ScreenFireMixin",
 		"ScrollMixin",
 		"SkinMixin",
 		"TurnMixin",

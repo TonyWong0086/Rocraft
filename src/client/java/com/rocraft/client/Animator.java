@@ -15,13 +15,18 @@ import org.joml.Matrix4f;
  */
 final class Animator {
 	static final long WALK = 180426354L, IDLE = 180435571L, IDLE2 = 180435792L, JUMP = 125750702L, FALL = 180436148L,
-		CLIMB = 180436334L, SIT = 178130996L, TOOLNONE = 182393478L, SLASH = 129967390L, LUNGE = 129967478L;
+		CLIMB = 180436334L, SIT = 178130996L, TOOLNONE = 182393478L, SLASH = 129967390L, LUNGE = 129967478L,
+		WAVE = 128777973L, POINT = 128853357L, LAUGH = 129423131L, CHEER = 129423030L;
+	/** Animate: dance = 3 variations picked at random, each loops. */
+	static final long[] DANCE = {182435998L, 182491037L, 182491065L};
+	/** Chat emotes: "/e name" (Animate's emoteNames; dance loops, the rest play once). */
+	static final Map<String, long[]> EMOTES = Map.of("dance", DANCE, "wave", new long[]{WAVE}, "point", new long[]{POINT}, "laugh", new long[]{LAUGH}, "cheer", new long[]{CHEER});
 	private static final Map<Long, RbxAnim> ANIMS = new ConcurrentHashMap<>();
 	private static final Map<Integer, Animator> BY_ENTITY = new HashMap<>();
 
 	static void load() {
 		Thread.startVirtualThread(() -> {
-			for (long id : new long[]{WALK, IDLE, IDLE2, JUMP, FALL, CLIMB, SIT, TOOLNONE, SLASH, LUNGE}) {
+			for (long id : new long[]{WALK, IDLE, IDLE2, JUMP, FALL, CLIMB, SIT, TOOLNONE, SLASH, LUNGE, WAVE, POINT, LAUGH, CHEER, DANCE[0], DANCE[1], DANCE[2]}) {
 				try { ANIMS.put(id, RbxAnim.read(RobloxApi.asset(id))); }
 				catch (Exception e) { Rocraft.LOGGER.warn("Roblox animation {} unavailable: {}", id, e.toString()); }
 			}
@@ -34,12 +39,24 @@ final class Animator {
 	}
 
 	private long base = IDLE, action, prevBase;
+	private long emote;
 	private float t, actionT, jumpTimer, prevT, prevRate, fade = 1, fadeLen = 0.1f, rateNow = 1;
 	private long lastNanos = System.nanoTime();
 	private boolean wasOnGround = true, wasSwinging;
 
 	/** Part CFrames relative to HumanoidRootPart (R6 order). */
-	Matrix4f[] pose(Player p, boolean holdingGear, boolean swinging, boolean lunging) {
+	/** Start a chat emote ("/e dance"); stops as soon as the character moves, like Roblox. */
+	boolean emote(String name) {
+		long[] ids = EMOTES.get(name);
+		if (ids == null) return false;
+		emote = ids[(int) (Math.random() * ids.length)];
+		return true;
+	}
+
+	/** A loaded Roblox animation by id (null until it has downloaded). */
+	static RbxAnim anim(long id) { return ANIMS.get(id); }
+
+	Matrix4f[] pose(Player p, boolean holdingGear, boolean swinging, boolean lunging, boolean flying) {
 		long now = System.nanoTime();
 		float dt = Math.min(0.1f, (now - lastNanos) / 1e9f);
 		lastNanos = now;
@@ -53,10 +70,13 @@ final class Animator {
 
 		long want;
 		float rate = 1;
-		if (p != null && p.isPassenger()) want = SIT;
+		if (emote != 0 && (speed > 0.5 || !onGround || flying)) emote = 0; // Animate: any other pose replaces the emote
+		if (flying) want = 0; // admin fly (PlatformStand + BodyGyro): no animation, just the rest pose
+		else if (p != null && p.isPassenger()) want = SIT;
 		else if (p != null && p.onClimbable() && !onGround) { want = CLIMB; rate = (float) (Math.abs(vy) / 12); }
 		else if (!onGround && (p == null || !p.isInWater())) want = jumpTimer > 0 ? JUMP : FALL;
 		else if (speed > 0.5) { want = WALK; rate = (float) (speed / 14.5); }
+		else if (emote != 0) want = emote;
 		else want = base == IDLE2 ? IDLE2 : IDLE;
 		if (want != base && !(want == IDLE && base == IDLE2)) { // Animate: playAnimation(name, transitionTime) crossfades
 			prevBase = base; prevT = t; prevRate = rateNow;
@@ -68,6 +88,7 @@ final class Animator {
 		prevT += dt * prevRate;
 		fade = Math.min(1, fade + dt / fadeLen);
 		RbxAnim baseAnim = ANIMS.get(base);
+		if (base == emote && emote != 0 && baseAnim != null && !baseAnim.loop && t >= baseAnim.length) emote = 0; // wave, laugh, cheer play once
 		if (base == IDLE || base == IDLE2) { // Animate picks a new idle when one finishes: Animation1 weight 9, Animation2 weight 1
 			if (baseAnim != null && t >= baseAnim.length) { base = Math.random() < 0.1 ? IDLE2 : IDLE; t = 0; baseAnim = ANIMS.get(base); }
 		}

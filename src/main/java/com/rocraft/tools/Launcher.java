@@ -19,7 +19,7 @@ public final class Launcher extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
-		if (!(level instanceof ServerLevel sl)) return InteractionResult.SUCCESS;
+		if (!(level instanceof ServerLevel sl)) return InteractionResult.CONSUME;
 		double stud = McFrame.STUD;
 		Vec3 head = p.position().add(0, 4.5 * stud, 0), target = Tools.mouse(p);
 		Vec3 dir = target.subtract(head).normalize();
@@ -43,7 +43,7 @@ public final class Launcher extends Item {
 				com.rocraft.RbxSounds.play(p, com.rocraft.RbxSounds.get("slingshot.sling"));
 			}
 		}
-		return InteractionResult.SUCCESS;
+		return InteractionResult.CONSUME;
 	}
 
 	/** Slingshot.computeLaunchAngle: lower of the two angles, 45 degrees if out of reach. */

@@ -7,7 +7,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.PlayerSkinWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -50,15 +49,11 @@ public final class SettingsScreen extends Screen {
 
 	@Override protected void init() {
 		var c = RocraftConfig.INSTANCE;
-		int s = s();
 		if (tab == 0) {
 			int fx = hubX() + avatarRowsW() - 300;
 			user = field(fx, rowsTop(), 280, "Roblox username (blank = Guest)", c.username, 20);
 			key = field(fx, rowsTop() + ROW, 280, "Open Cloud API key (optional)", c.apiKey, 4096);
 			key.addFormatter((t, i) -> FormattedCharSequence.forward("*".repeat(t.length()), Style.EMPTY));
-			var preview = addRenderableWidget(new PlayerSkinWidget(110, 150, minecraft.getEntityModels(), () -> AvatarSkin.skin(RocraftClient.profile, null)));
-			int px = hubX() + avatarRowsW() + (hubW() - avatarRowsW()) / 2;
-			preview.setPosition(px / s - 55, rowsTop() / s);
 		}
 	}
 
@@ -126,7 +121,16 @@ public final class SettingsScreen extends Screen {
 				y += ROW;
 				RbxFont.draw(g, "Your key stays in config/rocraft.json on this PC.", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
 				var p = RocraftClient.profile;
-				int px = hx + rw + (hw - rw) / 2, py = rowsTop() + 150 * s + 10;
+				// avatar frame: your character as it loads, like the 2018 avatar thumbnail
+				int px = hx + rw + (hw - rw) / 2, fy = rowsTop(), fw = AvatarFrame.W, fh = AvatarFrame.H;
+				nine(g, UI + "MenuBarAssets/MenuButton.png", px - fw / 2 - 8, fy - 8, fw + 16, fh + 16, 54, 54, 8, 0xFFFFFFFF);
+				Identifier pic = AvatarFrame.texture(p);
+				if (pic != null) g.blit(RenderPipelines.GUI_TEXTURED, pic, px - fw / 2, fy, 0, 0, fw, fh, fw, fh);
+				if (pic == null || AvatarFrame.busy() || RocraftClient.loading) {
+					String l = "Loading...";
+					RbxFont.draw(g, l, px - RbxFont.width(l, 20, false) / 2, fy + fh - 34, 20, false, 0xFFDCDCDC);
+				}
+				int py = fy + fh + 18;
 				RbxFont.draw(g, p.name, px - RbxFont.width(p.name, 24, true) / 2, py, 24, true, 0xFFFFFFFF);
 				String sub = p.guest ? "Guest" : "Account: 13+";
 				RbxFont.draw(g, sub, px - RbxFont.width(sub, 18, false) / 2, py + 30, 18, false, 0xFFB4B4B4);

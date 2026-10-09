@@ -58,9 +58,23 @@ public final class RobloxCamera {
 		return focus.add(back);
 	}
 
+	/**
+	 * HD Admin / Adonis fly: the character's BodyGyro follows the camera, so while flying it faces exactly where the
+	 * camera looks, pitch included (AvatarLayer tilts the body by it). Called every tick.
+	 */
+	public static void flyFacing() {
+		var p = Minecraft.getInstance().player;
+		if (p == null || !orbiting() || !p.getAbilities().flying) return;
+		p.setYRot(yaw);
+		p.setYHeadRot(yaw);
+		p.setYBodyRot(yaw);
+		p.setXRot(pitch);
+	}
+
 	/** WASD relative to the camera: the character faces the walk direction and moves forward. */
 	public static Vec2 steer(Vec2 move) {
 		var p = Minecraft.getInstance().player;
+		if (p != null && p.getAbilities().flying) { flyFacing(); return move; } // admin fly: strafe relative to the camera
 		if (move.lengthSquared() < 1e-4f || p == null) return move;
 		double r = Math.toRadians(yaw);
 		double dx = move.y * -Math.sin(r) + move.x * Math.cos(r), dz = move.y * Math.cos(r) + move.x * Math.sin(r);

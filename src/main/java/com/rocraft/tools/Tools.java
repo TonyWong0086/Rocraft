@@ -58,6 +58,7 @@ public final class Tools {
 		BLOXY_COLA, TACO, BURGER, CHICKEN, PIZZA, TEDDY;
 	public static EntityType<BombEntity> BOMB_ENTITY;
 	public static EntityType<Projectile> PROJECTILE;
+	public static EntityType<Debris> DEBRIS;
 	public static volatile long clientLungeAt; // local player's last lunge (client), drives the toollunge animation
 	/** Local player's current "using" grip (eating, drinking, hugging), client side. */
 	public static volatile Item clientUseItem;
@@ -98,6 +99,10 @@ public final class Tools {
 		var projKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("projectile"));
 		PROJECTILE = Registry.register(BuiltInRegistries.ENTITY_TYPE, projKey,
 			EntityType.Builder.<Projectile>of(Projectile::new, MobCategory.MISC).sized(0.3f, 0.3f).clientTrackingRange(10).updateInterval(1).build(projKey));
+
+		var debrisKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("debris"));
+		DEBRIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, debrisKey,
+			EntityType.Builder.<Debris>of(Debris::new, MobCategory.MISC).sized(0.98f, 0.98f).clientTrackingRange(10).updateInterval(2).build(debrisKey));
 
 		// Rocraft page in the creative inventory: every classic tool
 		var tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Rocraft.id("gear"));

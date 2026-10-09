@@ -19,14 +19,11 @@ public final class Food extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
-		var stack = p.getItemInHand(hand);
-		if (p.getCooldowns().isOnCooldown(stack)) return InteractionResult.FAIL;
-		p.getCooldowns().addCooldown(stack, 16);
 		if (level.isClientSide()) Tools.clientUse(this, 800);
 		else {
 			RbxSounds.play(p, RbxSounds.get(eatSound));
 			Tools.later(16, () -> { if (p.isAlive()) p.heal(1.6f * 0.2f); });
 		}
-		return InteractionResult.SUCCESS;
+		return InteractionResult.CONSUME;
 	}
 }

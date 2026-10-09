@@ -3,6 +3,7 @@
 	"package": "com.rocraft.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
+		"FallingBlockAccessor",
 		"NoDeathPoofMixin",
 		"NoSprintDustMixin",
 		"PlayerSoundMixin",

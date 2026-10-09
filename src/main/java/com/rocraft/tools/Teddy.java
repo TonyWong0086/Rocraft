@@ -13,11 +13,8 @@ public final class Teddy extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
-		var stack = p.getItemInHand(hand);
-		if (p.getCooldowns().isOnCooldown(stack)) return InteractionResult.FAIL;
-		p.getCooldowns().addCooldown(stack, 40);
 		if (level.isClientSide()) Tools.clientUse(this, 2000);
 		else RbxSounds.play(p, RbxSounds.get("teddy.say" + (1 + p.getRandom().nextInt(5))));
-		return InteractionResult.SUCCESS;
+		return InteractionResult.CONSUME;
 	}
 }

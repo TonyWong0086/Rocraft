@@ -52,7 +52,7 @@ final class RobloxPack {
 	/** Tool icon (TextureId, what the 2018 backpack shows) + its sounds, read from the tool's own model. */
 	static void gear(String name, String source) {
 		try {
-			Path icon = ASSETS.resolve("textures/item/" + name + ".png"), mark = ASSETS.resolve("textures/item/" + name + ".from_tool");
+			Path icon = ASSETS.resolve("textures/item/" + name + ".png"), mark = ASSETS.resolve("textures/item/" + name + ".from_tool2");
 			if (source.startsWith("asset:") && !RobloxApi.hasKey()) { // public thumbnail until a key is set
 				if (!Files.exists(icon)) write(icon, square(thumbnail(Long.parseLong(source.substring(6))), 128));
 				return;
@@ -123,6 +123,11 @@ final class RobloxPack {
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		g.drawImage(src, 0, 0, n, n, null);
 		g.dispose();
+		// item icons are alpha-tested: faint antialiased edges would turn into solid white specks, so cut them cleanly
+		for (int y = 0; y < n; y++) for (int x = 0; x < n; x++) {
+			int c = dst.getRGB(x, y);
+			dst.setRGB(x, y, (c >>> 24) < 128 ? 0 : c | 0xFF000000);
+		}
 		return dst;
 	}
 }

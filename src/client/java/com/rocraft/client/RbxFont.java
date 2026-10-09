@@ -91,4 +91,33 @@ final class RbxFont {
 			x += a.w[c];
 		}
 	}
+
+	/**
+	 * Text in the world (name above a head): glyph quads in the current pose, 1 unit = 1 font pixel, y down,
+	 * unlit. Falls back to Minecraft's font when the Roblox font is off.
+	 */
+	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, int px, boolean bold, int argb) {
+		if (base(bold) == null) {
+			ps.pushPose();
+			ps.translate(x, y, 0);
+			ps.scale(px / 9f, px / 9f, 1);
+			out.submitText(ps, 0, 0, net.minecraft.network.chat.Component.literal(s).getVisualOrderText(), false,
+				net.minecraft.client.gui.Font.DisplayMode.NORMAL, 0xF000F0, argb, 0, 0);
+			ps.popPose();
+			return;
+		}
+		Atlas a = atlas(px, bold);
+		out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.entityTranslucentEmissive(a.id), (pose, vc) -> {
+			float cx = x;
+			for (char c0 : s.toCharArray()) {
+				int c = ch(c0);
+				float u0 = a.u[c] / (float) a.texW, u1 = (a.u[c] + a.w[c]) / (float) a.texW, v0 = a.v[c] / (float) a.texH, v1 = (a.v[c] + a.lineH) / (float) a.texH;
+				float[][] q = {{cx, y, u0, v0}, {cx, y + a.lineH, u0, v1}, {cx + a.w[c], y + a.lineH, u1, v1}, {cx + a.w[c], y, u1, v0}};
+				for (float[] k : q)
+					vc.addVertex(pose, k[0], k[1], 0).setColor(argb).setUv(k[2], k[3]).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY)
+						.setLight(0xF000F0).setNormal(pose, 0, 0, -1);
+				cx += a.w[c];
+			}
+		});
+	}
 }

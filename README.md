@@ -15,7 +15,10 @@
 - **Body colors, shirt and pants** come from your Roblox profile.
 - **Accessories** (hats, hair and so on) and your **face** are loaded from Roblox, not the default smile. Dynamic heads are supported too.
 - **Roblox R6 animations** (idle, walk, jump, fall, climb, tool hold, sword slash and lunge) are read from Roblox's own animation files and blended the same way Roblox does.
-- **No API key?** You play as a **Guest**, like old Roblox.
+- **No API key?** You play as the **2017 Guest** (the black R cap, ROBLOX Jacket, Black Jeans).
+- **Chat emotes:** `/e dance`, `/e wave`, `/e laugh`, `/e cheer`, `/e point`.
+- **Flying** (creative) works like HD Admin / Adonis fly: no animation, and the body faces wherever the camera looks.
+- **Your name floats above your head**, Roblox-style, with a health bar once you're hurt.
 
 ### Classic gear
 All gear has its own **Rocraft creative-inventory tab**. The StarterPack can also be handed out automatically.
@@ -33,13 +36,16 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 | Teddy | Says its classic lines |
 
 - Gear models, textures and icons come from Roblox, never redrawn.
-- Gear numbers (speeds, cooldowns, blast radius) follow the original tool scripts.
-- Explosions are Roblox-style, with Roblox's fireball, smoke and spark particles and no Minecraft explosion effect.
+- Gear numbers (speeds, blast radius) follow the original tool scripts. Gear has no cooldown, except the sword lunge.
+- Using gear doesn't swing your arm; only the sword plays its slash and lunge.
+- Explosions are Roblox-style: flash, shockwave, fireball, sparks and smoke, with no Minecraft explosion effect.
+- **Bomb and Rocket Launcher blasts tear blocks loose.** They fly off and tumble with physics, and become item drops after resting for 5 s.
+- The planted bomb is a mirror ball (Reflectance 1), like the original.
 
 ### Camera and controls (Roblox-style)
 - **Free cursor**, shown as Roblox's arrow.
 - **Right-drag** rotates the camera; the **scroll wheel** zooms (0.5 to 400 studs).
-- **Left click** uses the held gear. **Right click never triggers gear**, as in Roblox.
+- **Left click** uses the held gear, and **Minecraft mining and placing act on the block under the mouse**. **Right click never triggers gear**, as in Roblox.
 - **First person:** zoom all the way in and the mouse switches to mouse-look automatically.
 - **No camera shake** while walking.
 - The camera stops at walls instead of going through them.
@@ -52,17 +58,19 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 ### 2018 interface
 - **Top bar:** menu, chat and backpack buttons. Your name sits above "Account: 13+"; the health bar takes that spot when you're hurt.
 - **Leaderstats** (Level, KOs, Wipeouts) appear in the top bar, each with its heading above its value.
-- A **Backpack-style hotbar** and no player list.
+- A **Backpack-style hotbar**: click a slot or press its number to equip it, then again to unequip. No player list.
+- The backpack icon turns blue while your inventory is open, and the chat icon shows a count of unread messages.
 - **2018 chat:**
   - `[Name]: message` in SourceSans;
   - each name is colored by Roblox's own name-color algorithm;
   - messages fade after 30 seconds;
   - the classic hint `To chat click here or press "/" key`.
-- **Settings menu:** open it with the **Rocraft** button on the title screen. It looks like the 2018 Roblox settings menu and has **Avatar**, **Gameplay** and **Graphics** tabs.
+- **Settings menu:** open it with the **Rocraft** button next to Friends on the title screen. The Avatar tab shows your loaded character. It looks like the 2018 Roblox settings menu and has **Avatar**, **Gameplay** and **Graphics** tabs.
 
 ### Sounds and particles
 - Classic Roblox sounds: slash, lunge, unsheath, oof, coils, cola, the bomb tick and explosion, the rocket whoosh and boom, the superball boing, the slingshot and the trowel.
-- Roblox particle textures for smoke, fire, sparks and explosions, colored and faded the way Roblox does it.
+- Roblox's own Fire, Smoke and Explosion effects, built from the install's particle textures and color/alpha ramps. Fire and explosions glow additively.
+- Burning in lava or fire shows Roblox Fire on your character, and the rocket trails its Fire (Heat 5, Size 2).
 
 ---
 

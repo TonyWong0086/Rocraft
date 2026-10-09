@@ -16,9 +16,9 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * The planted classic bomb (Bomb script): a 2-stud ball, Bright red, flashing Black/Bright red with a tick each beat;
+ * The planted classic bomb (Bomb script): a 2-stud mirror ball (Reflectance 1) ticking each beat;
  * the beat starts at 0.4 s and shrinks x0.9 until it's under 0.1 s, then Explosion BlastRadius 12. Unanchored, so it
- * falls and rolls. Roblox explosions kill characters in the radius and leave terrain alone.
+ * falls and rolls. The blast kills characters in the radius and blows the bricks around it loose.
  */
 public final class BombEntity extends Entity {
 	static final double RADIUS = 12 * McFrame.STUD;
@@ -35,13 +35,6 @@ public final class BombEntity extends Entity {
 	public BombEntity(EntityType<? extends BombEntity> type, Level level) { super(type, level); }
 
 	void setOwner(Player p) { owner = p; }
-
-	/** Bright red (21) before the first flip, then alternating Black (26) / Bright red. */
-	public static boolean red(int age) {
-		int n = 0;
-		for (int f : FLIPS) if (age >= f) n++;
-		return n % 2 == 0;
-	}
 
 	@Override protected double getDefaultGravity() { return McFrame.GRAVITY; }
 

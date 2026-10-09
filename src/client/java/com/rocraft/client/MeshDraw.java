@@ -14,7 +14,7 @@ import org.joml.Vector3f;
 final class MeshDraw {
 	final float[] pos, nrm, uv;
 	final int count; // corners (3 per triangle)
-	BufferedImage image; // until uploaded
+	BufferedImage image; // source pixels (kept for the Settings avatar picture)
 	private Identifier tex;
 	private static int seq;
 
@@ -151,7 +151,6 @@ final class MeshDraw {
 			for (int y = 0; y < img.getHeight(); y++) for (int x = 0; x < img.getWidth(); x++) ni.setPixel(x, y, img.getRGB(x, y));
 			tex = Rocraft.id("mesh/" + (seq++));
 			Minecraft.getInstance().getTextureManager().register(tex, new DynamicTexture(() -> "rocraft mesh", ni));
-			image = null;
 		}
 		return tex;
 	}

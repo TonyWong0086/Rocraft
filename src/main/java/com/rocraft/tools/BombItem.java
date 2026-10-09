@@ -10,16 +10,13 @@ import net.minecraft.world.level.Level;
 
 /**
  * The classic Roblox Bomb ("Timebomb" Tool, PlantBomb script): click to plant a bomb 3 studs above the handle,
- * the handle disappears, and the tool is ready again after wait(6).
+ * the handle disappears, and no debounce (Rocraft asks for spammable tools).
  */
 public final class BombItem extends Item {
 	public BombItem(Properties p) { super(p); }
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
-		var stack = p.getItemInHand(hand);
-		if (p.getCooldowns().isOnCooldown(stack)) return InteractionResult.FAIL;
-		p.getCooldowns().addCooldown(stack, 6 * 20);
 		if (level instanceof ServerLevel sl) {
 			var b = new BombEntity(Tools.BOMB_ENTITY, sl);
 			var look = p.getLookAngle().multiply(1, 0, 1).normalize();
@@ -28,6 +25,6 @@ public final class BombItem extends Item {
 			b.setOwner(p);
 			sl.addFreshEntity(b);
 		}
-		return InteractionResult.SUCCESS;
+		return InteractionResult.CONSUME;
 	}
 }

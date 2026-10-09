@@ -22,6 +22,26 @@ final class Hud2018 {
 	static final int EQUIP = 0xFF5A8EE9;         // Color3(90,142,233), equipped slot
 	static final int TOP = 36, SLOT = 60, GAP = 5;
 
+	/** Hotbar slots drawn last frame: {x, y, inventory slot} in screen pixels, for mouse clicks. */
+	static final List<int[]> SLOTS = new ArrayList<>();
+
+	/**
+	 * Backpack: equip a slot, or unequip it if it is the one already held (number key or click). Unequipped = holding
+	 * an empty hotbar slot, which the Roblox hotbar doesn't show.
+	 */
+	static void toggle(Minecraft mc, int slot) {
+		var inv = mc.player.getInventory();
+		if (slot != inv.getSelectedSlot() || inv.getItem(slot).isEmpty()) { inv.setSelectedSlot(slot); return; }
+		for (int i = 0; i < 9; i++) if (inv.getItem(i).isEmpty()) { inv.setSelectedSlot(i); return; }
+		// ponytail: every hotbar slot is full, so there is no empty hand to switch to; the tool stays equipped
+	}
+
+	/** Hotbar slot under a screen-pixel point, or -1. */
+	static int slotAt(double x, double y) {
+		for (int[] s : SLOTS) if (x >= s[0] && x < s[0] + SLOT && y >= s[1] && y < s[1] + SLOT) return s[2];
+		return -1;
+	}
+
 	static void register() {
 		for (Identifier id : List.of(VanillaHudElements.HOTBAR, VanillaHudElements.HEALTH_BAR, VanillaHudElements.FOOD_BAR,
 				VanillaHudElements.ARMOR_BAR, VanillaHudElements.AIR_BAR, VanillaHudElements.MOUNT_HEALTH,
@@ -43,7 +63,14 @@ final class Hud2018 {
 		icon(g, "Menu/Hamburger.png", 16, 6, 32, 25);
 		boolean chatOpen = mc.gui.screen() instanceof net.minecraft.client.gui.screens.ChatScreen;
 		icon(g, chatOpen ? "Chat/ChatDown.png" : "Chat/Chat.png", 62, 5, 28, 27); // 2018 chat: white, Roblox blue (#00A2FE) when open
-		icon(g, "Backpack/Backpack.png", 106, 4, 22, 28);
+		int unread = RobloxChat.unread(mc);
+		if (unread > 0 && !chatOpen) { // MessageCounter badge on the chat icon
+			icon(g, "Chat/MessageCounter.png", 80, 2, 18, 18);
+			String n = unread > 99 ? "99+" : String.valueOf(unread);
+			RbxFont.draw(g, n, 89 - RbxFont.width(n, 13, true) / 2, 3, 13, true, 0xFFFFFFFF);
+		}
+		boolean invOpen = mc.gui.screen() instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>;
+		icon(g, invOpen ? "Backpack/Backpack_Down.png" : "Backpack/Backpack.png", 106, 4, 22, 28); // blue while the backpack is open
 		// right side, as the 2018 top bar: [name / "Account: 13+" (health bar when hurt)] [stat columns: name over value]
 		var prof = RocraftClient.profile;
 		String[][] stats = leaderstats(mc);
@@ -74,7 +101,9 @@ final class Hud2018 {
 		List<Integer> slots = new ArrayList<>();
 		for (int i = 0; i < 9; i++) if (!inv.getItem(i).isEmpty()) slots.add(i);
 		int x = (W - (slots.size() * (SLOT + GAP) - GAP)) / 2, y = H - SLOT - 4;
+		SLOTS.clear();
 		for (int i : slots) {
+			SLOTS.add(new int[]{x, y, i});
 			if (i == inv.getSelectedSlot()) g.fill(x - 3, y - 3, x + SLOT + 3, y + SLOT + 3, EQUIP);
 			g.fill(x, y, x + SLOT, y + SLOT, i == inv.getSelectedSlot() ? 0xE01F1F1F : BG);
 			var st = inv.getItem(i);

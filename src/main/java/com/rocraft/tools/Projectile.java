@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Classic Roblox projectiles, numbers from their scripts (Roblox damage x0.2 for Minecraft health):
- * ROCKET (RocketLauncher.Server/Rocket): 60 studs/s, no gravity, explodes on touch, radius 8, damage 60.
+ * ROCKET (RocketLauncher.Server/Rocket): 60 studs/s, no gravity, explodes on touch, radius 8, damage 60, carries Fire (Heat 5, Size 2).
  * SUPERBALL (CannonScript/CannonBall): 2-stud ball, 200 studs/s, Elasticity 1, Friction 0, damage 25 halving on each
  *   non-character hit, sound at most every 0.1 s, gone after 5 s.
  * PELLET (Slingshot/PelletScript): 1-stud Bright red ball, 85 studs/s, damage 8 halving; gone below 1 or after 2 s.
@@ -63,10 +63,7 @@ public final class Projectile extends Entity {
 		move(MoverType.SELF, want);
 		Vec3 got = getDeltaMovement();
 		boolean hitBlock = horizontalCollision || verticalCollision;
-		if (level().isClientSide()) {
-			if (kind == ROCKET) level().addParticle(com.rocraft.RbxParticles.FIRE, getX(), getY(), getZ(), 0, 0.02, 0); // the rocket's Fire (Heat 5, Size 2)
-			return;
-		}
+		if (level().isClientSide()) return; // the rocket's Fire is emitted client side (GearEffects)
 		var sl = (ServerLevel) level();
 		for (LivingEntity e : sl.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(0.15), e -> e != owner && e.isAlive())) {
 			if (kind == ROCKET) { explode(sl); return; }
@@ -90,7 +87,7 @@ public final class Projectile extends Entity {
 		return true;
 	}
 
-	/** Rocket: Explosion BlastRadius 8, BLAST_DAMAGE 60 to each character once; terrain untouched. */
+	/** Rocket: Explosion BlastRadius 8, BLAST_DAMAGE 60 to each character once; the bricks around it break loose. */
 	private void explode(ServerLevel sl) {
 		double r = 8 * McFrame.STUD;
 		Blast.at(sl, this, r, 60 * 0.2f, sl.damageSources().explosion(this, owner), "rocket_launcher.boom"); // Boom: collide.wav

@@ -32,6 +32,17 @@ final class RobloxChat {
 		return NAME_COLORS[Math.floorMod(value, NAME_COLORS.length)];
 	}
 
+	private static int seenTick;
+
+	/** Messages that arrived since the chat bar was last open (the top bar's MessageCounter). */
+	static int unread(Minecraft mc) {
+		var hud = mc.gui.hud;
+		if (mc.gui.screen() instanceof ChatScreen) { seenTick = hud.getGuiTicks(); return 0; }
+		int n = 0;
+		for (var msg : ((ChatComponentAccessor) hud.getChat()).rocraft$allMessages()) { if (msg.addedTime() <= seenTick) break; n++; } // newest first
+		return n;
+	}
+
 	static void draw(GuiGraphicsExtractor g, Minecraft mc, int W, int H, int top) {
 		boolean open = mc.gui.screen() instanceof ChatScreen;
 		int x0 = 0, y0 = top + 2, w = Math.max(380, W * 30 / 100), h = Math.max(200, H * 25 / 100);

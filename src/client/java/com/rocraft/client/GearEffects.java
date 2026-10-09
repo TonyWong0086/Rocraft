@@ -1,19 +1,30 @@
 package com.rocraft.client;
 
+import com.rocraft.tools.Projectile;
 import com.rocraft.tools.Tools;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.particles.ParticleTypes;
 
-/** Client-side gear effects: Speed Coil smoke at the feet while running >= 10 studs/s (Smoke: RiseVelocity 2, Size .5). */
+/** Client-side Roblox effect instances, emitted every tick (RbxParticle draws them). */
 final class GearEffects {
+	static final int FIRE_COLOR = 0xEC8B46; // Fire.Color default (236, 139, 70)
+
 	static void tick(Minecraft mc) {
-		for (var p : mc.level.players()) {
-			if (!p.getMainHandItem().is(Tools.SPEED_COIL)) continue;
-			double speed = Math.hypot(p.getX() - p.xo, p.getZ() - p.zo) * 20 / 0.28;
-			if (speed < 10) continue;
-			for (int i = 0; i < 2; i++)
-				mc.level.addParticle(com.rocraft.RbxParticles.SMOKE, p.getX() + (Math.random() - 0.5) * 0.3, p.getY() + 0.05,
-					p.getZ() + (Math.random() - 0.5) * 0.3, 0, 2 * 0.28 / 20, 0);
+		var l = mc.level;
+		for (var p : l.players()) {
+			// Speed Coil: Smoke at the feet while running >= 10 studs/s (Size .5, Opacity .25, RiseVelocity 2)
+			if (p.getMainHandItem().is(Tools.SPEED_COIL) && Math.hypot(p.getX() - p.xo, p.getZ() - p.zo) * 20 / 0.28 >= 10)
+				RbxParticle.smoke(l, p.getX(), p.getY() + 0.05, p.getZ(), 0.5f, 0.25f, 2, 0xFFFFFF);
+			// burning (lava, fire): a default Fire in the Torso instead of Minecraft's flames
+			if (p.displayFireAnimation() && !p.isInvisible())
+				RbxParticle.fire(l, p.getX(), p.getY() + 3 * 0.28, p.getZ(), 5, 9, FIRE_COLOR);
+		}
+		for (var e : l.entitiesForRendering()) {
+			// RocketLauncher: local fire = Instance.new('Fire', Rocket) fire.Heat = 5 fire.Size = 2 -- at the back of the rocket
+			if (e instanceof Projectile pr && pr.kind() == Projectile.ROCKET) {
+				var v = pr.getDeltaMovement();
+				var back = v.lengthSqr() < 1e-6 ? pr.position() : pr.position().subtract(v.normalize().scale(1.2 * 0.28));
+				RbxParticle.fire(l, back.x, back.y + 0.15, back.z, 2, 5, FIRE_COLOR);
+			}
 		}
 	}
 }

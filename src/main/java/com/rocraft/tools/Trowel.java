@@ -26,16 +26,13 @@ public final class Trowel extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
-		if (!(level instanceof ServerLevel sl)) return InteractionResult.SUCCESS;
-		var stack = p.getItemInHand(hand);
-		if (p.getCooldowns().isOnCooldown(stack)) return InteractionResult.FAIL;
+		if (!(level instanceof ServerLevel sl)) return InteractionResult.CONSUME;
 		Vec3 target = Tools.mouse(p), look = target.subtract(p.getEyePosition());
 		boolean alongX = Math.abs(look.x) > Math.abs(look.z); // snap(): wall faces the dominant axis
 		int width = (int) Math.round(12 * McFrame.STUD), height = (int) Math.ceil(4 * McFrame.STUD);
 		var block = BuiltInRegistries.BLOCK.getValue(Identifier.withDefaultNamespace(COLORS[p.getRandom().nextInt(COLORS.length)] + "_concrete")).defaultBlockState();
 		BlockPos base = BlockPos.containing(target);
 		if (!sl.getBlockState(base).isAir()) base = base.above();
-		p.getCooldowns().addCooldown(stack, width * height + 2);
 		com.rocraft.RbxSounds.play(p, com.rocraft.RbxSounds.get("trowel.build")); // BuildSound = bass.wav
 		int n = 0;
 		for (int y = 0; y < height; y++)
@@ -44,6 +41,6 @@ public final class Trowel extends Item {
 				BlockPos pos = alongX ? base.offset(0, y, off) : base.offset(off, y, 0);
 				Tools.later(++n, () -> { if (sl.getBlockState(pos).canBeReplaced()) sl.setBlockAndUpdate(pos, block); });
 			}
-		return InteractionResult.SUCCESS;
+		return InteractionResult.CONSUME;
 	}
 }

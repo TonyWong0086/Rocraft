@@ -18,14 +18,11 @@ public final class BloxyCola extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
-		var stack = p.getItemInHand(hand);
-		if (p.getCooldowns().isOnCooldown(stack)) return InteractionResult.FAIL; // `enabled` flag
-		p.getCooldowns().addCooldown(stack, DRINK_TICKS);
 		if (level.isClientSide()) Tools.clientUse(this, DRINK_TICKS * 50);
 		else {
 			RbxSounds.play(p, RbxSounds.COLA_DRINK);
 			Tools.later(DRINK_TICKS, () -> { if (p.isAlive()) p.heal(5 * 0.2f); }); // 5 of 100 -> 1 of 20
 		}
-		return InteractionResult.SUCCESS;
+		return InteractionResult.CONSUME;
 	}
 }
