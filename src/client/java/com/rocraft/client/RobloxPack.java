@@ -1,0 +1,128 @@
+package com.rocraft.client;
+
+import com.rocraft.Rocraft;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
+import javax.imageio.ImageIO;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
+
+/**
+ * Private resource pack in this profile's resourcepacks/, filled from Roblox at runtime: gear icons and sounds
+ * (Open Cloud), oof (local Roblox install). Never shipped in the jar; delete the folder to re-download.
+ */
+final class RobloxPack {
+	static final String NAME = "Rocraft Roblox Assets", ID = "file/" + NAME;
+	static final Path DIR = FabricLoader.getInstance().getGameDir().resolve("resourcepacks").resolve(NAME);
+	static final Path ASSETS = DIR.resolve("assets/rocraft");
+	static final Map<String, String> GEAR = com.rocraft.tools.Tools.GEAR;
+	/** Sounds a tool script creates in code rather than as Sound objects (TeddyScript s1..s5). */
+	static final Map<String, long[]> SCRIPT_SOUNDS = Map.of("teddy", new long[]{12844799, 12844794, 12803520, 12803507, 12803498});
+	/** Classic rbxasset:// sounds the old tools use, from Roblox's library copies (collide.wav, clickfast.wav, ...). */
+	static final Map<String, Long> CLASSIC_SOUNDS = Map.of("bomb/tick", 12221976L, "bomb/explode", 12222084L, "rocket_launcher/swoosh", 12222095L,
+		"rocket_launcher/boom", 12221984L, "superball/boing", 12222124L, "slingshot/sling", 12222103L, "trowel/build", 12221944L);
+
+	/** Blocking; only fetches what's missing. ponytail: runs before the title screen; async it if first launch gets slow. */
+	static void build() {
+		try {
+			Files.createDirectories(DIR);
+			Files.writeString(DIR.resolve("pack.mcmeta"),
+				"{\"pack\":{\"description\":\"Roblox assets for Rocraft (local, private)\",\"min_format\":88,\"max_format\":88}}");
+			copyLocal("sounds/oof.ogg", ASSETS.resolve("sounds/oof.ogg"));
+			RbxParticle.writeTextures(ASSETS);
+			for (var e : GEAR.entrySet()) gear(e.getKey(), e.getValue());
+			if (RobloxApi.hasKey()) for (var e : CLASSIC_SOUNDS.entrySet()) {
+				String[] p = e.getKey().split("/");
+				try { sound(p[0], p[1], e.getValue()); } catch (Exception ex) { Rocraft.LOGGER.warn("classic sound {} skipped: {}", e.getKey(), ex.toString()); }
+			}
+		} catch (Exception ex) {
+			Rocraft.LOGGER.warn("Roblox asset pack incomplete: {}", ex.toString());
+		}
+	}
+
+	/** Tool icon (TextureId, what the 2018 backpack shows) + its sounds, read from the tool's own model. */
+	static void gear(String name, String source) {
+		try {
+			Path icon = ASSETS.resolve("textures/item/" + name + ".png"), mark = ASSETS.resolve("textures/item/" + name + ".from_tool");
+			if (source.startsWith("asset:") && !RobloxApi.hasKey()) { // public thumbnail until a key is set
+				if (!Files.exists(icon)) write(icon, square(thumbnail(Long.parseLong(source.substring(6))), 128));
+				return;
+			}
+			var model = com.rocraft.rbx.RbxModel.read(Rig.toolModel(source));
+			if (!Files.exists(mark)) {
+				String tex = model.first("Tool").str("TextureId");
+				BufferedImage img = tex != null && !tex.isBlank() ? ImageIO.read(new ByteArrayInputStream(Rig.content(tex)))
+					: thumbnail(Long.parseLong(source.substring(6)));
+				write(icon, square(img, 128));
+				Files.writeString(mark, String.valueOf(tex));
+			}
+			for (var s : model.all) // every Sound with a web asset, saved as <gear>/<name>.ogg
+				if (s.className.equals("Sound") && s.assetId("SoundId") > 0) sound(name, s.name().toLowerCase(java.util.Locale.ROOT), s.assetId("SoundId"));
+			long[] extra = SCRIPT_SOUNDS.get(name);
+			if (extra != null) for (int i = 0; i < extra.length; i++) sound(name, "say" + (i + 1), extra[i]);
+		} catch (Exception e) {
+			Rocraft.LOGGER.warn("{} assets incomplete: {}", name, e.toString());
+		}
+	}
+
+	static void sound(String gear, String file, long id) throws Exception {
+		Path out = ASSETS.resolve("sounds/" + gear + "/" + file + ".ogg");
+		if (Files.exists(out)) return;
+		byte[] b = RobloxApi.asset(id);
+		if (b.length < 4 || b[0] != 'O' || b[1] != 'g') { Rocraft.LOGGER.info("{} sound {} isn't OGG, skipped", gear, file); return; }
+		Files.createDirectories(out.getParent());
+		Files.write(out, b);
+	}
+
+	static void copyLocal(String rel, Path out) throws Exception {
+		Path src = RobloxAssets.file(rel);
+		if (src == null || Files.exists(out)) return;
+		Files.createDirectories(out.getParent());
+		Files.copy(src, out);
+	}
+
+	/** Turns the pack on once (first title screen); reloads if new files arrived. */
+	static void enable(Minecraft mc) {
+		var repo = mc.getResourcePackRepository();
+		repo.reload();
+		if (repo.getSelectedIds().contains(ID) || !repo.isAvailable(ID)) return;
+		repo.addPack(ID);
+		mc.options.updateResourcePacks(repo);
+		mc.reloadResourcePacks();
+	}
+
+	/** Official 150x150 asset thumbnail (public endpoint, no key). */
+	static BufferedImage thumbnail(long assetId) throws Exception {
+		var json = RobloxProfile.send(HttpRequest.newBuilder(URI.create(
+			"https://thumbnails.roblox.com/v1/assets?assetIds=" + assetId + "&size=150x150&format=Png&isCircular=false"))
+			.timeout(Duration.ofSeconds(10)).build());
+		String url = json.getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject().get("imageUrl").getAsString();
+		byte[] png = RobloxApi.HTTP.send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10)).build(),
+			HttpResponse.BodyHandlers.ofByteArray()).body();
+		return ImageIO.read(new ByteArrayInputStream(png));
+	}
+
+	static void write(Path out, BufferedImage img) throws Exception {
+		Files.createDirectories(out.getParent());
+		ImageIO.write(img, "png", out.toFile());
+	}
+
+	/** Power-of-two square so the item atlas can mipmap it. */
+	static BufferedImage square(BufferedImage src, int n) {
+		var dst = new BufferedImage(n, n, BufferedImage.TYPE_INT_ARGB);
+		var g = dst.createGraphics();
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		g.drawImage(src, 0, 0, n, n, null);
+		g.dispose();
+		return dst;
+	}
+}

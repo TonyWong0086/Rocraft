@@ -1,0 +1,106 @@
+package com.rocraft.client;
+
+import com.google.gson.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.net.http.*;
+import java.nio.charset.StandardCharsets;
+import javax.imageio.ImageIO;
+
+/**
+ * Who the player is in Rocraft. No username -> Guest (2018 default look).
+ * Public endpoints give id + body colors; with an Open Cloud key the worn Shirt/Pants templates are downloaded too.
+ */
+public final class RobloxProfile {
+	// head, torso, leftArm, rightArm, leftLeg, rightLeg as 0xRRGGBB (classic default: yellow/blue/yellow/green)
+	public static final int[] GUEST = {0xF5CD30, 0x0D69AC, 0xF5CD30, 0xF5CD30, 0xA4BD47, 0xA4BD47};
+	public static final RobloxProfile GUEST_PROFILE = new RobloxProfile();
+
+	public String name = "Guest 1337";
+	public boolean guest = true;
+	public long userId;
+	public int[] colors = GUEST.clone();
+	public BufferedImage shirt, pants; // 585x559 classic clothing templates, null if none
+	public final java.util.List<Rig.Piece> accessories = new java.util.ArrayList<>(); // hats, hair, back, ... as Roblox meshes
+	public MeshDraw head;        // DynamicHead mesh + face texture (Roblox shows it on R6 too), null = classic head
+	public BufferedImage face;    // classic Face decal, null = default smile
+
+	static final HttpClient HTTP = RobloxApi.HTTP;
+	static final Gson GSON = new Gson();
+
+	/** username blank => Guest. Blocking; call off the render thread. */
+	public static RobloxProfile load(String username, String apiKey) {
+		RobloxProfile p = new RobloxProfile();
+		if (username == null || username.isBlank()) return p;
+		try {
+			JsonObject body = new JsonObject();
+			body.add("usernames", GSON.toJsonTree(new String[]{username}));
+			body.addProperty("excludeBannedUsers", true);
+			JsonArray d = send(HttpRequest.newBuilder(URI.create("https://users.roblox.com/v1/usernames/users"))
+				.header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body.toString())).build())
+				.getAsJsonObject().getAsJsonArray("data");
+			if (d.isEmpty()) return p;
+			p.userId = d.get(0).getAsJsonObject().get("id").getAsLong();
+			p.name = d.get(0).getAsJsonObject().get("name").getAsString();
+			p.guest = false;
+			JsonObject a = send(HttpRequest.newBuilder(URI.create("https://avatar.roblox.com/v2/avatar/users/" + p.userId + "/avatar")).build()).getAsJsonObject();
+			JsonObject c = a.getAsJsonObject("bodyColor3s");
+			String[] keys = {"headColor3", "torsoColor3", "leftArmColor3", "rightArmColor3", "leftLegColor3", "rightLegColor3"};
+			for (int i = 0; i < 6; i++) if (c != null && c.has(keys[i])) p.colors[i] = Integer.parseInt(c.get(keys[i]).getAsString().replace("#", ""), 16);
+			if (RobloxApi.hasKey()) for (var e : a.getAsJsonArray("assets")) {
+				var o = e.getAsJsonObject();
+				String type = o.getAsJsonObject("assetType").get("name").getAsString();
+				if (type.equals("Shirt")) p.shirt = template(o.get("id").getAsLong(), "ShirtTemplate");
+				if (type.equals("Pants")) p.pants = template(o.get("id").getAsLong(), "PantsTemplate");
+				if (type.equals("DynamicHead")) try { p.head = dynamicHead(o.get("id").getAsLong(), p.colors[0]); }
+					catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("dynamic head skipped: {}", ex.toString()); }
+				if (type.equals("Face")) try { p.face = faceDecal(o.get("id").getAsLong()); }
+					catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("face skipped: {}", ex.toString()); }
+				if (type.equals("Hat") || type.endsWith("Accessory")) try {
+					var piece = Rig.accessory(o.get("id").getAsLong());
+					if (piece != null) p.accessories.add(piece);
+				} catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("accessory {} skipped: {}", o.get("id"), ex.toString()); }
+			}
+		} catch (Exception e) {
+			com.rocraft.Rocraft.LOGGER.warn("Roblox avatar partly loaded ({}); using what we have for {}", e.toString(), p.name);
+		}
+		return p;
+	}
+
+	/** DynamicHead asset -> its head mesh with the face texture laid over the head colour (texture alpha = features). */
+	static MeshDraw dynamicHead(long id, int headColor) throws Exception {
+		var model = com.rocraft.rbx.RbxModel.read(RobloxApi.asset(id));
+		var sm = model.first("SpecialMesh") != null ? model.first("SpecialMesh") : model.first("MeshPart");
+		var mesh = com.rocraft.rbx.RbxMesh.read(Rig.content(sm.str("MeshId")));
+		String texRef = sm.str("TextureId") != null ? sm.str("TextureId") : sm.str("TextureID");
+		BufferedImage tex = ImageIO.read(new ByteArrayInputStream(Rig.content(texRef)));
+		var out = new BufferedImage(tex.getWidth(), tex.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		int hr = headColor >> 16 & 255, hg = headColor >> 8 & 255, hb = headColor & 255;
+		for (int y = 0; y < tex.getHeight(); y++) for (int x = 0; x < tex.getWidth(); x++) {
+			int c = tex.getRGB(x, y), a = c >>> 24;
+			int r = ((c >> 16 & 255) * a + hr * (255 - a)) / 255, g = ((c >> 8 & 255) * a + hg * (255 - a)) / 255, b = ((c & 255) * a + hb * (255 - a)) / 255;
+			out.setRGB(x, y, 0xFF000000 | r << 16 | g << 8 | b);
+		}
+		return MeshDraw.of(mesh, new org.joml.Matrix4f(), out);
+	}
+
+	/** Face asset -> its Decal image. */
+	static BufferedImage faceDecal(long id) throws Exception {
+		var decal = com.rocraft.rbx.RbxModel.read(RobloxApi.asset(id)).first("Decal");
+		return ImageIO.read(new ByteArrayInputStream(Rig.content(decal.str("Texture"))));
+	}
+
+	/** Clothing asset (rbxmx) -> its template image. */
+	static BufferedImage template(long clothingId, String prop) throws Exception {
+		String xml = new String(RobloxApi.asset(clothingId), StandardCharsets.UTF_8);
+		long img = RobloxApi.idAfter(xml, "name=\"" + prop + "\"");
+		return img < 0 ? null : ImageIO.read(new ByteArrayInputStream(RobloxApi.asset(img)));
+	}
+
+	static JsonElement send(HttpRequest r) throws Exception {
+		HttpResponse<String> res = HTTP.send(r, HttpResponse.BodyHandlers.ofString());
+		if (res.statusCode() / 100 != 2) throw new RuntimeException("HTTP " + res.statusCode());
+		return JsonParser.parseString(res.body());
+	}
+}

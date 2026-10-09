@@ -1,0 +1,23 @@
+{
+	"required": true,
+	"package": "com.rocraft.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"BobMixin",
+		"CameraMixin",
+		"ChatComponentAccessor",
+		"ChatScreenAccessor",
+		"ChatScreenMixin",
+		"MouseMixin",
+		"SpecialRenderersAccessor",
+		"MoveAccessor",
+		"R6ModelMixin",
+		"ScrollMixin",
+		"SkinMixin",
+		"TurnMixin",
+		"WalkMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

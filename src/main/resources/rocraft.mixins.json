@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.rocraft.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"NoDeathPoofMixin",
+		"NoSprintDustMixin",
+		"PlayerSoundMixin",
+		"SwingMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "rocraft",
+	"version": "${version}",
+	"name": "Rocraft",
+	"description": "Roblox (2018 era) inside Minecraft: Roblox physics, classic UI, tools, avatar.",
+	"authors": ["tonyw"],
+	"license": "MIT",
+	"icon": "assets/rocraft/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.rocraft.Rocraft"],
+		"client": ["com.rocraft.client.RocraftClient"]
+	},
+	"mixins": ["rocraft.mixins.json", {"config": "rocraft.client.mixins.json", "environment": "client"}],
+	"depends": {
+		"fabricloader": ">=0.19.0",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
