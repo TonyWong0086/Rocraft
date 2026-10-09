@@ -155,7 +155,6 @@ public final class SettingsScreen extends Screen {
 				y = toggle(g, y, "Roblox Movement", () -> c.robloxMovement, v -> c.robloxMovement = v, "On", "Off");
 				y = toggle(g, y, "Fall Damage", () -> c.fallDamage, v -> c.fallDamage = v, "On", "Off");
 				y = toggle(g, y, "Hunger", () -> c.hunger, v -> c.hunger = v, "On", "Off");
-				y = toggle(g, y, "Starter Pack", () -> c.starterPack, v -> c.starterPack = v, "On", "Off");
 				RbxFont.draw(g, "Roblox movement: WalkSpeed 16, JumpPower 50, gravity 196.2", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
 			}
 			default -> {

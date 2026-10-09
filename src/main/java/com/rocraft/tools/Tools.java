@@ -2,11 +2,9 @@ package com.rocraft.tools;
 
 import com.rocraft.RbxSounds;
 import com.rocraft.Rocraft;
-import com.rocraft.RocraftConfig;
 import java.util.*;
 import java.util.function.Function;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -67,8 +65,6 @@ public final class Tools {
 		HATS.put("lolhoo", 25306182L);
 		HATS.put("mr_tentacles", 11188696L);
 	}
-	/** StarterPack (hotbar order); the rest are in the Rocraft creative tab. */
-	static final List<String> STARTER = List.of("linked_sword", "rocket_launcher", "superball", "slingshot", "bomb", "trowel", "bloxy_cola");
 
 	public static Item LINKED_SWORD, ROCKET_LAUNCHER, SUPERBALL, SLINGSHOT, PAINTBALL_GUN, BOMB, TROWEL, GRAVITY_COIL, SPEED_COIL,
 		BLOXY_COLA, TACO, BURGER, CHICKEN, PIZZA, TEDDY, REGEN_COIL, DUAL_GRAVITY_COIL, GREEN_BALLOON, HOVERBOARD, PROTEST_SIGN;
@@ -160,8 +156,6 @@ public final class Tools {
 			.build());
 
 		MouseTarget.register();
-		ServerPlayerEvents.JOIN.register(Tools::starterPack);
-		ServerPlayerEvents.AFTER_RESPAWN.register((oldP, newP, alive) -> starterPack(newP));
 		ServerTickEvents.END_SERVER_TICK.register(Tools::tick);
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, src, amount) ->
 			!(e instanceof Player p && p.tickCount < FORCEFIELD_TICKS) || src.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY));
@@ -221,12 +215,4 @@ public final class Tools {
 
 	/** The right-click lunge also sends a swing; don't play Slash over Lunge. */
 	public static boolean justLunged(Player p) { return p.level().getGameTime() - LUNGED_AT.getOrDefault(p.getUUID(), -100L) < 2; }
-
-	static void starterPack(ServerPlayer p) {
-		if (!RocraftConfig.INSTANCE.starterPack) return;
-		for (String name : STARTER) {
-			Item it = BuiltInRegistries.ITEM.getValue(Rocraft.id(name));
-			if (!p.getInventory().contains(s -> s.is(it))) p.getInventory().add(new ItemStack(it));
-		}
-	}
 }

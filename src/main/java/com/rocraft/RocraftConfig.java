@@ -9,7 +9,7 @@ import net.fabricmc.loader.api.FabricLoader;
 /** config/rocraft.json. The API key stays on this PC and is never logged. */
 public final class RocraftConfig {
 	public String username = "", apiKey = "";
-	public boolean robloxMovement = true, fallDamage = false, hunger = false, starterPack = true; // gameplay
+	public boolean robloxMovement = true, fallDamage = false, hunger = false; // gameplay
 	public boolean hud2018 = true, robloxFont = true, robloxCamera = true;     // graphics
 
 	static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

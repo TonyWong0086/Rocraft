@@ -1,6 +1,6 @@
 # Rocraft
 
-**2018-era Roblox inside Minecraft 26.2 (Fabric).** Your real Roblox avatar, Roblox's R6 animations, the classic StarterPack gear, the Roblox camera and mouse, the 2018 top bar, chat and settings menu, and Roblox movement physics, all inside a normal Minecraft world.
+**2018-era Roblox inside Minecraft 26.2 (Fabric).** Your real Roblox avatar, Roblox's R6 animations, the classic Roblox gear, the Roblox camera and mouse, the 2018 top bar, chat and settings menu, and Roblox movement physics, all inside a normal Minecraft world.
 
 > **This mod is vibecoded.** It was built almost entirely by AI (Claude Code) from prompts, with the user testing in game. Expect rough edges.
 >
@@ -26,7 +26,7 @@
 - **Your name floats above your head**, Roblox-style, with a health bar once you're hurt.
 
 ### Classic gear
-All gear has its own **Rocraft creative-inventory tab**. The StarterPack can also be handed out automatically.
+All gear has its own **Rocraft creative-inventory tab**.
 
 | Gear | What it does |
 |---|---|
@@ -156,7 +156,6 @@ Extra Gradle tasks for checking things without starting Minecraft:
 | `robloxMovement` | on | Roblox speed, jump and gravity |
 | `fallDamage` | off | Minecraft fall damage |
 | `hunger` | off | Minecraft hunger |
-| `starterPack` | on | Gives you the classic StarterPack |
 | `hud2018` | on | The 2018 top bar, hotbar and chat |
 | `robloxFont` | on | SourceSans text |
 | `robloxCamera` | on | Roblox camera and mouse |
