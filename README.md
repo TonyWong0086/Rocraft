@@ -19,73 +19,85 @@
 - Your **real Roblox avatar** is built from Roblox's own R6 meshes, not a Minecraft skin with blocks.
 - **Body colors, shirt and pants** come from your Roblox profile.
 - **Accessories** (hats, hair and so on) and your **face** are loaded from Roblox, not the default smile. Dynamic heads are supported too.
-- **Roblox R6 animations** (idle, walk, jump, fall, climb, tool hold, sword slash and lunge) are read from Roblox's own animation files and blended the same way Roblox does.
-- **No API key?** You play as the **2017 Guest** (the black R cap, ROBLOX Jacket, Black Jeans).
-- **Chat emotes:** `/e dance`, `/e wave`, `/e laugh`, `/e cheer`, `/e point`.
-- **Flying** (creative) works like HD Admin / Adonis fly: no animation, and the body faces wherever the camera looks.
-- **Your name floats above your head**, Roblox-style, with a health bar once you're hurt.
+- **Roblox R6 animations** (idle, walk, jump, fall, climb, sit, tool hold, sword slash and lunge) are read from Roblox's own animation files and crossfaded the way Roblox's Animate script does.
+- **The 2017 Guest:** with no username set you play as the Guest (R cap, ROBLOX Jacket, Black Jeans). Other players always appear as the Guest, since Rocraft can't know their Roblox accounts.
+- **Chat emotes:** `/e dance`, `/e wave`, `/e laugh`, `/e cheer`, `/e point`. Moving cancels them, as in Roblox.
+- **Flying** (creative) works like HD Admin / Adonis fly: no animation, and the body faces wherever the camera looks, pitch included.
+- **Your name floats above your head** in Roblox's font, with a green and red health bar once you're hurt.
+- The settings menu's **Avatar** tab shows a live render of your loaded character.
 
 ### Classic gear
-All gear has its own **Rocraft creative-inventory tab**.
+Everything is in the **Rocraft creative-inventory tab**. Each item is the real Roblox model, grip, icon and sounds, and behaves the way its original script does (speeds, damage, reloads). Damage is scaled ×0.2, so Roblox's 100 health maps to Minecraft's 20.
+
+**Weapons**
 
 | Gear | What it does |
 |---|---|
-| Linked Sword | The blade hurts whatever it touches: 5 just held, 10 when you click to slash, 30 when you click again quickly to lunge. The lunge throws you a little forward and up |
-| Rocket Launcher | 60 studs/s rocket, flies straight with no gravity, 3 s reload. Explodes on anything it touches (you included, once clear of you): radius 8, 60 damage, knockback. Other projectiles can shoot it down |
-| Superball | Random-color ball at 200 studs/s, 25 damage, halved on each bounce off a non-character |
+| Linked Sword | The blade hurts whatever it touches: 5 just held, 10 for half a second after a click (slash), 30 for a second after a quick double click (lunge). The lunge throws you a little forward and up. Classic slash, lunge and unsheath sounds |
+| Rocket Launcher | 60 studs/s rocket, no gravity, trailing Roblox Fire, 3 s reload. Explodes on anything it touches (you included, once it's clear of you): radius 8, 60 damage, knockback. Other projectiles can shoot it down |
+| Superball | Random-color ball at 200 studs/s, 25 damage. It bounces off everything, and the damage halves each time it hits a non-character |
 | Slingshot | Red 1-stud pellet at 85 studs/s, 0.2 s reload, 8 damage (it can hit you too), halved on each bounce and gone below 1 |
-| Paintball Gun | Roblox's ClassicPaintballGun: 300 studs/s paintball, 2 damage, 0.5 s reload. It paints the Part it hits and splats three plates of paint |
-| Bomb | The classic ticking bomb that speeds up, then explodes |
-| Trowel | Builds a wall of real Roblox Parts (studded 4×1.2×2 bricks) where you click |
-| Gravity Coil / Speed Coil | Lower gravity / higher walk speed while held |
-| Regeneration Coil | Heals 3 health every second while held |
-| Dual Gravity Coil | Cancels 85% of gravity while held |
-| Green Balloon | Lifts you up in slow surges with your arm raised; no jumping. It swells as it rises and pops 150 studs up |
-| Blue Rolling Hoverboard | Click to drop it, step on (or click it) to ride. W/S speed up to 35 studs/s, A/D turn, Space ollies, Shift steps off, hit it to pick it up |
-| Save the Noobs Protest Sign | Click to shout one of its three angry lines |
-| Bloxy Cola, Taco, Burger, Chicken, Pizza | Drink and eat, with the Roblox poses and sounds |
-| Teddy | Says its classic lines |
+| Paintball Gun | Roblox's ClassicPaintballGun: 300 studs/s paintball in one of 7 colors, 2 damage, 0.5 s reload. Paints the Roblox Part it hits and splats three plates of paint that clean up after 2 minutes |
+| Bomb | Click to plant the classic time bomb: a mirror ball (Reflectance 1) that ticks faster and faster, then explodes |
 
-- **Hats:** Dominus Aureus, Dominus Rex, Doge, LOLHOO and Mr. Tentacles go in the helmet slot and sit on your head as in Roblox.
-- Gear models, textures and icons come from Roblox, never redrawn.
-- Gear numbers (speeds, damage, reloads, blast radius) follow the original tool scripts.
-- Using gear doesn't swing your arm; only the sword plays its slash and lunge.
-- Explosions are Roblox-style: flash, shockwave, fireball, sparks and smoke, with no Minecraft explosion effect.
-- **Bomb and Rocket Launcher blasts tear blocks loose.** They fly off and tumble with physics, and become item drops after resting for 5 s.
-- The planted bomb is a mirror ball (Reflectance 1), like the original.
+**Building and getting around**
+
+| Gear | What it does |
+|---|---|
+| Trowel | Builds a 12×4 wall of real Roblox Parts (studded 4×1.2×2 bricks, one random BrickColor) where you click |
+| Gravity Coil | Cancels 75% of gravity while held |
+| Dual Gravity Coil | Cancels 85% of gravity while held |
+| Speed Coil | Doubles your walk speed while held |
+| Regeneration Coil | Heals 3 health every second while held |
+| Green Balloon | Lifts you up in slow surges, arm raised, no jumping. It swells as it rises and pops 150 studs up |
+| Blue Rolling Hoverboard | Click to drop it, then step on or right-click it to ride. W/S speed up to 35 studs/s, A/D turn, Space ollies, Shift steps off, and hitting it puts it back in your inventory |
+
+**Food and fun**
+
+| Gear | What it does |
+|---|---|
+| Bloxy Cola, Taco, Burger, Chicken, Pizza | Eat and drink with the Roblox poses and sounds |
+| Teddy | Hug it and it says one of its classic lines |
+| Save the Noobs Protest Sign | Click to shout one of its three angry lines |
+
+**Hats:** Dominus Aureus, Dominus Rex, Doge, LOLHOO and Mr. Tentacles. Click one to put it in your helmet slot; it sits on your head exactly where Roblox puts it.
+
+**How gear feels**
+- No Minecraft cooldowns or arm swing: tools fire on every click, apart from the reloads listed above. Only the sword swings.
+- In first person you see the tool's 3D Roblox model in your hand, not a flat icon.
+- **Explosions** are Roblox-style (flash, shockwave, fireball, sparks, smoke), not Minecraft's. Rocket and bomb blasts **tear blocks loose**: they fly off and tumble with physics, then turn into item drops after resting for 5 s. Roblox Parts caught in the blast lose their joints and fall apart.
 
 ### Camera and controls (Roblox-style)
 - **Free cursor**, shown as Roblox's arrow.
 - **Right-drag** rotates the camera; the **scroll wheel** zooms (0.5 to 400 studs).
-- **Left click** uses the held gear, and **Minecraft mining and placing act on the block under the mouse**. **Right click never triggers gear**, as in Roblox.
+- **Left click** uses the held gear. With anything else, Minecraft mining and placing act on the **block under the mouse**, not the one at the screen centre.
+- A plain right click (no drag) still does Minecraft's "use" for non-Roblox items. It never triggers gear, as in Roblox.
 - **First person:** zoom all the way in and the mouse switches to mouse-look automatically.
-- **No camera shake** while walking.
-- The camera stops at walls instead of going through them.
+- No camera shake while walking, and the camera stops at walls instead of going through them.
 
 ### Movement
 - Roblox **walk speed, jump height and gravity**, converted from studs to Minecraft blocks.
 - Optional fall damage and hunger, both off by default like Roblox.
+- A **ForceField** (Roblox's sparkle effect) protects you for 10 s after spawning or respawning.
 - The **"oof"** sound when you die, and no Minecraft hurt sounds, sprint dust or death smoke.
 
 ### 2018 interface
 - **Top bar:** menu, chat and backpack buttons. Your name sits above "Account: 13+", with a health bar under them once you've been hurt.
 - **Leaderstats** (Level, KOs, Wipeouts) appear in the top bar, each with its heading above its value.
-- A **Backpack-style hotbar**: click a slot or press its number to equip it, then again to unequip. No player list.
+- A **Backpack-style hotbar**: click a slot or press its number to equip it, and again to unequip. No player list.
 - The backpack icon turns blue while your inventory is open, and the chat icon shows a count of unread messages.
-- **2018 chat:**
-  - `[Name]: message` in SourceSans;
-  - each name is colored by Roblox's own name-color algorithm;
-  - messages fade after 30 seconds;
-  - the classic hint `To chat click here or press "/" key`.
-- **Roblox notifications** replace Minecraft's "Advancement Made!" and "New Recipes Unlocked!" toasts.
-- A **ForceField** protects you for 10 s after spawning or respawning.
-- **Settings menu:** open it with the **Rocraft** button next to Friends on the title screen. The Avatar tab shows your loaded character. It looks like the 2018 Roblox settings menu and has **Avatar**, **Gameplay** and **Graphics** tabs.
+- **2018 chat:** `[Name]: message` in SourceSans, names colored by Roblox's own name-color algorithm, messages fading after 30 seconds, and the classic hint `To chat click here or press "/" key`.
+- **Roblox notifications** (the dark bottom-right cards) replace Minecraft's "Advancement Made!" and "New Recipes Unlocked!" toasts.
+- **Settings menu:** open it with the **Rocraft** button next to Friends on the title screen. It looks like the 2018 Roblox settings menu, with **Avatar**, **Gameplay** and **Graphics** tabs.
 
 ### Sounds and particles
-- Roblox character sounds from your install (RbxCharacterSounds): footsteps, jump, landing, falling wind, climbing, swimming and splash, replacing Minecraft's.
-- Classic Roblox sounds: slash, lunge, unsheath, oof, coils, cola, the bomb tick and explosion, the rocket whoosh and boom, the superball boing, the slingshot and the trowel.
-- Roblox's own Fire, Smoke and Explosion effects, built from the install's particle textures and color/alpha ramps. Fire and explosions glow additively.
-- Burning in lava or fire shows Roblox Fire on your character, and the rocket trails its Fire (Heat 5, Size 2).
+- **Character sounds** from your install (RbxCharacterSounds): footsteps, jump, landing, falling wind, climbing, swimming and splash, replacing Minecraft's.
+- **Gear sounds** from Roblox:
+  - the classic sword, coils, cola, foods and Teddy;
+  - the bomb tick and blast, the rocket whoosh and boom, the superball boing, the slingshot, trowel and paintball;
+  - the balloon pop, the hoverboard's drop, ollie, landing and braking, and the protest sign's shouts.
+- **Roblox's own Fire, Smoke and Explosion effects**, built from the install's particle textures and color/alpha ramps. Fire and explosions glow additively.
+- Burning in lava or fire shows Roblox Fire on your character instead of Minecraft's flames.
 
 ---
 
@@ -93,9 +105,9 @@ All gear has its own **Rocraft creative-inventory tab**.
 **Nothing from Roblox is in this repo or the mod jar.** At runtime Rocraft gets everything from two places:
 
 1. **Your local Roblox install** (`%LOCALAPPDATA%\Roblox\Versions\...`): the R6 meshes, fonts, UI textures, particle textures, stud textures and character sounds.
-2. **The Roblox Open Cloud API**, using your own key: avatar accessories, faces, clothing, animations, gear meshes, textures and sounds.
+2. **The Roblox Open Cloud API**, using your own key: avatar accessories, faces, clothing, animations, gear and hat models, textures, icons and sounds.
 
-The classic StarterPack tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel, Paintball Gun and the foods) point at old built-in `rbxasset://` files, for example `rbxasset://fonts/timebomb.mesh`. Roblox no longer ships those files with the client; it keeps website copies of them with normal asset IDs. Rocraft carries only that list of IDs plus each tool's grip and size numbers (`classic_tools.json`), and downloads the actual meshes, textures and sounds with your key.
+The oldest tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel, the foods and Teddy) point at old built-in `rbxasset://` files, for example `rbxasset://fonts/timebomb.mesh`. Roblox no longer ships those files with the client; it keeps website copies of them with normal asset IDs. Rocraft carries only that list of IDs plus each tool's grip and size numbers (`classic_tools.json`), and downloads the actual meshes, textures and sounds with your key.
 
 *(Optional, older method: `tools/export_classic_tools.luau` + `tools/receive_export.ps1` export the tools from Roblox Studio into `config/rocraft/legacy`. If that folder exists it's used first; you don't need it.)*
 
@@ -167,7 +179,9 @@ All of these can be changed in the in-game **Settings** menu.
 ## Known issues
 - Command suggestions (the popup when you type `/`) don't show while the 2018 chat is on.
 - Particle sizes and lifetimes are estimates.
-- Some gear needs the Studio export (see above) to show its real model.
+- The hoverboard can climb one-block steps (Roblox's can't); otherwise it would get stuck on Minecraft terrain everywhere. Its ride sounds are only heard by the rider.
+- The Paintball Gun only recolors Roblox Parts (like Trowel walls), not Minecraft blocks.
+- The balloon's lift is close to Roblox's but not exact, because Minecraft adds air drag.
 
 ## Credits
 - **Inspired by [@coah80](https://x.com/coah80) on X.**
