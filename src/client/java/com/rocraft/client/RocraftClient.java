@@ -22,7 +22,7 @@ public class RocraftClient implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.rendering.v1.LivingEntityRenderLayerRegistrationCallback.EVENT.register((type, renderer, helper, ctx) -> {
 			if (renderer instanceof net.minecraft.client.renderer.entity.player.AvatarRenderer<?> r) helper.register(new AvatarLayer(r));
 		});
-		Thread.startVirtualThread(() -> com.rocraft.tools.Tools.GEAR.forEach(Rig::loadGear));
+		Thread.startVirtualThread(() -> { com.rocraft.tools.Tools.GEAR.forEach(Rig::loadGear); com.rocraft.tools.Tools.HATS.forEach(Rig::loadHat); });
 		Animator.load();
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.START_CLIENT_TICK.register(mc -> {
 			if (mc.player == null || !RocraftConfig.INSTANCE.hud2018) return;
@@ -41,6 +41,7 @@ public class RocraftClient implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.PROJECTILE, ProjectileRenderer::new);
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.DEBRIS, DebrisRenderer::new);
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.PART, PartRenderer::new);
+		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.HOVERBOARD_ENTITY, HoverboardRenderer::new);
 		// classic chat emotes: "/e dance", "/e wave", "/e laugh", "/e cheer", "/e point" play on your character
 		net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
 			var mc = net.minecraft.client.Minecraft.getInstance();

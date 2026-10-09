@@ -17,7 +17,9 @@ public final class RbxSounds {
 	static final String[] EXTRA = {"taco.opensound", "taco.eatsound", "burger.opensound", "burger.drinksound", "chicken.opensound",
 		"chicken.drinksound", "pizza.opensound", "pizza.drinksound", "teddy.say1", "teddy.say2", "teddy.say3", "teddy.say4", "teddy.say5",
 		// classic rbxasset sounds, from the copies Roblox keeps in its library
-		"bomb.tick", "bomb.explode", "rocket_launcher.swoosh", "rocket_launcher.boom", "superball.boing", "slingshot.sling", "trowel.build", "paintball_gun.fire"};
+		"bomb.tick", "bomb.explode", "rocket_launcher.swoosh", "rocket_launcher.boom", "superball.boing", "slingshot.sling", "trowel.build", "paintball_gun.fire",
+		"regen_coil.coil", "dual_gravity_coil.coil", "green_balloon.pop", "hoverboard.drop", "hoverboard.ollie", "hoverboard.land", "hoverboard.stop",
+		"protest_sign.angrysound1", "protest_sign.angrysound2", "protest_sign.angrysound3"};
 	private static final java.util.Map<String, SoundEvent> BY_NAME = new java.util.HashMap<>();
 	static { for (String n : EXTRA) BY_NAME.put(n, reg(n)); }
 

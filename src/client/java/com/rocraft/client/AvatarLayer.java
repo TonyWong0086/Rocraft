@@ -49,9 +49,18 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 				else draw(ps, out, light, pose[i], body[i], skin);
 		}
 		for (var p : prof.accessories) draw(ps, out, light, pose[p.part()], p.draw(), p.draw().texture());
+		var hat = Rig.HATS.get(s.headEquipment.getItem()); // a Roblox hat in the helmet slot
+		if (hat != null) draw(ps, out, light, pose[hat.part()], hat.draw(), hat.draw().texture());
 		var g = Rig.gear(held);
 		if (me && player != null && held.getItem() == Tools.clientUseItem && System.currentTimeMillis() < Tools.clientUseUntil && Rig.GEAR_ALT.containsKey(held.getItem()))
 			g = Rig.GEAR_ALT.get(held.getItem());
+		if (held.is(Tools.GREEN_BALLOON)) {
+			int st = com.rocraft.tools.Balloon.state(held);
+			if (st != 1 && Rig.VARIANTS.containsKey("green_balloon/" + st)) g = Rig.VARIANTS.get("green_balloon/" + st);
+			// WeldArm: the right arm welded straight up holding the string, the left hanging at the side
+			pose[Rig.RIGHT_ARM] = new Matrix4f(pose[Rig.TORSO]).rotateX((float) -Math.PI).translate(1.5f, -1.5f, 0);
+			pose[Rig.LEFT_ARM] = new Matrix4f(pose[Rig.TORSO]).translate(-1.5f, 0, 0);
+		}
 		if (g != null) draw(ps, out, light, pose[g.part()], g.draw(), g.draw().texture());
 		Vector3f above = ps.last().pose().transformPosition(new Vector3f(0, 3.1f, 0)); // just over the head, in camera space
 		ps.popPose();

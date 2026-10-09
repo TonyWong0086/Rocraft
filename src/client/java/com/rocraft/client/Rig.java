@@ -136,6 +136,11 @@ final class Rig {
 		"pizza", grip(-1.5f, -0.9f, 0.5f, -1, 0, 0, 0, 1, 0),
 		"teddy", grip(0.5f, -1.5f, -1.56f, 0, -0.707f, -0.707f, 0, -0.707f, 0.707f));
 
+	/** Grips a tool's script sets on equip instead of the saved Tool.Grip (the hoverboard's saved one is its display grip). */
+	static final Map<String, float[]> EQUIP_GRIP = Map.of("hoverboard", new float[]{0, -0.1f, -0.2f, 0, -1, 0, -1, 0, 0, 0, 0, -1});
+	/** Extra looks a tool's script switches to: "green_balloon/2" and "/3" (swollen), "green_balloon/0" (popped). */
+	static final Map<String, Piece> VARIANTS = new java.util.concurrent.ConcurrentHashMap<>();
+
 	/** Tool model bytes for a GEAR source: "asset:<id>" or "legacy:<Name>" (config/rocraft/legacy/tools/<Name>.rbxmx). */
 	static byte[] toolModel(String source) throws Exception {
 		if (source.startsWith("legacy:")) {
@@ -148,15 +153,55 @@ final class Rig {
 		return RobloxApi.asset(Long.parseLong(source.substring(6)));
 	}
 
+	/** Hats worn in the helmet slot, drawn like avatar accessories. */
+	static final Map<net.minecraft.world.item.Item, Piece> HATS = new java.util.concurrent.ConcurrentHashMap<>();
+
+	static void loadHat(String name, long assetId) {
+		try {
+			var piece = accessory(assetId);
+			if (piece != null) HATS.put(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(Rocraft.id(name)), piece);
+		} catch (Exception e) {
+			Rocraft.LOGGER.warn("{} hat unavailable: {}", name, e.toString());
+		}
+	}
+
+	/** Gear shown in a later look than its model: {tool icon, handle texture}. */
+	static final Map<String, String[]> RETEXTURE = Map.of("protest_sign",
+		new String[]{"http://www.roblox.com/asset/?id=574656925", "http://www.roblox.com/asset/?id=574656801"}); // "Save the Noobs"
+
+	/** A gear's Tool model, with any RETEXTURE applied. */
+	static RbxModel model(String name, String source) throws Exception {
+		var m = RbxModel.read(toolModel(source));
+		String[] re = RETEXTURE.get(name);
+		if (re != null) {
+			m.first("Tool").props.put("TextureId", re[0]);
+			m.first("SpecialMesh").props.put("TextureId", re[1]);
+		}
+		return m;
+	}
+
 	/** Gear in the right hand: Right Arm * RightGrip.C0 * Tool.Grip^-1 (classic R6 grip). */
 	static void loadGear(String name, String source) {
 		try {
-			var tool = RbxModel.read(toolModel(source)).first("Tool");
+			var tool = model(name, source).first("Tool");
 			RbxModel.Inst handle = null;
 			for (var c : tool.children) if ("Handle".equals(c.name())) handle = c;
 			var c0 = cframe(new float[]{0, -1, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0});
 			var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(Rocraft.id(name));
-			GEAR.put(item, new Piece(RIGHT_ARM, handleMesh(handle, new Matrix4f(c0).mul(cframe(tool.cframe("Grip")).invert()))));
+			float[] grip = EQUIP_GRIP.getOrDefault(name, tool.cframe("Grip"));
+			GEAR.put(item, new Piece(RIGHT_ARM, handleMesh(handle, new Matrix4f(c0).mul(cframe(grip).invert()))));
+			if (name.equals("green_balloon")) { // BalloonScript: Mesh.Scale 2 / 3 as it rises; popped: mesh 26725510, GripPos (0, -0.4, 0)
+				var mesh = handle.child("SpecialMesh");
+				for (float k : new float[]{2, 3}) {
+					mesh.props.put("Scale", new float[]{k, k, k});
+					VARIANTS.put(name + "/" + (int) k, new Piece(RIGHT_ARM, handleMesh(handle, new Matrix4f(c0).mul(cframe(grip).invert()))));
+				}
+				mesh.props.put("Scale", new float[]{1, 1, 1});
+				mesh.props.put("MeshId", "http://www.roblox.com/asset/?id=26725510");
+				float[] popped = grip.clone();
+				popped[1] = -0.4f;
+				VARIANTS.put(name + "/0", new Piece(RIGHT_ARM, handleMesh(handle, new Matrix4f(c0).mul(cframe(popped).invert()))));
+			}
 			HANDLES.put(name, handleMesh(handle, new Matrix4f()));
 			if (USE_GRIP.containsKey(name))
 				GEAR_ALT.put(item, new Piece(RIGHT_ARM, handleMesh(handle, new Matrix4f(c0).mul(cframe(USE_GRIP.get(name)).invert()))));

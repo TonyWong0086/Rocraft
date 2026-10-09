@@ -1,0 +1,8 @@
+{
+	"model": {
+		"type": "minecraft:select",
+		"property": "minecraft:display_context",
+		"cases": [{"when": "head", "model": {"type": "minecraft:empty"}}],
+		"fallback": {"type": "minecraft:model", "model": "rocraft:item/mr_tentacles"}
+	}
+}

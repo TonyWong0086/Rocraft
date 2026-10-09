@@ -16,7 +16,7 @@ import org.joml.Matrix4f;
 final class Animator {
 	static final long WALK = 180426354L, IDLE = 180435571L, IDLE2 = 180435792L, JUMP = 125750702L, FALL = 180436148L,
 		CLIMB = 180436334L, SIT = 178130996L, TOOLNONE = 182393478L, SLASH = 129967390L, LUNGE = 129967478L,
-		WAVE = 128777973L, POINT = 128853357L, LAUGH = 129423131L, CHEER = 129423030L;
+		BOARD_STAND = 398645802L, WAVE = 128777973L, POINT = 128853357L, LAUGH = 129423131L, CHEER = 129423030L;
 	/** Animate: dance = 3 variations picked at random, each loops. */
 	static final long[] DANCE = {182435998L, 182491037L, 182491065L};
 	/** Chat emotes: "/e name" (Animate's emoteNames; dance loops, the rest play once). */
@@ -26,7 +26,7 @@ final class Animator {
 
 	static void load() {
 		Thread.startVirtualThread(() -> {
-			for (long id : new long[]{WALK, IDLE, IDLE2, JUMP, FALL, CLIMB, SIT, TOOLNONE, SLASH, LUNGE, WAVE, POINT, LAUGH, CHEER, DANCE[0], DANCE[1], DANCE[2]}) {
+			for (long id : new long[]{WALK, IDLE, IDLE2, JUMP, FALL, CLIMB, SIT, BOARD_STAND, TOOLNONE, SLASH, LUNGE, WAVE, POINT, LAUGH, CHEER, DANCE[0], DANCE[1], DANCE[2]}) {
 				try { ANIMS.put(id, RbxAnim.read(RobloxApi.asset(id))); }
 				catch (Exception e) { Rocraft.LOGGER.warn("Roblox animation {} unavailable: {}", id, e.toString()); }
 			}
@@ -72,6 +72,7 @@ final class Animator {
 		float rate = 1;
 		if (emote != 0 && (speed > 0.5 || !onGround || flying)) emote = 0; // Animate: any other pose replaces the emote
 		if (flying) want = 0; // admin fly (PlatformStand + BodyGyro): no animation, just the rest pose
+		else if (p != null && p.getVehicle() instanceof com.rocraft.tools.Hoverboard) want = BOARD_STAND; // the board's Stand animation
 		else if (p != null && p.isPassenger()) want = SIT;
 		else if (p != null && p.onClimbable() && !onGround) { want = CLIMB; rate = (float) (Math.abs(vy) / 12); }
 		else if (!onGround && (p == null || !p.isInWater())) want = jumpTimer > 0 ? JUMP : FALL;

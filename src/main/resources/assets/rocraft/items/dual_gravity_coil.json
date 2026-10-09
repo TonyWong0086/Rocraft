@@ -1,0 +1,11 @@
+{
+	"model": {
+		"type": "minecraft:select",
+		"property": "minecraft:display_context",
+		"cases": [
+			{"when": ["thirdperson_righthand", "thirdperson_lefthand"], "model": {"type": "minecraft:empty"}},
+			{"when": ["firstperson_righthand", "firstperson_lefthand"], "model": {"type": "minecraft:special", "base": "rocraft:item/dual_gravity_coil", "model": {"type": "rocraft:gear", "gear": "dual_gravity_coil"}}}
+		],
+		"fallback": {"type": "minecraft:model", "model": "rocraft:item/dual_gravity_coil"}
+	}
+}

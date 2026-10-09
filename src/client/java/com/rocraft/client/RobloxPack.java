@@ -28,9 +28,13 @@ final class RobloxPack {
 	/** Sounds a tool script creates in code rather than as Sound objects (TeddyScript s1..s5). */
 	static final Map<String, long[]> SCRIPT_SOUNDS = Map.of("teddy", new long[]{12844799, 12844794, 12803520, 12803507, 12803498});
 	/** Classic rbxasset:// sounds the old tools use, from Roblox's library copies (collide.wav, clickfast.wav, ...). */
-	static final Map<String, Long> CLASSIC_SOUNDS = Map.of("bomb/tick", 12221976L, "bomb/explode", 12222084L, "rocket_launcher/swoosh", 12222095L,
-		"rocket_launcher/boom", 12221984L, "superball/boing", 12222124L, "slingshot/sling", 12222103L, "trowel/build", 12221944L,
-		"paintball_gun/fire", 11900833L);
+	static final Map<String, Long> CLASSIC_SOUNDS = Map.ofEntries(Map.entry("bomb/tick", 12221976L), Map.entry("bomb/explode", 12222084L),
+		Map.entry("rocket_launcher/swoosh", 12222095L), Map.entry("rocket_launcher/boom", 12221984L), Map.entry("superball/boing", 12222124L),
+		Map.entry("slingshot/sling", 12222103L), Map.entry("trowel/build", 12221944L), Map.entry("paintball_gun/fire", 11900833L),
+		// the classic Linked Sword's swordslash.wav / swordlunge.wav / unsheath.wav
+		Map.entry("linked_sword/classic_slash", 12222216L), Map.entry("linked_sword/classic_lunge", 12222208L), Map.entry("linked_sword/classic_unsheath", 12222225L),
+		// the Rolling Hoverboard's board (SkateboardModule "Segway"): BoardOllie, BoardDrop, BoardStop
+		Map.entry("hoverboard/ollie", 22921446L), Map.entry("hoverboard/land", 22920550L), Map.entry("hoverboard/stop", 22920633L));
 
 	/** Blocking; only fetches what's missing. ponytail: runs before the title screen; async it if first launch gets slow. */
 	static void build() {
@@ -41,6 +45,11 @@ final class RobloxPack {
 			copyLocal("sounds/oof.ogg", ASSETS.resolve("sounds/oof.ogg"));
 			RbxParticle.writeTextures(ASSETS);
 			for (var e : GEAR.entrySet()) gear(e.getKey(), e.getValue());
+			for (var e : com.rocraft.tools.Tools.HATS.entrySet()) { // hat icons: the catalog thumbnail, as the 2018 inventory showed them
+				Path icon = ASSETS.resolve("textures/item/" + e.getKey() + ".png");
+				try { if (!Files.exists(icon)) write(icon, square(thumbnail(e.getValue()), 128)); }
+				catch (Exception ex) { Rocraft.LOGGER.warn("{} icon skipped: {}", e.getKey(), ex.toString()); }
+			}
 			if (RobloxApi.hasKey()) for (var e : CLASSIC_SOUNDS.entrySet()) {
 				String[] p = e.getKey().split("/");
 				try { sound(p[0], p[1], e.getValue()); } catch (Exception ex) { Rocraft.LOGGER.warn("classic sound {} skipped: {}", e.getKey(), ex.toString()); }
@@ -58,7 +67,7 @@ final class RobloxPack {
 				if (!Files.exists(icon)) write(icon, square(thumbnail(Long.parseLong(source.substring(6))), 128));
 				return;
 			}
-			var model = com.rocraft.rbx.RbxModel.read(Rig.toolModel(source));
+			var model = Rig.model(name, source);
 			if (!Files.exists(mark)) {
 				String tex = model.first("Tool").str("TextureId");
 				BufferedImage img = tex != null && !tex.isBlank() ? ImageIO.read(new ByteArrayInputStream(Rig.content(tex)))

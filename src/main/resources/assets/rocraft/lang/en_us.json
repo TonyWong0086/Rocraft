@@ -2,6 +2,8 @@
 	"item.rocraft.linked_sword": "Linked Sword", "item.rocraft.rocket_launcher": "Rocket Launcher", "item.rocraft.superball": "Superball",
 	"item.rocraft.slingshot": "Slingshot", "item.rocraft.paintball_gun": "Paintball Gun", "item.rocraft.bomb": "Bomb", "item.rocraft.trowel": "Trowel", "item.rocraft.gravity_coil": "Gravity Coil",
 	"item.rocraft.speed_coil": "Speed Coil", "item.rocraft.bloxy_cola": "Bloxy Cola", "item.rocraft.taco": "Taco", "item.rocraft.burger": "Burger",
-	"item.rocraft.chicken": "Chicken", "item.rocraft.pizza": "Pizza", "item.rocraft.teddy": "Teddy",
+	"item.rocraft.chicken": "Chicken", "item.rocraft.pizza": "Pizza", "item.rocraft.teddy": "Teddy", "item.rocraft.regen_coil": "Regeneration Coil", "item.rocraft.dual_gravity_coil": "Dual Gravity Coil",
+	"item.rocraft.green_balloon": "Green Balloon", "item.rocraft.hoverboard": "Blue Rolling Hoverboard", "item.rocraft.protest_sign": "Save the Noobs Protest Sign",
+	"item.rocraft.dominus_aureus": "Dominus Aureus", "item.rocraft.dominus_rex": "Dominus Rex", "item.rocraft.doge": "Doge", "item.rocraft.lolhoo": "LOLHOO", "item.rocraft.mr_tentacles": "Mr. Tentacles", "entity.rocraft.hoverboard": "Rolling Hoverboard",
 	"entity.rocraft.bomb": "Bomb", "entity.rocraft.projectile": "Projectile", "itemGroup.rocraft.gear": "Rocraft"
 }

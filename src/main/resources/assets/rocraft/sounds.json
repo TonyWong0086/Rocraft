@@ -1,7 +1,7 @@
 {
-	"linked_sword.slash": {"sounds": ["rocraft:linked_sword/slash"]},
-	"linked_sword.lunge": {"sounds": ["rocraft:linked_sword/lunge"]},
-	"linked_sword.unsheath": {"sounds": ["rocraft:linked_sword/unsheath"]},
+	"linked_sword.slash": {"sounds": ["rocraft:linked_sword/classic_slash"]},
+	"linked_sword.lunge": {"sounds": ["rocraft:linked_sword/classic_lunge"]},
+	"linked_sword.unsheath": {"sounds": ["rocraft:linked_sword/classic_unsheath"]},
 	"gravity_coil.coil": {"sounds": ["rocraft:gravity_coil/coilsound"]},
 	"speed_coil.coil": {"sounds": ["rocraft:speed_coil/coilsound"]},
 	"bloxy_cola.open": {"sounds": ["rocraft:bloxy_cola/opensound"]},
@@ -27,5 +27,15 @@
 	"slingshot.sling": {"sounds": ["rocraft:slingshot/sling"]},
 	"paintball_gun.fire": {"sounds": ["rocraft:paintball_gun/fire"]},
 	"trowel.build": {"sounds": ["rocraft:trowel/build"]},
+	"regen_coil.coil": {"sounds": ["rocraft:regen_coil/coilsound"]},
+	"dual_gravity_coil.coil": {"sounds": ["rocraft:dual_gravity_coil/coilsound"]},
+	"green_balloon.pop": {"sounds": ["rocraft:green_balloon/pop"]},
+	"hoverboard.drop": {"sounds": ["rocraft:hoverboard/drop"]},
+	"hoverboard.ollie": {"sounds": ["rocraft:hoverboard/ollie"]},
+	"hoverboard.land": {"sounds": ["rocraft:hoverboard/land"]},
+	"hoverboard.stop": {"sounds": ["rocraft:hoverboard/stop"]},
+	"protest_sign.angrysound1": {"sounds": ["rocraft:protest_sign/angrysound1"]},
+	"protest_sign.angrysound2": {"sounds": ["rocraft:protest_sign/angrysound2"]},
+	"protest_sign.angrysound3": {"sounds": ["rocraft:protest_sign/angrysound3"]},
 	"oof": {"sounds": ["rocraft:oof"]}
 }

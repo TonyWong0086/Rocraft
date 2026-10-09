@@ -38,9 +38,15 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 | Bomb | The classic ticking bomb that speeds up, then explodes |
 | Trowel | Builds a wall of real Roblox Parts (studded 4×1.2×2 bricks) where you click |
 | Gravity Coil / Speed Coil | Lower gravity / higher walk speed while held |
+| Regeneration Coil | Heals 3 health every second while held |
+| Dual Gravity Coil | Cancels 85% of gravity while held |
+| Green Balloon | Lifts you up in slow surges with your arm raised; no jumping. It swells as it rises and pops 150 studs up |
+| Blue Rolling Hoverboard | Click to drop it, step on (or click it) to ride. W/S speed up to 35 studs/s, A/D turn, Space ollies, Shift steps off, hit it to pick it up |
+| Save the Noobs Protest Sign | Click to shout one of its three angry lines |
 | Bloxy Cola, Taco, Burger, Chicken, Pizza | Drink and eat, with the Roblox poses and sounds |
 | Teddy | Says its classic lines |
 
+- **Hats:** Dominus Aureus, Dominus Rex, Doge, LOLHOO and Mr. Tentacles go in the helmet slot and sit on your head as in Roblox.
 - Gear models, textures and icons come from Roblox, never redrawn.
 - Gear numbers (speeds, damage, reloads, blast radius) follow the original tool scripts.
 - Using gear doesn't swing your arm; only the sword plays its slash and lunge.

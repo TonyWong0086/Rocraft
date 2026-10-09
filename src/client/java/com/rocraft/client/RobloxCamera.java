@@ -75,7 +75,7 @@ public final class RobloxCamera {
 	public static Vec2 steer(Vec2 move) {
 		var p = Minecraft.getInstance().player;
 		if (p != null && p.getAbilities().flying) { flyFacing(); return move; } // admin fly: strafe relative to the camera
-		if (move.lengthSquared() < 1e-4f || p == null) return move;
+		if (move.lengthSquared() < 1e-4f || p == null || p.isPassenger()) return move; // riding: the vehicle reads raw W/S/A/D
 		double r = Math.toRadians(yaw);
 		double dx = move.y * -Math.sin(r) + move.x * Math.cos(r), dz = move.y * Math.cos(r) + move.x * Math.sin(r);
 		float face = (float) Math.toDegrees(Math.atan2(-dx, dz));

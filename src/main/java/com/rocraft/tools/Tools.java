@@ -46,6 +46,11 @@ public final class Tools {
 		GEAR.put("paintball_gun", "asset:47532"); // Roblox's ClassicPaintballGun model
 		GEAR.put("gravity_coil", "asset:16688968");
 		GEAR.put("speed_coil", "asset:99119158");
+		GEAR.put("regen_coil", "asset:119101539");
+		GEAR.put("dual_gravity_coil", "asset:150366274");
+		GEAR.put("green_balloon", "asset:27494652");
+		GEAR.put("hoverboard", "asset:2350119937"); // Blue Rolling Hoverboard
+		GEAR.put("protest_sign", "asset:22960435"); // Protest Sign: Noobs, in its "Save the Noobs" look
 		GEAR.put("bloxy_cola", "asset:10472779");
 		GEAR.put("taco", "legacy:Taco");
 		GEAR.put("burger", "legacy:Burger");
@@ -53,15 +58,25 @@ public final class Tools {
 		GEAR.put("pizza", "legacy:Pizza");
 		GEAR.put("teddy", "legacy:Teddy");
 	}
+	/** Roblox hats worn in Minecraft's helmet slot, by catalog asset id (the Accessory, so it sits on the head as in Roblox). */
+	public static final Map<String, Long> HATS = new LinkedHashMap<>();
+	static {
+		HATS.put("dominus_aureus", 138932314L);
+		HATS.put("dominus_rex", 250395631L);
+		HATS.put("doge", 151784320L);
+		HATS.put("lolhoo", 25306182L);
+		HATS.put("mr_tentacles", 11188696L);
+	}
 	/** StarterPack (hotbar order); the rest are in the Rocraft creative tab. */
 	static final List<String> STARTER = List.of("linked_sword", "rocket_launcher", "superball", "slingshot", "bomb", "trowel", "bloxy_cola");
 
 	public static Item LINKED_SWORD, ROCKET_LAUNCHER, SUPERBALL, SLINGSHOT, PAINTBALL_GUN, BOMB, TROWEL, GRAVITY_COIL, SPEED_COIL,
-		BLOXY_COLA, TACO, BURGER, CHICKEN, PIZZA, TEDDY;
+		BLOXY_COLA, TACO, BURGER, CHICKEN, PIZZA, TEDDY, REGEN_COIL, DUAL_GRAVITY_COIL, GREEN_BALLOON, HOVERBOARD, PROTEST_SIGN;
 	public static EntityType<BombEntity> BOMB_ENTITY;
 	public static EntityType<Projectile> PROJECTILE;
 	public static EntityType<Debris> DEBRIS;
 	public static EntityType<RobloxPart> PART;
+	public static EntityType<Hoverboard> HOVERBOARD_ENTITY;
 	/** Spawn ForceField: a (re)spawned character can't be hurt for 10 s, like a default SpawnLocation's Duration. */
 	public static final int FORCEFIELD_TICKS = 10 * 20;
 	public static volatile long clientLungeAt; // local player's last lunge (client), drives the toollunge animation
@@ -92,12 +107,27 @@ public final class Tools {
 		TROWEL = item("trowel", Trowel::new);
 		GRAVITY_COIL = item("gravity_coil", Item::new);
 		SPEED_COIL = item("speed_coil", Item::new);
+		REGEN_COIL = item("regen_coil", Item::new);
+		DUAL_GRAVITY_COIL = item("dual_gravity_coil", Item::new);
+		GREEN_BALLOON = item("green_balloon", Item::new);
+		HOVERBOARD = item("hoverboard", Hoverboard.Board::new);
+		PROTEST_SIGN = item("protest_sign", p -> new Item(p) { // ProtestScript: each click shouts one of three AngrySounds
+			@Override public net.minecraft.world.InteractionResult use(net.minecraft.world.level.Level level, Player pl, net.minecraft.world.InteractionHand hand) {
+				if (!level.isClientSide()) RbxSounds.play(pl, RbxSounds.get("protest_sign.angrysound" + (1 + level.getRandom().nextInt(3))));
+				return net.minecraft.world.InteractionResult.CONSUME;
+			}
+		});
 		BLOXY_COLA = item("bloxy_cola", BloxyCola::new);
 		TACO = item("taco", p -> new Food(p, "taco.eatsound"));
 		BURGER = item("burger", p -> new Food(p, "burger.drinksound"));
 		CHICKEN = item("chicken", p -> new Food(p, "chicken.drinksound"));
 		PIZZA = item("pizza", p -> new Food(p, "pizza.drinksound"));
 		TEDDY = item("teddy", Teddy::new);
+
+		for (String hat : HATS.keySet()) {
+			var key = ResourceKey.create(Registries.ITEM, Rocraft.id(hat));
+			Registry.register(BuiltInRegistries.ITEM, key, new Item(new Item.Properties().setId(key).stacksTo(1).equippable(net.minecraft.world.entity.EquipmentSlot.HEAD)));
+		}
 
 		var bombKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("bomb"));
 		BOMB_ENTITY = Registry.register(BuiltInRegistries.ENTITY_TYPE, bombKey,
@@ -114,12 +144,19 @@ public final class Tools {
 		PART = Registry.register(BuiltInRegistries.ENTITY_TYPE, partKey,
 			EntityType.Builder.<RobloxPart>of(RobloxPart::new, MobCategory.MISC).sized(1.12f, 0.336f).clientTrackingRange(10).updateInterval(2).build(partKey));
 
+		var boardKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("hoverboard"));
+		HOVERBOARD_ENTITY = Registry.register(BuiltInRegistries.ENTITY_TYPE, boardKey,
+			EntityType.Builder.<Hoverboard>of(Hoverboard::new, MobCategory.MISC).sized(0.84f, 0.28f).clientTrackingRange(10).build(boardKey));
+
 		// Rocraft page in the creative inventory: every classic tool
 		var tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Rocraft.id("gear"));
 		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()
 			.title(Component.literal("Rocraft"))
 			.icon(() -> new ItemStack(LINKED_SWORD))
-			.displayItems((params, out) -> { for (String n : GEAR.keySet()) out.accept(BuiltInRegistries.ITEM.getValue(Rocraft.id(n))); })
+			.displayItems((params, out) -> {
+				for (String n : GEAR.keySet()) out.accept(BuiltInRegistries.ITEM.getValue(Rocraft.id(n)));
+				for (String n : HATS.keySet()) out.accept(BuiltInRegistries.ITEM.getValue(Rocraft.id(n)));
+			})
 			.build());
 
 		MouseTarget.register();
@@ -155,10 +192,17 @@ public final class Tools {
 			if (HELD.get(p.getUUID()) != now) { // Tool.Equipped
 				SoundEvent s = now == LINKED_SWORD ? RbxSounds.UNSHEATH : now == GRAVITY_COIL ? RbxSounds.GRAVITY_COIL
 					: now == SPEED_COIL ? RbxSounds.SPEED_COIL : now == BLOXY_COLA ? RbxSounds.COLA_OPEN
+					: now == REGEN_COIL ? RbxSounds.get("regen_coil.coil") : now == DUAL_GRAVITY_COIL ? RbxSounds.get("dual_gravity_coil.coil")
 					: now instanceof Food f ? RbxSounds.get(f.openSound()) : null;
 				if (s != null) RbxSounds.play(p, s);
+				if (now == GREEN_BALLOON) Balloon.equipped(p);
 				HELD.put(p.getUUID(), now);
 			}
+			// Regeneration Coil: Humanoid.Health + 3 every second while equipped
+			if (now == REGEN_COIL && p.tickCount % 20 == 0) p.heal(3 * 0.2f);
+			// Dual Gravity Coil: GravityCoilScript with Gravity = 0.85, a BodyForce cancelling 85% of gravity
+			coil(p, Attributes.GRAVITY, "dual_gravity_coil", now == DUAL_GRAVITY_COIL, -0.85);
+			Balloon.tick(p, now == GREEN_BALLOON);
 			if (now == LINKED_SWORD) LinkedSword.touch(p);
 			// Gravity Coil: BodyForce cancels 75% of gravity (JumpHeightPercentage 0.25). Speed Coil: WalkSpeed 16 -> 32.
 			coil(p, Attributes.GRAVITY, "gravity_coil", now == GRAVITY_COIL, -0.75);
@@ -166,7 +210,7 @@ public final class Tools {
 		}
 	}
 
-	private static void coil(ServerPlayer p, net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> a, String name, boolean on, double v) {
+	static void coil(ServerPlayer p, net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> a, String name, boolean on, double v) {
 		var inst = p.getAttribute(a);
 		if (inst == null) return;
 		if (on) inst.addOrUpdateTransientModifier(new AttributeModifier(Rocraft.id(name), v, Operation.ADD_MULTIPLIED_TOTAL));
