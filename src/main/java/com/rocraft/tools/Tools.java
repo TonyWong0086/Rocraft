@@ -31,7 +31,8 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Classic Roblox gear. GEAR maps each item to where its Roblox Tool lives: "asset:<id>" (downloaded with the Open
- * Cloud key) or "legacy:<Name>" (exported once from the user's own Roblox Studio place into config/rocraft/legacy).
+ * Cloud key) or "legacy:<Name>" (a classic StarterPack tool, built from classic_tools.json; its built-in rbxasset:// files download
+ * through Open Cloud too).
  */
 public final class Tools {
 	public static final Map<String, String> GEAR = new LinkedHashMap<>();

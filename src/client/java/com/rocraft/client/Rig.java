@@ -66,9 +66,11 @@ final class Rig {
 	/** Bytes of a mesh/texture referenced by a model: rbxasset:// from the legacy export, otherwise an asset id. */
 	static byte[] content(String ref) throws Exception {
 		if (ref != null && ref.startsWith("rbxasset://")) {
-			var f = RobloxAssets.legacy(ref);
-			if (f == null) throw new java.io.FileNotFoundException(ref + " (export it from Studio, see tools/export_classic_tools.luau)");
-			return Files.readAllBytes(f);
+			var f = RobloxAssets.legacy(ref); // an old Studio export still wins if present
+			if (f != null) return Files.readAllBytes(f);
+			long id = ClassicTools.assetId(ref); // otherwise the website copy Roblox maps this built-in file to
+			if (id < 0) throw new java.io.FileNotFoundException(ref + " (no website copy known)");
+			return RobloxApi.asset(id);
 		}
 		long id = RbxModel.assetId(ref);
 		if (id < 0) throw new java.io.FileNotFoundException("no asset in '" + ref + "'");
@@ -138,8 +140,10 @@ final class Rig {
 	static byte[] toolModel(String source) throws Exception {
 		if (source.startsWith("legacy:")) {
 			var f = RobloxAssets.legacyDir().resolve("tools/" + source.substring(7) + ".rbxmx");
-			if (!Files.exists(f)) throw new java.io.FileNotFoundException(f + " (export it from Studio, see tools/export_classic_tools.luau)");
-			return Files.readAllBytes(f);
+			if (Files.exists(f)) return Files.readAllBytes(f);
+			byte[] b = ClassicTools.rbxmx(source.substring(7));
+			if (b == null) throw new java.io.FileNotFoundException("unknown classic tool " + source);
+			return b;
 		}
 		return RobloxApi.asset(Long.parseLong(source.substring(6)));
 	}

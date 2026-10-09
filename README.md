@@ -83,11 +83,14 @@ All gear has its own **Rocraft creative-inventory tab**. The StarterPack can als
 ---
 
 ## Where the Roblox assets come from
-**Nothing from Roblox is in this repo or the mod jar.** At runtime Rocraft gets everything from three places:
+**Nothing from Roblox is in this repo or the mod jar.** At runtime Rocraft gets everything from two places:
 
-1. **Your local Roblox install** (`%LOCALAPPDATA%\Roblox\Versions\...\content`): the R6 meshes, fonts, UI textures, particle textures and some sounds.
-2. **The Roblox Open Cloud API**, using your own key: avatar accessories, faces, clothing, gear meshes and textures, and animations.
-3. **An optional export from Roblox Studio** (`tools/export_classic_tools.luau` + `tools/receive_export.ps1`): classic tools that only exist as built-in `rbxasset://` content. It writes to `config/rocraft/legacy`.
+1. **Your local Roblox install** (`%LOCALAPPDATA%\Roblox\Versions\...`): the R6 meshes, fonts, UI textures, particle textures, stud textures and character sounds.
+2. **The Roblox Open Cloud API**, using your own key: avatar accessories, faces, clothing, animations, gear meshes, textures and sounds.
+
+The classic StarterPack tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel and the foods) point at old built-in `rbxasset://` files, for example `rbxasset://fonts/timebomb.mesh`. Roblox no longer ships those files with the client; it keeps website copies of them with normal asset IDs. Rocraft carries only that list of IDs plus each tool's grip and size numbers (`classic_tools.json`), and downloads the actual meshes, textures and sounds with your key.
+
+*(Optional, older method: `tools/export_classic_tools.luau` + `tools/receive_export.ps1` export the tools from Roblox Studio into `config/rocraft/legacy`. If that folder exists it's used first; you don't need it.)*
 
 Everything is saved privately in your Minecraft folder: the **"Rocraft Roblox Assets"** resource pack, `config/rocraft/cache` and `config/rocraft/legacy`.
 
