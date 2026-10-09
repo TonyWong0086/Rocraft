@@ -106,12 +106,14 @@ Rocraft **never launches or hooks the Roblox client**. It only reads files and c
 The key is free and only needs read access. Rocraft uses it to download assets (avatar clothing and accessories, gear, animations, sounds) through Roblox's Asset Delivery API.
 
 1. Sign in at <https://create.roblox.com/dashboard/credentials> and click **Create API Key**.
-2. Give it these permissions:
-   - `legacy-assets:manage` (asset delivery);
-   - `users:read`.
+2. Add these API systems and permissions:
+   - **legacy-assets** → `legacy-assets:manage` (asset delivery);
+   - **users** → `users.advanced:read`.
 3. Under **Accepted IP Addresses**, add `0.0.0.0/0` (or your own IP), then save and copy the key.
 4. In Minecraft, click the **Rocraft** button (next to Friends) on the title screen, open the **Avatar** tab, enter your Roblox username and the key, and press **Load Avatar**.
 5. Restart Minecraft once so the gear, animations and sounds download into the "Rocraft Roblox Assets" pack.
+
+The same steps are shown in game under **Settings → Avatar**, with a button that opens the credentials page and a check for whether Roblox is installed.
 
 The key is stored **only** in `config/rocraft.json` on your PC and is never logged. **Don't share it.** If it leaks, regenerate it.
 

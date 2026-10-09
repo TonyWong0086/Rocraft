@@ -25,6 +25,13 @@ public final class SettingsScreen extends Screen {
 	static final String[] TABS = {"Avatar", "Gameplay", "Graphics"};
 	static final String[] ICONS = {"MenuBarIcons/PlayersTabIcon.png", "MenuBarIcons/GameSettingsTab.png", "MenuBarIcons/CaptureTab.png"};
 	static final int ROW = 52, TAB_Y = 34, TAB_H = 64;
+	static final String CREDENTIALS_URL = "https://create.roblox.com/dashboard/credentials";
+	static final String[] SETUP = {
+		"1. Open create.roblox.com/dashboard/credentials (button below) and click Create API Key.",
+		"2. Add API systems: legacy-assets -> legacy-assets:manage, and users -> users.advanced:read.",
+		"3. Under Accepted IP Addresses add 0.0.0.0/0 (or your own IP), save, and copy the key.",
+		"4. Paste it into Open Cloud Key above, type your username, and press Load Avatar.",
+		"5. Restart Minecraft once so the gear, animations and sounds download."};
 
 	private record Hit(int x, int y, int w, int h, Runnable action) {}
 	private final List<Hit> hits = new ArrayList<>();
@@ -120,6 +127,15 @@ public final class SettingsScreen extends Screen {
 				});
 				y += ROW;
 				RbxFont.draw(g, "Your key stays in config/rocraft.json on this PC.", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
+				y += 44;
+				// setup help: Roblox's assets aren't shipped, they come from the install and the user's own key
+				boolean installed = RobloxAssets.CONTENT != null;
+				y = para(g, installed ? "Roblox install found." : "Roblox isn't installed: install it from roblox.com/download and restart.",
+					hx + 20, y, rw - 40, 18, true, installed ? 0xFF1BFC6B : 0xFFFF5A4A) + 8;
+				y = para(g, "Getting an Open Cloud API key (free, needed to load the Roblox assets):", hx + 20, y, rw - 40, 18, true, 0xFFFFFFFF) + 4;
+				for (String step : SETUP) y = para(g, step, hx + 32, y, rw - 52, 17, false, 0xFFC8C8C8);
+				button(g, hx + 20, y + 6, 300, ROW - 12, "Open Roblox Credentials", false,
+					() -> net.minecraft.client.gui.screens.ConfirmLinkScreen.confirmLinkNow(this, CREDENTIALS_URL));
 				var p = RocraftClient.profile;
 				// avatar frame: your character as it loads, like the 2018 avatar thumbnail
 				int px = hx + rw + (hw - rw) / 2, fy = rowsTop(), fw = AvatarFrame.W, fh = AvatarFrame.H;
@@ -155,6 +171,18 @@ public final class SettingsScreen extends Screen {
 		button(g, bx, by, bw, 56, "Back", false, this::onClose);
 		tex(g, UI + "Help/EscapeIcon.png", bx + bw - 52, by + 12, 32, 32, 0xFFFFFFFF);
 		m.popMatrix();
+	}
+
+	/** Word-wrapped text; returns the y under it. */
+	private static int para(GuiGraphicsExtractor g, String text, int x, int y, int w, int px, boolean bold, int argb) {
+		String line = "";
+		for (String word : text.split(" ")) {
+			String next = line.isEmpty() ? word : line + " " + word;
+			if (!line.isEmpty() && RbxFont.width(next, px, bold) > w) { RbxFont.draw(g, line, x, y, px, bold, argb); y += px + 5; line = word; }
+			else line = next;
+		}
+		RbxFont.draw(g, line, x, y, px, bold, argb);
+		return y + px + 5;
 	}
 
 	private boolean in(int x, int y, int w, int h) { return mx >= x && mx < x + w && my >= y && my < y + h; }
