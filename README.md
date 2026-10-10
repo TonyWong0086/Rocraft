@@ -103,6 +103,20 @@ Two common optimisation-mod features are built in, each in the settings menu's G
 
 If a mod that already does the job is installed, Rocraft leaves it to that mod and the setting shows "By <mod>": EntityCulling or Sodium for the first, Dynamic FPS for the second.
 
+Rocraft also watches its own frame times and scales back its own extra work while frames run over budget (**Adaptive Performance**, on by default):
+- Roblox flames, sparks and smoke are thinned out. The explosion flash and shockwave always show.
+- Avatars further than 32 blocks are animated every 2nd or 3rd frame, and half as often again while over budget.
+- Rocraft's caches are emptied when the Java heap is over 85% full.
+
+**Stable Frame Pacing** (off by default) caps the frame rate at the highest common step (60, 72, 90, 120...) your slowest 10% of frames can keep up with, so frames arrive evenly instead of racing and then stalling.
+
+The performance patches are optional: if one can't apply (another mod changed the same code), the game still starts without it.
+
+### Stats (F3)
+With the 2018 interface on, F3 shows Roblox-style stats panels under the top bar instead of Minecraft's debug screen:
+- **FPS, World, Kernel:** server and render rates, network packets, ping, entities, Parts, debris, chunks, position, biome, light, ragdolls.
+- **Graphics, Performance, Timing:** GPU, backend and load; what each optimisation is doing this frame; the likely bottleneck; detected optimisation mods; frame times (median, p90, p99); recent stutters and their cause (GC, chunk building or other); memory, allocation rate and GC.
+
 ### Sounds and particles
 - **Character sounds** from your install (RbxCharacterSounds): footsteps, jump, landing, falling wind, climbing, swimming and splash, replacing Minecraft's.
 - **Gear sounds** from Roblox:

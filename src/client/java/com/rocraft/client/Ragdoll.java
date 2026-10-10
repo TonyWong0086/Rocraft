@@ -17,6 +17,7 @@ import org.joml.Vector3f;
  */
 final class Ragdoll {
 	private static final Map<Integer, Ragdoll> BY_ENTITY = new HashMap<>();
+	static int active() { return BY_ENTITY.size(); }
 	/** Half sizes in studs, R6 order: Head, Torso, Right Arm, Left Arm, Right Leg, Left Leg. */
 	static final float[][] HALF = {{0.6f, 0.6f, 0.6f}, {1, 1, 0.5f}, {0.5f, 1, 0.5f}, {0.5f, 1, 0.5f}, {0.5f, 1, 0.5f}, {0.5f, 1, 0.5f}};
 	static final float GROUND = -3, GRAVITY = 196.2f, FRICTION = 0.3f, ELASTICITY = 0.2f;

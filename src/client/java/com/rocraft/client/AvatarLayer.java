@@ -34,7 +34,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		Vector3f above = character(ps, out, light, player, s.id, prof, me, s.rightHandItemStack, s.rightHandItemState, s.leftHandItemState,
 			helmet, s.attackTime, s.xRot, s.outlineColor);
 		if (player != null && player.isAlive() && RocraftConfig.INSTANCE.hud2018 && !(me && mc.options.getCameraType().isFirstPerson()))
-			nameTag(ps, out, me ? prof.name : player.getName().getString(), player.getHealth() / player.getMaxHealth(), above);
+			nameTag(ps, out, s.id, me ? prof.name : player.getName().getString(), player.getHealth() / player.getMaxHealth(), above);
 	}
 
 	/**
@@ -87,10 +87,23 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	 * Roblox humanoid name display: the name in white Legacy (Arial) with a soft dark shadow, a constant size on screen
 	 * however far away (it's a GUI, not part of the world), and under it the green health bar (red background) once hurt.
 	 */
-	static void nameTag(PoseStack ps, SubmitNodeCollector out, String name, float hp, Vector3f at) {
+	/** Per character: {opacity, last frame's nanos} of its name display. */
+	private static final java.util.Map<Integer, long[]> NAME_FADE = new java.util.HashMap<>();
+	static final float NAME_FADE_S = 0.25f;
+
+	static void nameTag(PoseStack ps, SubmitNodeCollector out, int id, String name, float hp, Vector3f at) {
 		var mc = Minecraft.getInstance();
 		float stud = 0.28f;
-		if (at.length() > 100 * stud) return; // NameDisplayDistance 100 studs: gone at once past it, no fade
+		// NameDisplayDistance 100 studs: full opacity inside it (no dimming as it gets further), and once past it the
+		// name fades out over a quarter second; coming back inside shows it again at once
+		if (NAME_FADE.size() > 256) NAME_FADE.clear(); // ponytail: crude cap instead of tracking entity removal
+		long[] fd = NAME_FADE.computeIfAbsent(id, k -> new long[]{0, 0});
+		long now = System.nanoTime();
+		float opacity = Float.intBitsToFloat((int) fd[0]), dt = (now - fd[1]) / 1e9f;
+		if (at.length() <= 100 * stud) opacity = 1;
+		else opacity = dt > 0.2f ? 0 : Math.max(0, opacity - dt / NAME_FADE_S); // not drawn lately: it's already gone
+		fd[0] = Float.floatToIntBits(opacity); fd[1] = now;
+		if (opacity <= 0) return;
 		// where the anchor lands on screen: 1 billboard unit = 1 screen pixel at its depth, snapped to the pixel grid
 		var rot = mc.gameRenderer.mainCamera().rotation();
 		var v = new Quaternionf(rot).conjugate().transform(new Vector3f(at)); // view space, looking down -Z
@@ -99,7 +112,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		float f = (float) (H / 2.0 / Math.tan(Math.toRadians(mc.gameRenderer.mainCamera().getFov()) / 2)), depth = -v.z;
 		float sx = W / 2f + v.x / depth * f, sy = H / 2f - v.y / depth * f;
 		float snapX = Math.round(sx) - sx, snapY = Math.round(sy) - sy, perPx = depth / f;
-		int a = 255;
+		int a = Math.round(opacity * 255);
 		// the name: Source Sans 19.6 px (Roblox's, measured), white with a light stroke; one empty row above the bar
 		float px = 19.6f;
 		int w = RbxFont.worldWidth(name, px, "r");

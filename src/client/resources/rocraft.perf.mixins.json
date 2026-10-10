@@ -1,0 +1,15 @@
+{
+	"required": false,
+	"package": "com.rocraft.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"BlockEntityCullingMixin",
+		"CullingMixin",
+		"DebugOverlayMixin",
+		"FpsMixin",
+		"FrameLimiterMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

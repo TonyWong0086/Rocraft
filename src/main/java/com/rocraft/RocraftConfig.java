@@ -11,7 +11,7 @@ public final class RocraftConfig {
 	public String username = "", apiKey = "";
 	public boolean robloxMovement = true, fallDamage = false, hunger = false; // gameplay
 	public boolean hud2018 = true, robloxFont = true, robloxCamera = true;     // graphics
-	public boolean entityCulling = true, unfocusedFps = true;                    // performance (Perf)
+	public boolean entityCulling = true, unfocusedFps = true, adaptivePerf = true, stableFps = false;                    // performance (Perf)
 
 	static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	public static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("rocraft.json");

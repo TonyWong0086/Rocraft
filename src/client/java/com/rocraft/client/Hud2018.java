@@ -107,7 +107,7 @@ final class Hud2018 {
 			sx += cw;
 		}
 
-		RobloxChat.draw(g, mc, W, H, TOP);
+		if (!mc.debugEntries.isOverlayVisible()) RobloxChat.draw(g, mc, W, H, TOP); // the stats panels (F3) take its place
 		RobloxNotify.draw(g, W, H);
 
 		// backpack hotbar: only filled slots, keeping their real number so 1-9 keys still match

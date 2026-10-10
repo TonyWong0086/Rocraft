@@ -1,7 +1,9 @@
 package com.rocraft.client;
 
 import com.rocraft.RocraftConfig;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
@@ -20,6 +22,11 @@ import net.minecraft.world.phys.Vec3;
  *   so this matters more here than in vanilla.
  * - Unfocused FPS cap (like Dynamic FPS): 30 FPS while the game window isn't focused. Vanilla already throttles a
  *   minimised or idle window.
+ * Plus adaptive ones driven by FrameStats (Graphics > Adaptive Performance), which no other mod covers for
+ * Rocraft's own work: Roblox particles thinned out and far-away avatars animated less often while frames run over
+ * budget, and Rocraft's caches trimmed when the heap is nearly full. Opt-in: Stable Frame Pacing (FrameStats.stableCap).
+ * The mixins behind these are optional (rocraft.perf.mixins.json): if one can't apply, the game still starts and
+ * the stats panel shows it as inactive.
  */
 public final class Perf {
 	/** The mod that already does each job, or null if Rocraft does it. */
@@ -27,6 +34,57 @@ public final class Perf {
 	static final int UNFOCUSED_FPS = 30, RECHECK_TICKS = 4, MAX_DIST = 96;
 	/** entity id, or ~block pos for block entities -> {tick last checked, 1 visible / 0 hidden} */
 	private static final Map<Long, int[]> SEEN = new HashMap<>();
+
+	/** Known optimisation mods that are installed (for the stats panel). */
+	static final List<String> OPT_MODS = new ArrayList<>();
+	static {
+		for (String id : new String[]{"sodium", "lithium", "ferritecore", "c2me", "immediatelyfast", "modernfix", "entityculling", "dynamic_fps", "moreculling", "iris", "krypton", "noisium", "vmp"})
+			FabricLoader.getInstance().getModContainer(id).ifPresent(m -> OPT_MODS.add(m.getMetadata().getName()));
+	}
+
+	/** Set the first time each optional patch runs: proof it applied. */
+	public static boolean cullPatch, bePatch, fpsPatch, framePatch;
+	/** Last frame's counts: entities / block entities drawn and hidden, Roblox particles dropped, avatar poses reused. */
+	static int entShown, entHidden, beShown, beHidden, partsDropped, posesReused, posesSolved, cacheTrims;
+	private static int entShownN, entHiddenN, beShownN, beHiddenN, droppedN, reusedN, solvedN;
+
+	static void newFrame() {
+		entShown = entShownN; entHidden = entHiddenN; beShown = beShownN; beHidden = beHiddenN;
+		partsDropped = droppedN; posesReused = reusedN; posesSolved = solvedN;
+		entShownN = entHiddenN = beShownN = beHiddenN = droppedN = reusedN = solvedN = 0;
+	}
+
+	static boolean adaptive() { return RocraftConfig.INSTANCE.adaptivePerf; }
+
+	/** Dynamic particle manager: whether to spawn one more cosmetic Roblox particle at the current load. */
+	static boolean keepParticle(java.util.Random r) {
+		if (!adaptive() || FrameStats.load <= 1.1 && !FrameStats.underPressure()) return true;
+		double keep = Math.clamp(1 / FrameStats.load, 0.3, 1) * (FrameStats.underPressure() ? 0.7 : 1);
+		if (r.nextDouble() < keep) return true;
+		droppedN++;
+		return false;
+	}
+
+	/**
+	 * Animation throttling: an avatar's pose is worked out every this many frames (the frames in between reuse it):
+	 * every frame within 32 blocks, then every 2nd / 3rd further out, twice as sparse while over budget.
+	 */
+	static int poseEvery(Entity e) {
+		if (!adaptive() || e == null || FrameStats.frames == 0) return 1; // no frame counter: the patch didn't apply
+		var mc = Minecraft.getInstance();
+		double d2 = e.distanceToSqr(mc.gameRenderer.mainCamera().position());
+		int n = d2 < 32 * 32 ? 1 : d2 < 64 * 64 ? 2 : 3;
+		return n > 1 && FrameStats.load > 1.2 ? n * 2 : n;
+	}
+
+	static void poseCounted(boolean reused) { if (reused) reusedN++; else solvedN++; }
+
+	/** Adaptive cache eviction: drop what Rocraft can rebuild when the heap is nearly full. */
+	static void trimCaches() {
+		if (!adaptive()) return;
+		SEEN.clear();
+		cacheTrims++;
+	}
 
 	private static String firstLoaded(String... ids) {
 		for (String id : ids) {
@@ -41,12 +99,22 @@ public final class Perf {
 	/** FramerateLimitTracker hook: the limit to use instead of `limit`. */
 	public static int framerateLimit(int limit) {
 		var mc = Minecraft.getInstance();
+		fpsPatch = true;
+		if (RocraftConfig.INSTANCE.stableFps && mc.level != null && FrameStats.stableCap > 0)
+			limit = Math.min(limit <= 0 || limit >= 260 ? Integer.MAX_VALUE : limit, FrameStats.stableCap);
 		if (FPS_BY != null || !RocraftConfig.INSTANCE.unfocusedFps || mc.level == null || mc.isWindowActive()) return limit;
 		return Math.min(limit, UNFOCUSED_FPS);
 	}
 
 	/** EntityRenderDispatcher.shouldRender hook: false when the entity is walled off from the camera. */
 	public static boolean visible(Entity e) {
+		cullPatch = true;
+		boolean v = visible0(e);
+		if (v) entShownN++; else entHiddenN++;
+		return v;
+	}
+
+	private static boolean visible0(Entity e) {
 		if (!culling()) return true;
 		var mc = Minecraft.getInstance();
 		if (e == mc.getCameraEntity() || e == mc.player || e.isCurrentlyGlowing() || e.hasPassenger(mc.player) || mc.player != null && mc.player.isPassengerOfSameVehicle(e)) return true;
@@ -58,7 +126,10 @@ public final class Perf {
 
 	/** BlockEntityRenderDispatcher hook: false when the block entity is walled off from the camera. */
 	public static boolean visible(BlockEntity be) {
-		return !culling() || visible(~be.getBlockPos().asLong(), new AABB(be.getBlockPos()));
+		bePatch = true;
+		boolean v = !culling() || visible(~be.getBlockPos().asLong(), new AABB(be.getBlockPos()));
+		if (v) beShownN++; else beHiddenN++;
+		return v;
 	}
 
 	private static boolean visible(long key, AABB box) {

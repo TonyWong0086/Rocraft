@@ -78,16 +78,24 @@ final class RbxFont {
 	private static int ch(char c) { return c >= 32 && c < 127 ? c : '?'; }
 
 	/** Width in the current pose's units (the HUD draws in real pixels). */
-	static int width(String s, int px, boolean bold) {
-		if (base(bold) == null) return Math.round(Minecraft.getInstance().font.width(s) * px / 9f);
-		Atlas a = atlas(px, bold);
+	static int width(String s, int px, boolean bold) { return width(s, px, bold ? "b" : "r"); }
+
+	/** Width of s in a font ("b", "r" or LEGACY). */
+	static int width(String s, int px, String font) {
+		if (font(font) == null) return Math.round(Minecraft.getInstance().font.width(s) * px / 9f);
+		Atlas a = atlas(px, font);
 		int n = 0;
 		for (char c : s.toCharArray()) n += a.w[ch(c)];
 		return n;
 	}
 
-	static void draw(GuiGraphicsExtractor g, String s, int x, int y, int px, boolean bold, int argb) {
-		if (base(bold) == null) { // no Roblox install or font off: vanilla font scaled to the same height
+	static void draw(GuiGraphicsExtractor g, String s, int x, int y, int px, boolean bold, int argb) { draw(g, s, x, y, px, bold ? "b" : "r", argb); }
+
+	private static Font font(String font) { return font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font); }
+
+	/** HUD text in a font ("b", "r" or LEGACY). */
+	static void draw(GuiGraphicsExtractor g, String s, int x, int y, int px, String font, int argb) {
+		if (font(font) == null) { // no Roblox install or font off: vanilla font scaled to the same height
 			var m = g.pose();
 			m.pushMatrix();
 			m.translate(x, y);
@@ -96,7 +104,7 @@ final class RbxFont {
 			m.popMatrix();
 			return;
 		}
-		Atlas a = atlas(px, bold);
+		Atlas a = atlas(px, font);
 		for (char c0 : s.toCharArray()) {
 			int c = ch(c0);
 			g.blit(RenderPipelines.GUI_TEXTURED, a.id, x, y, a.u[c], a.v[c], a.w[c], a.lineH, a.texW, a.texH, argb);

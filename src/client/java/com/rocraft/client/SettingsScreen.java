@@ -166,6 +166,8 @@ public final class SettingsScreen extends Screen {
 					Perf.CULLING_BY == null ? "On" : "By " + Perf.CULLING_BY, Perf.CULLING_BY == null ? "Off" : "By " + Perf.CULLING_BY);
 				y = toggle(g, y, "Unfocused FPS Limit", () -> c.unfocusedFps, v -> c.unfocusedFps = v,
 					Perf.FPS_BY == null ? Perf.UNFOCUSED_FPS + " FPS" : "By " + Perf.FPS_BY, Perf.FPS_BY == null ? "Off" : "By " + Perf.FPS_BY);
+				y = toggle(g, y, "Adaptive Performance", () -> c.adaptivePerf, v -> c.adaptivePerf = v, "On", "Off");
+				y = toggle(g, y, "Stable Frame Pacing", () -> c.stableFps, v -> c.stableFps = v, "On", "Off");
 				RbxFont.draw(g, "Icons, font and cursor load from your Roblox install.", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
 			}
 		}

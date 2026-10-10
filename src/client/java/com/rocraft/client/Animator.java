@@ -23,6 +23,7 @@ final class Animator {
 	static final Map<String, long[]> EMOTES = Map.of("dance", DANCE, "wave", new long[]{WAVE}, "point", new long[]{POINT}, "laugh", new long[]{LAUGH}, "cheer", new long[]{CHEER});
 	private static final Map<Long, RbxAnim> ANIMS = new ConcurrentHashMap<>();
 	private static final Map<Integer, Animator> BY_ENTITY = new HashMap<>();
+	static int active() { return BY_ENTITY.size(); }
 
 	static void load() {
 		Thread.startVirtualThread(() -> {
@@ -56,7 +57,21 @@ final class Animator {
 	/** A loaded Roblox animation by id (null until it has downloaded). */
 	static RbxAnim anim(long id) { return ANIMS.get(id); }
 
+	private Matrix4f[] last; // the last pose worked out, reused on throttled frames (Perf.poseEvery)
+	private final int stagger = System.identityHashCode(this) & 0xFFFF; // so far avatars don't all update on the same frame
+
 	Matrix4f[] pose(net.minecraft.world.entity.LivingEntity p, boolean holdingGear, boolean swinging, boolean lunging, boolean flying) {
+		int every = Perf.poseEvery(p);
+		if (last != null && every > 1 && (FrameStats.frames + stagger) % every != 0) { // the time skipped is caught up next solve
+			Perf.poseCounted(true);
+			return last.clone(); // callers may swap parts of the array (balloon arm)
+		}
+		Perf.poseCounted(false);
+		last = solve(p, holdingGear, swinging, lunging, flying);
+		return last.clone();
+	}
+
+	private Matrix4f[] solve(net.minecraft.world.entity.LivingEntity p, boolean holdingGear, boolean swinging, boolean lunging, boolean flying) {
 		long now = System.nanoTime();
 		float dt = net.minecraft.client.Minecraft.getInstance().isPaused() ? 0 : Math.min(0.1f, (now - lastNanos) / 1e9f);
 		lastNanos = now;

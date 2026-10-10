@@ -10,8 +10,6 @@
 		"ChatComponentAccessor",
 		"ChatScreenAccessor",
 		"ChatScreenMixin",
-		"BlockEntityCullingMixin", "CullingMixin",
-		"FpsMixin",
 		"ItemInHandMixin",
 		"MouseMixin",
 		"SpecialRenderersAccessor",

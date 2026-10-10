@@ -30,11 +30,12 @@ final class RbxParticle extends SingleQuadParticle {
 	private static final Map<SimpleParticleType, SpriteSet> SPRITES = new HashMap<>();
 	private static final Map<String, int[][]> RAMPS = new HashMap<>();
 	private static Layer additive, soft;
+	private static final java.util.Random RNG = new java.util.Random();
 
 	float size0, size1, opacity = 1, spin, drag = 1;
 	int tint = 0xFFFFFF;
 	String colorRamp, alphaRamp;
-	boolean add, bright, rampIsAlpha; // rampIsAlpha: the colour ramp's brightness is the alpha (Smoke)
+	boolean add, bright, rampIsAlpha, essential; // rampIsAlpha: the colour ramp's brightness is the alpha (Smoke)
 	private final float row;
 
 	private RbxParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SimpleParticleType type, int life) {
@@ -60,6 +61,7 @@ final class RbxParticle extends SingleQuadParticle {
 	RbxParticle sizes(float studs0, float studs1) { size0 = studs0 * STUD; size1 = studs1 * STUD; return this; }
 
 	void add() {
+		if (!essential && !Perf.keepParticle(RNG)) return; // flames, sparks and smoke thin out while frames run over budget
 		update();
 		Minecraft.getInstance().particleEngine.add(this);
 	}
@@ -160,10 +162,10 @@ final class RbxParticle extends SingleQuadParticle {
 	static void explosion(ClientLevel l, double x, double y, double z, float r) {
 		var im = make(l, x, y, z, 0, 0, 0, RbxParticles.IMPLOSION, 0.4f);
 		if (im == null) return;
-		im.sizes(r * 2.2f, r * 0.4f); im.tint = 0xFFE6B4; im.colorRamp = "explosion01_implosion_color"; im.add = true; im.bright = true;
+		im.sizes(r * 2.2f, r * 0.4f); im.tint = 0xFFE6B4; im.colorRamp = "explosion01_implosion_color"; im.add = true; im.bright = true; im.essential = true;
 		im.add();
 		var sw = make(l, x, y, z, 0, 0, 0, RbxParticles.SHOCKWAVE, 0.6f);
-		sw.sizes(r * 0.5f, r * 3.5f); sw.add = true; sw.bright = true;
+		sw.sizes(r * 0.5f, r * 3.5f); sw.add = true; sw.bright = true; sw.essential = true;
 		sw.add();
 		for (int i = 0; i < 5; i++) {
 			var c = make(l, x + rnd(l) * r * 0.2 * STUD, y + rnd(l) * r * 0.2 * STUD, z + rnd(l) * r * 0.2 * STUD,
