@@ -88,33 +88,47 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	 */
 	static void nameTag(PoseStack ps, SubmitNodeCollector out, String name, float hp, Vector3f at) {
 		var mc = Minecraft.getInstance();
-		float dist = at.length(), stud = 0.28f;
+		float stud = 0.28f;
 		// NameDisplayDistance 100 studs: fades out over the last 20 (and back in as you come closer)
-		float fade = Math.clamp((100 * stud - dist) / (20 * stud), 0, 1);
+		float fade = Math.clamp((100 * stud - at.length()) / (20 * stud), 0, 1);
 		if (fade <= 0) return;
-		// world units per screen pixel at this distance: 1 unit below = 1 screen pixel, so it keeps one size on screen
-		float perPx = (float) (2 * dist * Math.tan(Math.toRadians(mc.options.fov().get()) / 2) / mc.getWindow().getHeight());
-		int px = Math.max(16, mc.getWindow().getHeight() / 50), w = RbxFont.worldWidth(name, px, "r");
-		boolean hurt = hp < 1;
-		// Roblox's bar, measured: ~6x the text height wide, 1 px border + 2 px gap + 2 px fill (scaled with the text)
-		int k = Math.max(1, Math.round(px / 17f)), bw = Math.round(px * 6f), bh = 8 * k;
-		float ty = -px - (hurt ? bh + 3 : 2), h = Math.max(0, hp), x0 = -bw / 2f, y0 = -bh;
+		// where the anchor lands on screen: 1 billboard unit = 1 screen pixel at its depth, snapped to the pixel grid
+		var rot = mc.gameRenderer.mainCamera().rotation();
+		var v = new Quaternionf(rot).conjugate().transform(new Vector3f(at)); // view space, looking down -Z
+		if (v.z > -0.05f) return;
+		int W = mc.getWindow().getWidth(), H = mc.getWindow().getHeight();
+		float f = (float) (H / 2.0 / Math.tan(Math.toRadians(mc.gameRenderer.mainCamera().getFov()) / 2)), depth = -v.z;
+		float sx = W / 2f + v.x / depth * f, sy = H / 2f - v.y / depth * f;
+		float snapX = Math.round(sx) - sx, snapY = Math.round(sy) - sy, perPx = depth / f;
 		int a = Math.round(fade * 255);
+		// the name: Source Sans 19.6 px (Roblox's, measured), white with a light stroke; one empty row above the bar
+		float px = 19.6f;
+		int w = RbxFont.worldWidth(name, px, "r");
+		float tx = Math.round(-w / 2f) - 1, ty = -8 + 1 - RbxFont.lineHeight(px, "r");
 		// every layer sits a hair nearer the camera than the one before, so stroke / text and border / fill never z-fight
-		layer(ps, at, perPx, 0, () -> RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", 0, alpha(0x50000000, a)));
-		layer(ps, at, perPx, 1, () -> RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", alpha(0xFFFFFFFF, a), 0));
-		if (!hurt) return;
+		layer(ps, at, perPx, snapX, snapY, 0, () -> RbxFont.world(ps, out, name, tx, ty, px, "r", 0, alpha(0x50000000, a)));
+		layer(ps, at, perPx, snapX, snapY, 1, () -> RbxFont.world(ps, out, name, tx, ty, px, "r", alpha(0xFFFFFFFF, a), 0));
+		if (hp >= 1) return;
 		var white = net.minecraft.client.renderer.rendertype.RenderTypes.text(BombRenderer.BALL.texture()); // a 1x1 white texture
-		int col = alpha(healthColor(h), a);
-		// translucent dark grey inside, then the border and the fill both in the health colour (corners clipped by 1 px)
-		layer(ps, at, perPx, 0, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> rect(vc, pose, x0 + k, y0 + k, bw - 2 * k, bh - 2 * k, alpha(0x80646464, a))));
-		layer(ps, at, perPx, 1, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> {
-			rect(vc, pose, x0 + k, y0, bw - 2 * k, k, col);           // top
-			rect(vc, pose, x0 + k, y0 + bh - k, bw - 2 * k, k, col);  // bottom
-			rect(vc, pose, x0, y0 + k, k, bh - 2 * k, col);           // left
-			rect(vc, pose, x0 + bw - k, y0 + k, k, bh - 2 * k, col);  // right
-			if (h > 0) rect(vc, pose, x0 + 3 * k, y0 + 3 * k, (bw - 6 * k) * h, bh - 6 * k, col);
+		float h = Math.max(0, hp);
+		int col = alpha(healthColor(h), a), bg = alpha(0x85656565, a), fill = Math.round(96 * h);
+		// Roblox's overhead health bar, pixel for pixel (102 x 8): rounded 1 px border in the health colour,
+		// translucent grey inside, a 2 px gap, and a 2 px fill 96 px long at full health
+		layer(ps, at, perPx, snapX, snapY, 0, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> {
+			px(vc, pose, 3, 1, 96, 1, bg); px(vc, pose, 1, 2, 100, 4, bg); px(vc, pose, 3, 6, 96, 1, bg);
 		}));
+		layer(ps, at, perPx, snapX, snapY, 1, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> {
+			px(vc, pose, 3, 0, 96, 1, col); px(vc, pose, 3, 7, 96, 1, col);                 // top, bottom
+			px(vc, pose, 0, 1, 3, 1, col); px(vc, pose, 99, 1, 3, 1, col);                  // corners
+			px(vc, pose, 0, 6, 3, 1, col); px(vc, pose, 99, 6, 3, 1, col);
+			px(vc, pose, 0, 2, 1, 4, col); px(vc, pose, 101, 2, 1, 4, col);                 // sides
+			if (fill > 0) px(vc, pose, 3, 3, fill, 2, col);
+		}));
+	}
+
+	/** A run of bar pixels: bar-local column/row (the bar's top-left is at (-51, -8)). */
+	private static void px(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, int x, int y, int w, int h, int argb) {
+		rect(vc, pose, x - 51, y - 8, w, h, argb);
 	}
 
 	private static void rect(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, float x, float y, float w, float h, int argb) {
@@ -123,13 +137,14 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 
 	private static int alpha(int argb, int a) { return ((argb >>> 24) * a / 255) << 24 | argb & 0xFFFFFF; }
 
-	/** Billboard pose at `at` (camera space), pulled `k` steps toward the camera. */
-	private static void layer(PoseStack ps, Vector3f at, float perPx, int k, Runnable draw) {
+	/** Billboard pose at `at` (camera space) with 1 unit = 1 screen pixel, nudged onto the pixel grid, pulled `k` steps toward the camera. */
+	private static void layer(PoseStack ps, Vector3f at, float perPx, float snapX, float snapY, int k, Runnable draw) {
 		ps.pushPose();
 		float pull = 1 - k * 0.002f;
 		ps.last().pose().identity().translate(at.x * pull, at.y * pull, at.z * pull).rotate(Minecraft.getInstance().gameRenderer.mainCamera().rotation());
 		ps.last().normal().identity();
 		ps.scale(perPx * pull, -perPx * pull, perPx * pull);
+		ps.translate(snapX, snapY, 0);
 		draw.run();
 		ps.popPose();
 	}

@@ -39,7 +39,7 @@ public final class MouseAim {
 			nx = mc.mouseHandler.xpos() / win.getScreenWidth() * 2 - 1;
 			ny = 1 - mc.mouseHandler.ypos() / win.getScreenHeight() * 2;
 		}
-		double t = Math.tan(Math.toRadians(mc.options.fov().get()) / 2), aspect = (double) win.getWidth() / win.getHeight();
+		double t = Math.tan(Math.toRadians(mc.gameRenderer.mainCamera().getFov()) / 2), aspect = (double) win.getWidth() / win.getHeight();
 		var f = cam.forwardVector();
 		var u = cam.upVector();
 		var l = cam.leftVector();

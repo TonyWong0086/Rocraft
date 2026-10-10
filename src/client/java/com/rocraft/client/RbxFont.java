@@ -18,7 +18,8 @@ import net.minecraft.resources.Identifier;
 
 /** SourceSansPro (the 2018 Roblox UI font) from the user's Roblox install, baked per pixel size into a glyph atlas. */
 final class RbxFont {
-	record Atlas(Identifier id, int texW, int texH, int lineH, int[] u, int[] v, int[] w) {}
+	/** w: whole-pixel glyph cell width; adv: the font's exact (fractional) advance, for world text laid out like Roblox's. */
+	record Atlas(Identifier id, int texW, int texH, int lineH, int[] u, int[] v, int[] w, float[] adv) {}
 	private static final Map<String, Atlas> CACHE = new HashMap<>();
 	private static final Map<String, Optional<Font>> BASE = new HashMap<>();
 
@@ -38,21 +39,24 @@ final class RbxFont {
 		}).orElse(null);
 	}
 
-	private static Atlas atlas(int px, boolean bold) { return atlas(px, bold ? "b" : "r"); }
+	private static Atlas atlas(float px, boolean bold) { return atlas(px, bold ? "b" : "r"); }
 
-	private static Atlas atlas(int px, String font) {
+	private static Atlas atlas(float px, String font) {
 		return CACHE.computeIfAbsent(px + font, k -> {
-			Font f = (font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)).deriveFont((float) px);
+			Font f = (font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)).deriveFont(px);
 			var probe = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics();
 			probe.setFont(f);
 			var fm = probe.getFontMetrics();
 			probe.dispose();
 			int lineH = fm.getAscent() + fm.getDescent(), W = 512, x = 0, y = 0;
 			int[] u = new int[128], v = new int[128], w = new int[128];
+			float[] adv = new float[128];
+			var frc = new java.awt.font.FontRenderContext(null, true, true);
 			for (int c = 32; c < 127; c++) {
 				int cw = fm.charWidth(c) + 2;
 				if (x + cw > W) { x = 0; y += lineH + 2; }
 				u[c] = x; v[c] = y; w[c] = fm.charWidth(c); x += cw;
+				adv[c] = (float) f.getStringBounds(String.valueOf((char) c), frc).getWidth();
 			}
 			int H = y + lineH + 2;
 			var img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
@@ -67,7 +71,7 @@ final class RbxFont {
 			for (int py = 0; py < H; py++) for (int pxl = 0; pxl < W; pxl++) ni.setPixel(pxl, py, img.getRGB(pxl, py));
 			Identifier id = Rocraft.id("rbxfont/" + k.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_.-]", "_"));
 			Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "rocraft font " + k, ni));
-			return new Atlas(id, W, H, lineH, u, v, w);
+			return new Atlas(id, W, H, lineH, u, v, w, adv);
 		});
 	}
 
@@ -108,17 +112,23 @@ final class RbxFont {
 		world(ps, out, s, x, y, px, bold ? "b" : "r", argb, 0);
 	}
 
+	/** Height of a line of text (the glyph boxes world() draws), in its pixels. */
+	static int lineHeight(float px, String font) {
+		if ((font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)) == null) return Math.round(px);
+		return atlas(px, font).lineH();
+	}
+
 	/** Width of s in a world font ("b", "r" or LEGACY). */
-	static int worldWidth(String s, int px, String font) {
+	static int worldWidth(String s, float px, String font) {
 		if ((font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)) == null) return Math.round(Minecraft.getInstance().font.width(s) * px / 9f);
 		Atlas a = atlas(px, font);
-		int n = 0;
-		for (char c : s.toCharArray()) n += a.w[ch(c)];
-		return n;
+		float n = 0;
+		for (char c : s.toCharArray()) n += a.adv[ch(c)];
+		return Math.round(n);
 	}
 
 	/** outline: ARGB of a 1-pixel stroke all round (Roblox TextStroke), 0 for none. */
-	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, int px, String font, int argb, int outline) {
+	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, float px, String font, int argb, int outline) {
 		if ((font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)) == null) {
 			ps.pushPose();
 			ps.translate(x, y, 0);
@@ -138,13 +148,14 @@ final class RbxFont {
 	}
 
 	private static void glyphs(com.mojang.blaze3d.vertex.VertexConsumer vc, com.mojang.blaze3d.vertex.PoseStack.Pose pose, Atlas a, String s, float x, float y, int argb) {
-		float cx = x;
+		float pen = x;
 		for (char c0 : s.toCharArray()) {
 			int c = ch(c0);
+			float cx = Math.round(pen); // each glyph on whole pixels (its cell was rasterised there), pen kept fractional
 			float u0 = a.u[c] / (float) a.texW, u1 = (a.u[c] + a.w[c]) / (float) a.texW, v0 = a.v[c] / (float) a.texH, v1 = (a.v[c] + a.lineH) / (float) a.texH;
 			float[][] q = {{cx, y, u0, v0}, {cx, y + a.lineH, u0, v1}, {cx + a.w[c], y + a.lineH, u1, v1}, {cx + a.w[c], y, u1, v0}};
 			for (float[] k : q) vc.addVertex(pose, k[0], k[1], 0).setColor(argb).setUv(k[2], k[3]).setLight(0xF000F0);
-			cx += a.w[c];
+			pen += a.adv[c];
 		}
 	}
 }
