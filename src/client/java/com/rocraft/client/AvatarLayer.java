@@ -90,9 +90,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	static void nameTag(PoseStack ps, SubmitNodeCollector out, String name, float hp, Vector3f at) {
 		var mc = Minecraft.getInstance();
 		float stud = 0.28f;
-		// NameDisplayDistance 100 studs: fades out over the last 20 (and back in as you come closer)
-		float fade = Math.clamp((100 * stud - at.length()) / (20 * stud), 0, 1);
-		if (fade <= 0) return;
+		if (at.length() > 100 * stud) return; // NameDisplayDistance 100 studs: gone at once past it, no fade
 		// where the anchor lands on screen: 1 billboard unit = 1 screen pixel at its depth, snapped to the pixel grid
 		var rot = mc.gameRenderer.mainCamera().rotation();
 		var v = new Quaternionf(rot).conjugate().transform(new Vector3f(at)); // view space, looking down -Z
@@ -101,7 +99,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		float f = (float) (H / 2.0 / Math.tan(Math.toRadians(mc.gameRenderer.mainCamera().getFov()) / 2)), depth = -v.z;
 		float sx = W / 2f + v.x / depth * f, sy = H / 2f - v.y / depth * f;
 		float snapX = Math.round(sx) - sx, snapY = Math.round(sy) - sy, perPx = depth / f;
-		int a = Math.round(fade * 255);
+		int a = 255;
 		// the name: Source Sans 19.6 px (Roblox's, measured), white with a light stroke; one empty row above the bar
 		float px = 19.6f;
 		int w = RbxFont.worldWidth(name, px, "r");

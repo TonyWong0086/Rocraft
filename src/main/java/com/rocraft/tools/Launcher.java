@@ -13,7 +13,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Rocket Launcher, Superball, Slingshot and Paintball Gun: Tool.Activated fires at the mouse (Tools.mouse).
- * Reloads (Tool.Enabled off): Slingshot 0.2 s, Paintball Gun 0.5 s; the Rocket Launcher and Superball have none (spammable).
+ * No reload on any of them (Rocraft wants these spammable, like the Bomb and Trowel).
  */
 public final class Launcher extends Item {
 	private final int kind;
@@ -22,10 +22,6 @@ public final class Launcher extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
-		var stack = p.getItemInHand(hand);
-		if (p.getCooldowns().isOnCooldown(stack)) return InteractionResult.FAIL;
-		int reload = kind == Projectile.PELLET ? 4 : kind == Projectile.PAINTBALL ? 10 : 0;
-		if (reload > 0) p.getCooldowns().addCooldown(stack, reload);
 		if (!(level instanceof ServerLevel sl)) return InteractionResult.CONSUME;
 		double stud = McFrame.STUD;
 		Vec3 head = p.position().add(0, 4.5 * stud, 0), target = Tools.mouse(p);

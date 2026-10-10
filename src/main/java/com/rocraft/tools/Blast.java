@@ -20,14 +20,20 @@ final class Blast {
 		Vec3 c = source.position();
 		sl.sendParticles(com.rocraft.RbxParticles.EXPLOSION, c.x, c.y, c.z, 0, radius / McFrame.STUD, 0, 0, 1);
 		RbxSounds.play(source, RbxSounds.get(sound), 8f); // heard ~128 blocks away, like Roblox's long rolloff
+		var parts = new java.util.ArrayList<RobloxPart>();
 		for (Entity e : sl.getEntities(source, source.getBoundingBox().inflate(radius), e -> e.distanceTo(source) <= radius)) {
+			if (e instanceof RobloxPart part) { parts.add(part); continue; }
 			var push = e.position().subtract(c).normalize().scale(0.8 * (1 - e.distanceTo(source) / radius) + 0.2);
-			if (e instanceof RobloxPart part) { part.breakJoints(part.getDeltaMovement().add(push.x, push.y + 0.3, push.z)); continue; }
 			e.push(push.x, push.y + 0.3, push.z);
 			e.hurtMarked = true;
 			if (e instanceof LivingEntity le) le.hurtServer(sl, src, damage);
 		}
 		breakBlocks(sl, c, radius);
+		// Parts lose their joints and fly like the blocks do, aimed out of the crater just carved
+		var rand = sl.getRandom();
+		for (var part : parts)
+			part.breakJoints(throwVelocity(part.getBoundingBox().getCenter().subtract(c), radius, rand.nextDouble(), rand.nextDouble(), rand.nextDouble(),
+				box -> !sl.noBlockCollision(null, box.move(c))));
 	}
 
 	/**
@@ -53,7 +59,7 @@ final class Blast {
 		for (int i = 0; i < loose.size(); i++) {
 			var pos = loose.get(i);
 			Vec3 v = throwVelocity(Vec3.atCenterOf(pos).subtract(c), radius, rand.nextDouble(), rand.nextDouble(), rand.nextDouble(),
-				box -> !sl.noCollision(box.move(c)));
+				box -> !sl.noBlockCollision(null, box.move(c)));
 			Debris.launch(sl, pos, states.get(i), v);
 		}
 	}

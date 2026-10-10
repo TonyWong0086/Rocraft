@@ -80,6 +80,14 @@ public final class Tools {
 
 	static void clientUse(Item item, long ms) { clientUseItem = item; clientUseUntil = System.currentTimeMillis() + ms; }
 
+	/** Roblox debounce (Tool.Enabled off while the script waits): false while still on it, else starts it. */
+	static boolean debounce(net.minecraft.world.entity.player.Player p, net.minecraft.world.InteractionHand hand, int ticks) {
+		var stack = p.getItemInHand(hand);
+		if (p.getCooldowns().isOnCooldown(stack)) return false;
+		p.getCooldowns().addCooldown(stack, ticks);
+		return true;
+	}
+
 	/** Where each player's mouse points in the world (Roblox's MouseLoc), sent by the client. */
 	static final Map<UUID, Vec3> MOUSE = new HashMap<>();
 	private static final Map<UUID, Item> HELD = new HashMap<>();

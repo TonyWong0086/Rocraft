@@ -13,6 +13,7 @@ public final class Teddy extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
+		if (!Tools.debounce(p, hand, 40)) return InteractionResult.FAIL;
 		if (level.isClientSide()) Tools.clientUse(this, 2000);
 		else RbxSounds.play(p, RbxSounds.get("teddy.say" + (1 + p.getRandom().nextInt(5))));
 		return InteractionResult.CONSUME;

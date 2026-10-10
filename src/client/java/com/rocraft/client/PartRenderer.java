@@ -17,13 +17,14 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import org.joml.Quaternionf;
 
 /**
  * A Roblox Part as Roblox draws it: one stud of Roblox's studs.dds per stud on the top surface, inlets on the bottom,
  * smooth sides, all tinted by the BrickColor (the texture is normalised so its flat plastic is white).
  */
 final class PartRenderer extends EntityRenderer<RobloxPart, PartRenderer.State> {
-	static final class State extends EntityRenderState { int color; float sx, sy, sz; }
+	static final class State extends EntityRenderState { int color; float sx, sy, sz; final Quaternionf rot = new Quaternionf(); }
 	static final float STUD = 0.28f;
 	private static Identifier studs, inlets;
 	private static boolean tried;
@@ -38,6 +39,7 @@ final class PartRenderer extends EntityRenderer<RobloxPart, PartRenderer.State> 
 		s.color = e.color();
 		var size = e.size();
 		s.sx = size.x(); s.sy = size.y(); s.sz = size.z();
+		e.tumble.rotO.slerp(e.tumble.rot, partial, s.rot);
 	}
 
 	@Override
@@ -46,6 +48,10 @@ final class PartRenderer extends EntityRenderer<RobloxPart, PartRenderer.State> 
 		float hx = s.sx * STUD / 2, hz = s.sz * STUD / 2, h = s.sy * STUD;
 		int nx = Math.max(1, Math.round(s.sx)), nz = Math.max(1, Math.round(s.sz)), light = s.lightCoords, c = s.color | 0xFF000000;
 		Identifier white = BombRenderer.BALL.texture();
+		ps.pushPose(); // tumbling about its centre after a blast
+		ps.translate(0, h / 2, 0);
+		ps.mulPose(s.rot);
+		ps.translate(0, -h / 2, 0);
 		out.submitCustomGeometry(ps, RenderTypes.entityCutout(studs != null ? studs : white), (pose, vc) -> {
 			for (int i = 0; i < nx; i++) for (int k = 0; k < nz; k++) { // one stud per cell
 				float x0 = -hx + 2 * hx * i / nx, x1 = -hx + 2 * hx * (i + 1) / nx, z0 = -hz + 2 * hz * k / nz, z1 = -hz + 2 * hz * (k + 1) / nz;
@@ -64,6 +70,7 @@ final class PartRenderer extends EntityRenderer<RobloxPart, PartRenderer.State> 
 			quad(vc, pose, c, light, -1, 0, 0, -hx, 0, hz, 0, 0, -hx, h, hz, 0, 0, -hx, h, -hz, 0, 0, -hx, 0, -hz, 0, 0);
 			quad(vc, pose, c, light, 1, 0, 0, hx, 0, -hz, 0, 0, hx, h, -hz, 0, 0, hx, h, hz, 0, 0, hx, 0, hz, 0, 0);
 		});
+		ps.popPose();
 		super.submit(s, ps, out, cam);
 	}
 

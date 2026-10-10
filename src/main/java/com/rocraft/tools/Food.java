@@ -19,6 +19,7 @@ public final class Food extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
+		if (!Tools.debounce(p, hand, 16)) return InteractionResult.FAIL;
 		if (level.isClientSide()) Tools.clientUse(this, 800);
 		else {
 			RbxSounds.play(p, RbxSounds.get(eatSound));

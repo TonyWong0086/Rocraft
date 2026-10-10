@@ -37,8 +37,8 @@ Everything is in the **Rocraft creative-inventory tab**. Each item is the real R
 | Linked Sword | The blade hurts whatever it touches: 5 just held, 10 for half a second after a click (slash), 30 for a second after a quick double click (lunge). The lunge throws you a little forward and up. Classic slash, lunge and unsheath sounds |
 | Rocket Launcher | 60 studs/s rocket, no gravity, trailing Roblox Fire and its looping whoosh, no reload. Explodes on anything it touches (you included, once it's clear of you): radius 8, 60 damage, knockback. Other projectiles can shoot it down |
 | Superball | Random-color ball at 200 studs/s, 25 damage. It bounces off everything, and the damage halves each time it hits a non-character |
-| Slingshot | Red 1-stud pellet at 85 studs/s, 0.2 s reload, 8 damage (it can hit you too), halved on each bounce and gone below 1 |
-| Paintball Gun | Roblox's ClassicPaintballGun: 300 studs/s paintball in one of 7 colors, 2 damage, 0.5 s reload. Paints the Roblox Part it hits and splats three plates of paint that clean up after 2 minutes |
+| Slingshot | Red 1-stud pellet at 85 studs/s, no reload, 8 damage (it can hit you too), halved on each bounce and gone below 1 |
+| Paintball Gun | Roblox's ClassicPaintballGun: 300 studs/s paintball in one of 7 colors, 2 damage, no reload. Paints the Roblox Part it hits and splats three plates of paint that clean up after 2 minutes |
 | Bomb | Click to plant the classic time bomb: a mirror ball (Reflectance 1) that ticks faster and faster, then explodes. It rolls, bounces, and gets kicked along when you walk into it |
 
 **Building and getting around**
@@ -70,9 +70,9 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 - Knocked out, they "oof" and **fall apart** like a Roblox character: head, torso and limbs drop and topple as separate pieces, cleared away after 5 s.
 
 **How gear feels**
-- No Minecraft cooldowns or arm swing: tools fire on every click, apart from the reloads listed above. Only the sword swings.
+- No Minecraft arm swing: the Rocket Launcher, Superball, Slingshot, Paintball Gun, Bomb and Trowel fire on every click. The rest keep their Roblox debounce: sword lunge 1 s, Bloxy Cola 3 s, food 0.8 s, Teddy 2 s. Only the sword swings.
 - In first person you see the tool's 3D Roblox model in your hand, not a flat icon.
-- **Explosions** are Roblox-style (flash, shockwave, fireball, sparks, smoke), not Minecraft's. Rocket and bomb blasts **tear blocks loose**: they are thrown out of the crater in every direction (about 10 blocks, some much further), tumbling end over end, then bounce, slide and tip flat before turning into item drops after resting for 5 s. Roblox Parts caught in the blast lose their joints and fall apart.
+- **Explosions** are Roblox-style (flash, shockwave, fireball, sparks, smoke), not Minecraft's. Rocket and bomb blasts **tear blocks loose**: they are thrown out of the crater in every direction (about 10 blocks, some much further), tumbling end over end, then bounce, slide and tip flat before turning into item drops after resting for 5 s. Roblox Parts caught in the blast lose their joints and are thrown, tumble and settle the same way, landing flat.
 
 ### Camera and controls (Roblox-style)
 - **Free cursor**, shown as Roblox's arrow.
@@ -93,7 +93,7 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 - A **Backpack-style hotbar**: click a slot or press its number to equip it, and again to unequip. No player list.
 - The backpack icon turns blue while your inventory is open, and the chat icon shows a count of unread messages.
 - **2018 chat:** fills from the top like Roblox's, opening with `Chat '/?' or '/help' for a list of chat commands.`. `[Name]: message` in SourceSans, names colored by Roblox's own name-color algorithm, messages fading after 30 seconds, and the classic hint `To chat click here or press "/" key`. `/?` and `/help` list the chat commands; `/help <command>` still explains a Minecraft command.
-- **Roblox notifications** (the dark bottom-right cards) replace Minecraft's "Advancement Made!" and "New Recipes Unlocked!" toasts.
+- **Roblox notifications** (the see-through 2018 boxes in the bottom right) replace Minecraft's "Advancement Made!" and "New Recipes Unlocked!" toasts.
 - **Settings menu:** open it with the **Rocraft** button next to Friends on the title screen. It looks like the 2018 Roblox settings menu, with **Avatar**, **Gameplay** and **Graphics** tabs.
 
 ### Performance

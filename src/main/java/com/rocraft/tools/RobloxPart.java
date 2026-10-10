@@ -1,5 +1,7 @@
 package com.rocraft.tools;
 
+import org.joml.Quaternionf;
+
 import com.rocraft.sim.McFrame;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -31,6 +33,8 @@ public final class RobloxPart extends Entity {
 	public RobloxPart(EntityType<? extends RobloxPart> type, Level level) { super(type, level); }
 
 	private int lifetime = -1; // ticks, -1 = forever
+	/** Client: tumbling once a blast throws it (PartRenderer turns it about its centre). */
+	public final Debris.Tumble tumble = new Debris.Tumble();
 
 	/** A part whose bottom centre is at pos; size in studs (world X, Y, Z). */
 	static RobloxPart place(ServerLevel level, Vec3 pos, float sx, float sy, float sz, int argb, boolean anchored, int lifetimeTicks) {
@@ -85,11 +89,24 @@ public final class RobloxPart extends Entity {
 		applyGravity();
 		Vec3 want = getDeltaMovement();
 		move(MoverType.SELF, want);
-		Vec3 got = getDeltaMovement();
-		double vy = verticalCollision && want.y < -0.15 ? -want.y * 0.3 : got.y;
-		double f = onGround() ? 0.7 : 0.99;
-		setDeltaMovement(horizontalCollision ? -got.x * 0.2 : got.x * f, vy, horizontalCollision ? -got.z * 0.2 : got.z * f);
+		Vec3 v = Debris.collide(want, getDeltaMovement(), horizontalCollision, verticalCollision); // same physics as blasted blocks
+		setDeltaMovement(v);
+		if (level().isClientSide()) tumble.step(getId(), v, verticalCollision && want.y < 0, onGround(), RobloxPart::lieFlat);
 		if (getY() < level().getMinY() - 64) discard(); // fell out of the world (Workspace.FallenPartsDestroyHeight)
+	}
+
+	/**
+	 * Resting orientation: the nearest of the four that keep its box lined up with its collision box (as placed,
+	 * upside down either way, or turned half round), so what you see is what you stand on.
+	 */
+	static Quaternionf lieFlat(Quaternionf q) {
+		Quaternionf best = null;
+		float bestDot = -1;
+		for (var c : new Quaternionf[]{new Quaternionf(), new Quaternionf(1, 0, 0, 0), new Quaternionf(0, 1, 0, 0), new Quaternionf(0, 0, 1, 0)}) {
+			float d = Math.abs(c.dot(q));
+			if (d > bestDot) { bestDot = d; best = c; }
+		}
+		return best;
 	}
 
 	@Override public boolean canBeCollidedWith(Entity other) { return true; }

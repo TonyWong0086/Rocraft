@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import org.joml.Quaternionf;
 
 /**
- * Explosion debris: the block's model turned about its centre by its tumble (Debris.rot), lit evenly by the light
+ * Explosion debris: the block's model turned about its centre by its tumble (Debris.Tumble), lit evenly by the light
  * where the debris is (like a block in a minecart). The falling-block renderer lights each face from the world cell
  * beside it, which goes black once the block has rolled over (its old bottom face, lit from the ground, ends up on top or the side).
  */
@@ -37,7 +37,7 @@ final class DebrisRenderer extends EntityRenderer<Debris, DebrisRenderer.State> 
 	@Override
 	public void extractRenderState(Debris d, State s, float partial) {
 		super.extractRenderState(d, s, partial);
-		d.rotO.slerp(d.rot, partial, s.rot);
+		d.tumble.rotO.slerp(d.tumble.rot, partial, s.rot);
 		blocks.update(s.block, d.getBlockState(), AbstractMinecartRenderer.BLOCK_DISPLAY_CONTEXT);
 	}
 

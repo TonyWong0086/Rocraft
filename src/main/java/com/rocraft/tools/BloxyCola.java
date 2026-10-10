@@ -18,6 +18,7 @@ public final class BloxyCola extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player p, InteractionHand hand) {
+		if (!Tools.debounce(p, hand, DRINK_TICKS)) return InteractionResult.FAIL;
 		if (level.isClientSide()) Tools.clientUse(this, DRINK_TICKS * 50);
 		else {
 			RbxSounds.play(p, RbxSounds.COLA_DRINK);
