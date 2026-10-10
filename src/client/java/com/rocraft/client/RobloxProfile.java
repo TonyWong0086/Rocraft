@@ -29,6 +29,9 @@ public final class RobloxProfile {
 	public MeshDraw head;        // DynamicHead mesh + face texture (Roblox shows it on R6 too), null = classic head
 	public BufferedImage face;    // classic Face decal, null = default smile
 
+	/** Users drawn in one of their saved outfits instead of what they wear now: username -> outfit id. */
+	public static final java.util.Map<String, Long> OUTFITS = java.util.Map.of("Shedletsky", 34915L); // Classic Telamon
+
 	static final HttpClient HTTP = RobloxApi.HTTP;
 	static final Gson GSON = new Gson();
 
@@ -50,7 +53,9 @@ public final class RobloxProfile {
 				p.name = d.get(0).getAsJsonObject().get("name").getAsString();
 				p.guest = false;
 			}
-			JsonObject a = send(HttpRequest.newBuilder(URI.create("https://avatar.roblox.com/v2/avatar/users/" + p.userId + "/avatar")).build()).getAsJsonObject();
+			Long outfit = guest ? null : OUTFITS.get(username); // an outfit's details have the same assets / bodyColor3s shape
+			JsonObject a = send(HttpRequest.newBuilder(URI.create(outfit != null ? "https://avatar.roblox.com/v3/outfits/" + outfit + "/details"
+				: "https://avatar.roblox.com/v2/avatar/users/" + p.userId + "/avatar")).build()).getAsJsonObject();
 			JsonObject c = a.getAsJsonObject("bodyColor3s");
 			String[] keys = {"headColor3", "torsoColor3", "leftArmColor3", "rightArmColor3", "leftLegColor3", "rightLegColor3"};
 			for (int i = 0; i < 6; i++) if (c != null && c.has(keys[i])) p.colors[i] = Integer.parseInt(c.get(keys[i]).getAsString().replace("#", ""), 16);

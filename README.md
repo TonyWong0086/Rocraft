@@ -64,7 +64,7 @@ Everything is in the **Rocraft creative-inventory tab**. Each item is the real R
 **Hats:** Dominus Aureus, Dominus Rex, Doge, LOLHOO and Mr. Tentacles. Click one to put it in your helmet slot; it sits on your head exactly where Roblox puts it.
 
 ### Robloxian mobs
-Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam, KreekCraft, DenisDaily, Linkmon99 and PGHLego1945 roam the Overworld (rarely) wearing their **real Roblox avatars**, each with a spawn egg in the Rocraft tab.
+Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam, DenisDaily, Linkmon99, PGHLego1945 and TonyWong_0086 roam the Overworld (rarely) wearing their **real Roblox avatars**, each with a spawn egg in the Rocraft tab.
 - Peaceful and empty-handed, like a Roblox NPC: they wander, look at you, and run if you hit them.
 - 100 health, walk speed 16, their name and health bar overhead, and the same Roblox footstep, jump and landing sounds as you.
 - Knocked out, they "oof" and **fall apart** like a Roblox character: head, torso and limbs drop and topple as separate pieces, cleared away after 5 s.

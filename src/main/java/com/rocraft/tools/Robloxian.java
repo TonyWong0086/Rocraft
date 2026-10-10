@@ -50,7 +50,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public final class Robloxian extends PathfinderMob {
 	/** Roblox usernames: each gets its own mob type (rocraft:<lowercase>) and spawn egg. */
 	public static final List<String> USERS = List.of("Shedletsky", "Stickmasterluke", "Roblox", "builderman", "Nikilis", "clockwork",
-		"mrflimflam", "KreekCraft", "DenisDaily", "Linkmon99", "PGHLego1945");
+		"mrflimflam", "DenisDaily", "Linkmon99", "PGHLego1945", "TonyWong_0086");
 	public static final Map<EntityType<Robloxian>, String> TYPES = new LinkedHashMap<>();
 	public static final List<Item> EGGS = new java.util.ArrayList<>();
 

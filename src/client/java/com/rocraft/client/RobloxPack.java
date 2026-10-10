@@ -46,8 +46,16 @@ final class RobloxPack {
 			RbxParticle.writeTextures(ASSETS);
 			for (var e : GEAR.entrySet()) gear(e.getKey(), e.getValue());
 			for (String user : com.rocraft.tools.Robloxian.USERS) { // spawn eggs: the user's avatar headshot
-				Path icon = ASSETS.resolve("textures/item/" + user.toLowerCase(java.util.Locale.ROOT) + "_spawn_egg.png");
-				try { if (!Files.exists(icon)) write(icon, square(headshot(user), 128)); }
+				String id = user.toLowerCase(java.util.Locale.ROOT) + "_spawn_egg";
+				Path icon = ASSETS.resolve("textures/item/" + id + ".png");
+				Long outfit = RobloxProfile.OUTFITS.get(user); // drawn in a saved outfit: its thumbnail, redone when the outfit changes
+				Path mark = ASSETS.resolve("textures/item/" + id + (outfit != null ? ".outfit" + outfit : ".headshot"));
+				try {
+					if (!Files.exists(icon) || outfit != null && !Files.exists(mark)) {
+						write(icon, square(outfit != null ? outfitThumbnail(outfit) : headshot(user), 128));
+						Files.writeString(mark, "");
+					}
+				}
 				catch (Exception ex) { Rocraft.LOGGER.warn("{} spawn egg icon skipped: {}", user, ex.toString()); }
 			}
 			for (var e : com.rocraft.tools.Tools.HATS.entrySet()) { // hat icons: the catalog thumbnail, as the 2018 inventory showed them
@@ -133,6 +141,16 @@ final class RobloxPack {
 			g.dispose();
 			return sq;
 		}
+		byte[] png = RobloxApi.HTTP.send(HttpRequest.newBuilder(URI.create(t.get("imageUrl").getAsString())).timeout(Duration.ofSeconds(10)).build(),
+			HttpResponse.BodyHandlers.ofByteArray()).body();
+		return ImageIO.read(new ByteArrayInputStream(png));
+	}
+
+	/** Official 150x150 full-body thumbnail of a saved outfit (public endpoint, no key). */
+	static BufferedImage outfitThumbnail(long outfitId) throws Exception {
+		var t = RobloxProfile.send(HttpRequest.newBuilder(URI.create(
+			"https://thumbnails.roblox.com/v1/users/outfits?userOutfitIds=" + outfitId + "&size=150x150&format=Png"))
+			.timeout(Duration.ofSeconds(10)).build()).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
 		byte[] png = RobloxApi.HTTP.send(HttpRequest.newBuilder(URI.create(t.get("imageUrl").getAsString())).timeout(Duration.ofSeconds(10)).build(),
 			HttpResponse.BodyHandlers.ofByteArray()).body();
 		return ImageIO.read(new ByteArrayInputStream(png));
