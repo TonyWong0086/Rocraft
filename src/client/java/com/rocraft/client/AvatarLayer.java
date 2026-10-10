@@ -59,7 +59,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 			Identifier skin = AvatarSkin.textureId(prof);
 			for (int i = 0; i < 6; i++)
 				if (i == 0 && prof.head != null) draw(ps, out, light, pose[0], prof.head, prof.head.texture());
-				else draw(ps, out, light, pose[i], body[i], skin);
+				else draw(ps, out, light, pose[i], prof.bodyParts[i] != null ? prof.bodyParts[i] : body[i], skin);
 		}
 		for (var p : prof.accessories) draw(ps, out, light, pose[p.part()], p.draw(), p.draw().texture());
 		var hat = Rig.HATS.get(helmet.getItem()); // a Roblox hat in the helmet slot

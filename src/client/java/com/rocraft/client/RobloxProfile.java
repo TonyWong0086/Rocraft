@@ -24,6 +24,8 @@ public final class RobloxProfile {
 	public int[] colors = GUEST.clone();
 	public BufferedImage shirt, pants; // 585x559 classic clothing templates, null if none
 	public final java.util.List<Rig.Piece> accessories = new java.util.ArrayList<>(); // hats, hair, back, ... as Roblox meshes
+	/** R6 body package meshes (CharacterMesh) per part, Rig order; null = Roblox's default block limb. */
+	public final MeshDraw[] bodyParts = new MeshDraw[6];
 	public MeshDraw head;        // DynamicHead mesh + face texture (Roblox shows it on R6 too), null = classic head
 	public BufferedImage face;    // classic Face decal, null = default smile
 
@@ -55,6 +57,8 @@ public final class RobloxProfile {
 			if (RobloxApi.hasKey()) for (var e : a.getAsJsonArray("assets")) {
 				var o = e.getAsJsonObject();
 				String type = o.getAsJsonObject("assetType").get("name").getAsString();
+				if (type.equals("Torso") || type.endsWith("Arm") || type.endsWith("Leg")) try { characterMesh(p, o.get("id").getAsLong()); }
+					catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("body part {} skipped: {}", o.get("id"), ex.toString()); }
 				if (type.equals("Shirt")) p.shirt = template(o.get("id").getAsLong(), "ShirtTemplate");
 				if (type.equals("Pants")) p.pants = template(o.get("id").getAsLong(), "PantsTemplate");
 				if (type.equals("DynamicHead") && !guest) try { p.head = dynamicHead(o.get("id").getAsLong(), p.colors[0]); }
@@ -70,6 +74,24 @@ public final class RobloxProfile {
 			com.rocraft.Rocraft.LOGGER.warn("Roblox avatar partly loaded ({}); using what we have for {}", e.toString(), p.name);
 		}
 		return p;
+	}
+
+	/**
+	 * A body part asset (Man, Woman, Robloxian 2.0 ...): what Roblox puts on an R6 character is the CharacterMesh in
+	 * its R6 folder. BodyPart: 1 Torso, 2 LeftArm, 3 RightArm, 4 LeftLeg, 5 RightLeg. Clothing is laid on it like on the
+	 * default limbs. ponytail: BaseTextureId / OverlayTextureId (package skins) not drawn yet.
+	 */
+	static void characterMesh(RobloxProfile p, long assetId) throws Exception {
+		int[] toRig = {-1, Rig.TORSO, Rig.LEFT_ARM, Rig.RIGHT_ARM, 5, 4};
+		for (var cm : com.rocraft.rbx.RbxModel.read(RobloxApi.asset(assetId)).all) {
+			if (!cm.className.equals("CharacterMesh")) continue;
+			Object bp = cm.props.get("BodyPart");
+			int part = bp instanceof Integer i ? i : bp instanceof String s ? Integer.parseInt(s.trim()) : -1;
+			long mesh = cm.assetId("MeshId");
+			if (part < 1 || part > 5 || mesh <= 0) continue;
+			int i = toRig[part];
+			p.bodyParts[i] = MeshDraw.planar(com.rocraft.rbx.RbxMesh.read(RobloxApi.asset(mesh)), R6Model.BOXES[i]);
+		}
 	}
 
 	/** DynamicHead asset -> its head mesh with the face texture laid over the head colour (texture alpha = features). */

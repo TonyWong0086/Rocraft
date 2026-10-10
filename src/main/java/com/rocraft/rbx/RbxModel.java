@@ -181,6 +181,17 @@ public final class RbxModel {
 					insts.get(k).props.put(name, cf);
 				}
 			}
+			case 0x03 -> { int[] v = ints(c, n); for (int k = 0; k < n; k++) insts.get(k).props.put(name, v[k]); }
+			case 0x12 -> { int[] v = raw(c, n); for (int k = 0; k < n; k++) insts.get(k).props.put(name, v[k]); } // enum token
+			case 0x1B -> { // int64 (CharacterMesh.MeshId / BaseTextureId): kept as its decimal string, like a content id
+				byte[] b = new byte[n * 8];
+				c.get(b);
+				for (int k = 0; k < n; k++) {
+					long v = 0;
+					for (int j = 0; j < 8; j++) v = v << 8 | (b[j * n + k] & 0xFF);
+					insts.get(k).props.put(name, String.valueOf((v >>> 1) ^ -(v & 1)));
+				}
+			}
 			case 0x1D -> { int[] idx = ints(c, n); for (int k = 0; k < n; k++) if (idx[k] < shared.size()) insts.get(k).props.put(name, shared.get(idx[k])); }
 			default -> {} // types Rocraft doesn't use
 		}

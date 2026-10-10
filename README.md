@@ -18,6 +18,7 @@
 ### Avatar
 - Your **real Roblox avatar** is built from Roblox's own R6 meshes, not a Minecraft skin with blocks.
 - **Body colors, shirt and pants** come from your Roblox profile.
+- **Body packages** (Robloxian 2.0, Man, Woman, Boy, Penguin and so on) use the meshes Roblox puts on an R6 character (each part's R6 CharacterMesh), with your clothing wrapped on. Without a package you get the classic blocky R6 body.
 - **Accessories** (hats, hair and so on) and your **face** are loaded from Roblox, not the default smile. Dynamic heads are supported too.
 - **Roblox R6 animations** (idle, walk, jump, fall, climb, sit, tool hold, sword slash and lunge) are read from Roblox's own animation files and crossfaded the way Roblox's Animate script does.
 - **The 2017 Guest:** with no username set you play as the Guest (R cap, ROBLOX Jacket, Black Jeans). Other players always appear as the Guest, since Rocraft can't know their Roblox accounts.

@@ -59,7 +59,7 @@ final class AvatarFrame {
 		List<Item> items = new ArrayList<>();
 		var body = Rig.body();
 		BufferedImage skin = AvatarSkin.paint(p);
-		for (int i = 0; i < 6; i++) items.add(i == 0 && p.head != null ? new Item(p.head, p.head.image, 0) : new Item(body[i], skin, i));
+		for (int i = 0; i < 6; i++) items.add(i == 0 && p.head != null ? new Item(p.head, p.head.image, 0) : new Item(p.bodyParts[i] != null ? p.bodyParts[i] : body[i], skin, i));
 		for (var a : p.accessories) items.add(new Item(a.draw(), a.draw().image, a.part()));
 
 		var img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
