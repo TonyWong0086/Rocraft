@@ -49,10 +49,11 @@ final class RobloxPack {
 				String id = user.toLowerCase(java.util.Locale.ROOT) + "_spawn_egg";
 				Path icon = ASSETS.resolve("textures/item/" + id + ".png");
 				Long outfit = RobloxProfile.OUTFITS.get(user); // drawn in a saved outfit: its thumbnail, redone when the outfit changes
-				Path mark = ASSETS.resolve("textures/item/" + id + (outfit != null ? ".outfit" + outfit : ".headshot"));
+				boolean look = RobloxProfile.LOOKS.containsKey(user); // a fixed look: drawn ourselves, Roblox has no picture of it
+				Path mark = ASSETS.resolve("textures/item/" + id + (outfit != null ? ".outfit" + outfit : look ? ".look" + RobloxProfile.LOOKS.get(user).hashCode() : ".headshot"));
 				try {
-					if (!Files.exists(icon) || outfit != null && !Files.exists(mark)) {
-						write(icon, square(outfit != null ? outfitThumbnail(outfit) : headshot(user), 128));
+					if (!Files.exists(icon) || (outfit != null || look) && !Files.exists(mark)) {
+						write(icon, square(outfit != null ? outfitThumbnail(outfit) : look ? drawn(user) : headshot(user), 128));
 						Files.writeString(mark, "");
 					}
 				}
@@ -133,17 +134,20 @@ final class RobloxPack {
 			"https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" + id + "&size=150x150&format=Png&isCircular=false"))
 			.timeout(Duration.ofSeconds(10)).build());
 		var t = json.getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
-		if (!"Completed".equals(t.get("state").getAsString())) { // banned accounts' thumbnails are blocked: draw their avatar ourselves
-			var full = AvatarFrame.render(RobloxProfile.load(username, com.rocraft.RocraftConfig.INSTANCE.apiKey));
-			var sq = new BufferedImage(full.getHeight(), full.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			var g = sq.createGraphics();
-			g.drawImage(full, (sq.getWidth() - full.getWidth()) / 2, 0, null);
-			g.dispose();
-			return sq;
-		}
+		if (!"Completed".equals(t.get("state").getAsString())) return drawn(username); // banned accounts' thumbnails are blocked
 		byte[] png = RobloxApi.HTTP.send(HttpRequest.newBuilder(URI.create(t.get("imageUrl").getAsString())).timeout(Duration.ofSeconds(10)).build(),
 			HttpResponse.BodyHandlers.ofByteArray()).body();
 		return ImageIO.read(new ByteArrayInputStream(png));
+	}
+
+	/** The user's avatar as Rocraft draws it, full body, centred in a square. */
+	static BufferedImage drawn(String username) {
+		var full = AvatarFrame.render(RobloxProfile.load(username, com.rocraft.RocraftConfig.INSTANCE.apiKey));
+		var sq = new BufferedImage(full.getHeight(), full.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		var g = sq.createGraphics();
+		g.drawImage(full, (sq.getWidth() - full.getWidth()) / 2, 0, null);
+		g.dispose();
+		return sq;
 	}
 
 	/** Official 150x150 full-body thumbnail of a saved outfit (public endpoint, no key). */

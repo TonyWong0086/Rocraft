@@ -31,6 +31,20 @@ public final class RobloxProfile {
 
 	/** Users drawn in one of their saved outfits instead of what they wear now: username -> outfit id. */
 	public static final java.util.Map<String, Long> OUTFITS = java.util.Map.of("Shedletsky", 34915L); // Classic Telamon
+	/**
+	 * Users drawn in a fixed look that isn't a saved outfit: the same JSON the avatar endpoint returns (asset ids and
+	 * types, body colours), taken from the avatar model in Studio. The assets themselves still load from Roblox.
+	 */
+	public static final java.util.Map<String, String> LOOKS = java.util.Map.of("DenisDaily", """
+		{"assets": [
+		  {"id": 15938951781, "assetType": {"name": "DynamicHead"}},
+		  {"id": 86500008, "assetType": {"name": "Torso"}}, {"id": 86500054, "assetType": {"name": "LeftArm"}},
+		  {"id": 86500036, "assetType": {"name": "RightArm"}}, {"id": 86500064, "assetType": {"name": "LeftLeg"}},
+		  {"id": 86500078, "assetType": {"name": "RightLeg"}},
+		  {"id": 376548738, "assetType": {"name": "HairAccessory"}}, {"id": 121389389, "assetType": {"name": "ShoulderAccessory"}},
+		  {"id": 441731130, "assetType": {"name": "Shirt"}}, {"id": 398633812, "assetType": {"name": "Pants"}}],
+		 "bodyColor3s": {"headColor3": "EAB892", "torsoColor3": "EAB892", "leftArmColor3": "EAB892", "rightArmColor3": "EAB892",
+		   "leftLegColor3": "EAB892", "rightLegColor3": "EAB892"}}"""); // Silly Fun head, Man package, Brown Charmer Hair, Business Cat
 
 	static final HttpClient HTTP = RobloxApi.HTTP;
 	static final Gson GSON = new Gson();
@@ -54,7 +68,8 @@ public final class RobloxProfile {
 				p.guest = false;
 			}
 			Long outfit = guest ? null : OUTFITS.get(username); // an outfit's details have the same assets / bodyColor3s shape
-			JsonObject a = send(HttpRequest.newBuilder(URI.create(outfit != null ? "https://avatar.roblox.com/v3/outfits/" + outfit + "/details"
+			String look = guest ? null : LOOKS.get(username);
+			JsonObject a = look != null ? com.google.gson.JsonParser.parseString(look).getAsJsonObject() : send(HttpRequest.newBuilder(URI.create(outfit != null ? "https://avatar.roblox.com/v3/outfits/" + outfit + "/details"
 				: "https://avatar.roblox.com/v2/avatar/users/" + p.userId + "/avatar")).build()).getAsJsonObject();
 			JsonObject c = a.getAsJsonObject("bodyColor3s");
 			String[] keys = {"headColor3", "torsoColor3", "leftArmColor3", "rightArmColor3", "leftLegColor3", "rightLegColor3"};
