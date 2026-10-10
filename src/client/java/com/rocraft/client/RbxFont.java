@@ -105,7 +105,7 @@ final class RbxFont {
 	 * unlit. Falls back to Minecraft's font when the Roblox font is off.
 	 */
 	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, int px, boolean bold, int argb) {
-		world(ps, out, s, x, y, px, bold ? "b" : "r", argb);
+		world(ps, out, s, x, y, px, bold ? "b" : "r", argb, 0);
 	}
 
 	/** Width of s in a world font ("b", "r" or LEGACY). */
@@ -117,7 +117,8 @@ final class RbxFont {
 		return n;
 	}
 
-	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, int px, String font, int argb) {
+	/** outline: ARGB of a 1-pixel stroke all round (Roblox TextStroke), 0 for none. */
+	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, int px, String font, int argb, int outline) {
 		if ((font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)) == null) {
 			ps.pushPose();
 			ps.translate(x, y, 0);
@@ -128,17 +129,22 @@ final class RbxFont {
 			return;
 		}
 		Atlas a = atlas(px, font);
-		out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.entityTranslucentEmissive(a.id), (pose, vc) -> {
-			float cx = x;
-			for (char c0 : s.toCharArray()) {
-				int c = ch(c0);
-				float u0 = a.u[c] / (float) a.texW, u1 = (a.u[c] + a.w[c]) / (float) a.texW, v0 = a.v[c] / (float) a.texH, v1 = (a.v[c] + a.lineH) / (float) a.texH;
-				float[][] q = {{cx, y, u0, v0}, {cx, y + a.lineH, u0, v1}, {cx + a.w[c], y + a.lineH, u1, v1}, {cx + a.w[c], y, u1, v0}};
-				for (float[] k : q)
-					vc.addVertex(pose, k[0], k[1], 0).setColor(argb).setUv(k[2], k[3]).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY)
-						.setLight(0xF000F0).setNormal(pose, 0, 0, -1);
-				cx += a.w[c];
-			}
+		// Minecraft's unlit text shader (no shading, so white stays white); outline first, then the text, in one batch
+		out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.text(a.id), (pose, vc) -> {
+			if (outline != 0) for (int[] o : new int[][]{{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {1, 1}, {-1, 1}, {1, -1}})
+				glyphs(vc, pose, a, s, x + o[0], y + o[1], outline);
+			glyphs(vc, pose, a, s, x, y, argb);
 		});
+	}
+
+	private static void glyphs(com.mojang.blaze3d.vertex.VertexConsumer vc, com.mojang.blaze3d.vertex.PoseStack.Pose pose, Atlas a, String s, float x, float y, int argb) {
+		float cx = x;
+		for (char c0 : s.toCharArray()) {
+			int c = ch(c0);
+			float u0 = a.u[c] / (float) a.texW, u1 = (a.u[c] + a.w[c]) / (float) a.texW, v0 = a.v[c] / (float) a.texH, v1 = (a.v[c] + a.lineH) / (float) a.texH;
+			float[][] q = {{cx, y, u0, v0}, {cx, y + a.lineH, u0, v1}, {cx + a.w[c], y + a.lineH, u1, v1}, {cx + a.w[c], y, u1, v0}};
+			for (float[] k : q) vc.addVertex(pose, k[0], k[1], 0).setColor(argb).setUv(k[2], k[3]).setLight(0xF000F0);
+			cx += a.w[c];
+		}
 	}
 }

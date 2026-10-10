@@ -65,7 +65,7 @@ final class RobloxChat {
 				var l = lines.get(i);
 				int a = (int) (alpha * 255) << 24;
 				int x = x0 + PAD;
-				if (l.name != null) { stroke(g, l.name, x, y, a | l.nameColor); x += RbxFont.width(l.name, TEXT, true); }
+				if (l.name != null) { stroke(g, l.name, x, y, a | l.nameColor); x += RbxFont.width(l.name, TEXT, false); }
 				stroke(g, l.text, x, y, a | 0xFFFFFF);
 			}
 			if (open) continue;
@@ -79,18 +79,18 @@ final class RobloxChat {
 		var input = ((ChatScreenAccessor) mc.gui.screen()).rocraft$input();
 		String text = input.getValue();
 		int tx = x + 14, ty = y + (BAR_H - 24) / 2;
-		if (text.isEmpty()) RbxFont.draw(g, "To chat click here or press \"/\" key", tx, ty, TEXT, true, 0xFF6E6E6E); // ChatBar: SourceSansBold
-		else RbxFont.draw(g, text, tx, ty, TEXT, true, 0xFF000000);
+		if (text.isEmpty()) RbxFont.draw(g, "To chat click here or press \"/\" key", tx, ty, TEXT, false, 0xFF6E6E6E);
+		else RbxFont.draw(g, text, tx, ty, TEXT, false, 0xFF000000);
 		if ((System.currentTimeMillis() / 500) % 2 == 0) {
-			int cx = tx + RbxFont.width(text.substring(0, Math.min(text.length(), input.getCursorPosition())), TEXT, true);
+			int cx = tx + RbxFont.width(text.substring(0, Math.min(text.length(), input.getCursorPosition())), TEXT, false);
 			g.fill(cx, ty + 2, cx + 1, ty + 22, 0xFF000000);
 		}
 	}
 
 	private static void stroke(GuiGraphicsExtractor g, String s, int x, int y, int argb) {
 		int shade = ((argb >>> 24) * 2 / 5) << 24; // TextStrokeTransparency 0.6: an outline all round, not a drop shadow
-		for (int[] o : new int[][]{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}) RbxFont.draw(g, s, x + o[0], y + o[1], TEXT, true, shade);
-		RbxFont.draw(g, s, x, y, TEXT, true, argb);
+		for (int[] o : new int[][]{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}) RbxFont.draw(g, s, x + o[0], y + o[1], TEXT, false, shade);
+		RbxFont.draw(g, s, x, y, TEXT, false, argb);
 	}
 
 	record Line(String name, int nameColor, String text) {}
@@ -102,12 +102,12 @@ final class RobloxChat {
 		var m = PLAYER.matcher(raw);
 		if (m.matches()) { name = "[" + m.group(1) + "]: "; color = nameColor(m.group(1)); text = m.group(2); }
 		List<Line> out = new ArrayList<>();
-		int nameW = name == null ? 0 : RbxFont.width(name, TEXT, true);
+		int nameW = name == null ? 0 : RbxFont.width(name, TEXT, false);
 		StringBuilder cur = new StringBuilder();
 		int avail = width - nameW;
 		for (String word : text.split(" ")) {
 			String next = cur.isEmpty() ? word : cur + " " + word;
-			if (!cur.isEmpty() && RbxFont.width(next, TEXT, true) > avail) {
+			if (!cur.isEmpty() && RbxFont.width(next, TEXT, false) > avail) {
 				out.add(new Line(out.isEmpty() ? name : null, color, cur.toString()));
 				cur = new StringBuilder(word);
 				avail = width;

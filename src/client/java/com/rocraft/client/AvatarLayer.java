@@ -96,17 +96,20 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		ps.last().pose().identity().translate(at).rotate(mc.gameRenderer.mainCamera().rotation());
 		ps.last().normal().identity();
 		ps.scale(perPx, -perPx, perPx);
-		int px = Math.max(14, mc.getWindow().getHeight() / 60), w = RbxFont.worldWidth(name, px, RbxFont.LEGACY);
+		int px = Math.max(16, mc.getWindow().getHeight() / 50), w = RbxFont.worldWidth(name, px, "r");
 		boolean hurt = hp < 1;
-		float ty = -px - (hurt ? 10 : 2);
-		RbxFont.world(ps, out, name, -w / 2f + 1, ty + 1, px, RbxFont.LEGACY, 0x99000000); // shadow
-		RbxFont.world(ps, out, name, -w / 2f, ty, px, RbxFont.LEGACY, 0xFFFFFFFF);
-		if (hurt) { // a short bar on a grey track, its fill fading green -> yellow -> red as health drops
-			int bw = Math.max(36, px * 3), bh = Math.max(4, px / 4);
-			float h = Math.max(0, hp), g = bw * h;
-			bar(ps, out, -bw / 2f - 1, -bh - 2, bw + 2, bh + 2, 0xCC1E1E1E); // dark outline
-			bar(ps, out, -bw / 2f, -bh - 1, bw, bh, 0x99505050);
-			if (g > 0) bar(ps, out, -bw / 2f, -bh - 1, g, bh, healthColor(h));
+		int bw = Math.max(40, px * 3), bh = Math.max(5, px / 3);
+		float ty = -px - (hurt ? bh + 4 : 2);
+		// white Source Sans with a light dark stroke, like Roblox's name display
+		RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", 0xFFFFFFFF, 0x50000000);
+		if (hurt) { // rounded bar: dark outline, grey track, then the fill fading green -> yellow -> red
+			float h = Math.max(0, hp), x0 = -bw / 2f, y0 = -bh - 1;
+			var white = BombRenderer.BALL.texture(); // a 1x1 white texture
+			out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.text(white), (pose, vc) -> {
+				pill(vc, pose, x0 - 1, y0 - 1, bw + 2, bh + 2, 0xB4141414);
+				pill(vc, pose, x0, y0, bw, bh, 0xFF505050);
+				if (h > 0) pill(vc, pose, x0, y0, Math.max(bh, bw * h), bh, healthColor(h));
+			});
 		}
 		ps.popPose();
 	}
@@ -134,14 +137,22 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		return 0xFF000000 | (hp > 0.5f ? BombRenderer.lerp(yellow, green, (hp - 0.5f) * 2) : BombRenderer.lerp(red, yellow, hp * 2)) & 0xFFFFFF;
 	}
 
-	private static void bar(PoseStack ps, SubmitNodeCollector out, float x, float y, float w, float h, int argb) {
-		var white = BombRenderer.BALL.texture(); // a 1x1 white texture
-		out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.entityTranslucentEmissive(white), (pose, vc) -> {
-			float[][] q = {{x, y}, {x, y + h}, {x + w, y + h}, {x + w, y}};
-			for (float[] k : q)
-				vc.addVertex(pose, k[0], k[1], 0).setColor(argb).setUv(0.5f, 0.5f).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY)
-					.setLight(0xF000F0).setNormal(pose, 0, 0, -1);
-		});
+	/** A capsule (rounded ends) of quads; the ends are fans of degenerate quads. */
+	private static void pill(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, float x, float y, float w, float h, int argb) {
+		float r = h / 2, cy = y + r, l = x + r, rt = x + w - r;
+		if (rt > l) quad(vc, pose, argb, l, y, l, y + h, rt, y + h, rt, y);
+		int n = 8;
+		for (int i = 0; i < n; i++) {
+			double a0 = Math.PI / 2 + Math.PI * i / n, a1 = Math.PI / 2 + Math.PI * (i + 1) / n;
+			float lx0 = l + r * (float) Math.cos(a0), ly0 = cy + r * (float) Math.sin(a0), lx1 = l + r * (float) Math.cos(a1), ly1 = cy + r * (float) Math.sin(a1);
+			// same winding as the middle quad, or back-face culling drops the caps
+			quad(vc, pose, argb, l, cy, lx1, ly1, lx0, ly0, lx0, ly0);                       // left cap
+			quad(vc, pose, argb, rt, cy, rt + l - lx0, ly0, rt + l - lx1, ly1, rt + l - lx1, ly1); // right cap (mirrored)
+		}
+	}
+
+	private static void quad(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, int argb, float... p) {
+		for (int i = 0; i < 4; i++) vc.addVertex(pose, p[i * 2], p[i * 2 + 1], 0).setColor(argb).setUv(0.5f, 0.5f).setLight(0xF000F0);
 	}
 
 	private static void draw(PoseStack ps, SubmitNodeCollector out, int light, Matrix4f part, MeshDraw d, Identifier tex) {
