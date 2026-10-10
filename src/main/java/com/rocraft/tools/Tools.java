@@ -140,6 +140,8 @@ public final class Tools {
 		PART = Registry.register(BuiltInRegistries.ENTITY_TYPE, partKey,
 			EntityType.Builder.<RobloxPart>of(RobloxPart::new, MobCategory.MISC).sized(1.12f, 0.336f).clientTrackingRange(10).updateInterval(2).build(partKey));
 
+		Robloxian.register();
+
 		var boardKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("hoverboard"));
 		HOVERBOARD_ENTITY = Registry.register(BuiltInRegistries.ENTITY_TYPE, boardKey,
 			EntityType.Builder.<Hoverboard>of(Hoverboard::new, MobCategory.MISC).sized(0.84f, 0.28f).clientTrackingRange(10).build(boardKey));
@@ -152,6 +154,7 @@ public final class Tools {
 			.displayItems((params, out) -> {
 				for (String n : GEAR.keySet()) out.accept(BuiltInRegistries.ITEM.getValue(Rocraft.id(n)));
 				for (String n : HATS.keySet()) out.accept(BuiltInRegistries.ITEM.getValue(Rocraft.id(n)));
+				for (Item egg : Robloxian.EGGS) out.accept(egg);
 			})
 			.build());
 

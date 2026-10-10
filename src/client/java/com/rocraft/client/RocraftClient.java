@@ -42,6 +42,7 @@ public class RocraftClient implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.DEBRIS, DebrisRenderer::new);
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.PART, PartRenderer::new);
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.HOVERBOARD_ENTITY, HoverboardRenderer::new);
+		for (var type : com.rocraft.tools.Robloxian.TYPES.keySet()) net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(type, RobloxianRenderer::new);
 		// classic chat emotes: "/e dance", "/e wave", "/e laugh", "/e cheer", "/e point" play on your character
 		net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
 			var mc = net.minecraft.client.Minecraft.getInstance();

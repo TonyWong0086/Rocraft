@@ -56,7 +56,7 @@ final class Animator {
 	/** A loaded Roblox animation by id (null until it has downloaded). */
 	static RbxAnim anim(long id) { return ANIMS.get(id); }
 
-	Matrix4f[] pose(Player p, boolean holdingGear, boolean swinging, boolean lunging, boolean flying) {
+	Matrix4f[] pose(net.minecraft.world.entity.LivingEntity p, boolean holdingGear, boolean swinging, boolean lunging, boolean flying) {
 		long now = System.nanoTime();
 		float dt = Math.min(0.1f, (now - lastNanos) / 1e9f);
 		lastNanos = now;

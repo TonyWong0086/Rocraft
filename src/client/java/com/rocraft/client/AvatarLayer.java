@@ -30,17 +30,30 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		Player player = mc.level != null && mc.level.getEntity(s.id) instanceof Player pl ? pl : null;
 		boolean me = player == null || player == mc.player;
 		RobloxProfile prof = me ? RocraftClient.profile : RocraftClient.guest;
+		var helmet = player != null ? player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD) : s.headEquipment;
+		Vector3f above = character(ps, out, light, player, s.id, prof, me, s.rightHandItemStack, s.rightHandItemState, s.leftHandItemState,
+			helmet, s.attackTime, s.xRot, s.outlineColor);
+		if (player != null && RocraftConfig.INSTANCE.hud2018 && !(me && mc.options.getCameraType().isFirstPerson()))
+			nameTag(ps, out, me ? prof.name : player.getName().getString(), player.getHealth() / player.getMaxHealth(), above);
+	}
 
-		var held = s.rightHandItemStack;
+	/**
+	 * A Roblox character in model space (Minecraft's living-entity pose: y down, origin 1.5 blocks above the feet):
+	 * body, accessories, helmet-slot hat, held gear or item. Players and Robloxian mobs both draw through here.
+	 * Returns the point just over the head in camera space, for the name display.
+	 */
+	static Vector3f character(PoseStack ps, SubmitNodeCollector out, int light, net.minecraft.world.entity.LivingEntity e, int id, RobloxProfile prof, boolean me,
+			net.minecraft.world.item.ItemStack held, net.minecraft.client.renderer.item.ItemStackRenderState rightState,
+			net.minecraft.client.renderer.item.ItemStackRenderState leftState, net.minecraft.world.item.ItemStack helmet, float attackTime, float pitch, int outline) {
 		boolean gear = !held.isEmpty() && BuiltInRegistries.ITEM.getKey(held.getItem()).getNamespace().equals(Rocraft.MOD_ID);
-		boolean lunging = player != null && me && System.currentTimeMillis() - Tools.clientLungeAt < 400;
-		boolean flying = player != null && player.getAbilities().flying;
-		Matrix4f[] pose = Animator.of(player == null ? -1 : s.id).pose(player, gear, held.is(Tools.LINKED_SWORD) && (s.attackTime > 0 || lunging), lunging, flying);
+		boolean lunging = e instanceof Player && me && System.currentTimeMillis() - Tools.clientLungeAt < 400;
+		boolean flying = e instanceof Player pl && pl.getAbilities().flying;
+		Matrix4f[] pose = Animator.of(e == null ? -1 : id).pose(e, gear, held.is(Tools.LINKED_SWORD) && (attackTime > 0 || lunging), lunging, flying);
 
 		ps.pushPose();
 		ps.translate(0, 6 / 16f, 0); // HumanoidRootPart centre = torso centre, 6 units below the neck
 		ps.scale(-S, -S, S);         // Roblox (x, y, z) -> model (-x, -y, z), studs -> blocks
-		if (flying) ps.mulPose(new Quaternionf().rotateX((float) Math.toRadians(-s.xRot))); // admin fly: BodyGyro.CFrame = camera, pitch too
+		if (flying) ps.mulPose(new Quaternionf().rotateX((float) Math.toRadians(-pitch))); // admin fly: BodyGyro.CFrame = camera, pitch too
 		var body = Rig.body();
 		if (body != null) {
 			Identifier skin = AvatarSkin.textureId(prof);
@@ -49,11 +62,10 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 				else draw(ps, out, light, pose[i], body[i], skin);
 		}
 		for (var p : prof.accessories) draw(ps, out, light, pose[p.part()], p.draw(), p.draw().texture());
-		var helmet = player != null ? player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD) : s.headEquipment;
 		var hat = Rig.HATS.get(helmet.getItem()); // a Roblox hat in the helmet slot
 		if (hat != null) draw(ps, out, light, pose[hat.part()], hat.draw(), hat.draw().texture());
 		var g = Rig.gear(held);
-		if (me && player != null && held.getItem() == Tools.clientUseItem && System.currentTimeMillis() < Tools.clientUseUntil && Rig.GEAR_ALT.containsKey(held.getItem()))
+		if (me && e instanceof Player && held.getItem() == Tools.clientUseItem && System.currentTimeMillis() < Tools.clientUseUntil && Rig.GEAR_ALT.containsKey(held.getItem()))
 			g = Rig.GEAR_ALT.get(held.getItem());
 		if (held.is(Tools.GREEN_BALLOON)) {
 			int st = com.rocraft.tools.Balloon.state(held);
@@ -63,19 +75,18 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 			pose[Rig.LEFT_ARM] = new Matrix4f(pose[Rig.TORSO]).translate(-1.5f, 0, 0);
 		}
 		if (g != null) draw(ps, out, light, pose[g.part()], g.draw(), g.draw().texture());
-		else if (body != null) heldItem(ps, out, light, pose[Rig.RIGHT_ARM], s.rightHandItemState, 1, s.outlineColor);
-		if (body != null) heldItem(ps, out, light, pose[Rig.LEFT_ARM], s.leftHandItemState, -1, s.outlineColor);
+		else if (body != null && rightState != null) heldItem(ps, out, light, pose[Rig.RIGHT_ARM], rightState, 1, outline);
+		if (body != null && leftState != null) heldItem(ps, out, light, pose[Rig.LEFT_ARM], leftState, -1, outline);
 		Vector3f above = ps.last().pose().transformPosition(new Vector3f(0, 3.1f, 0)); // just over the head, in camera space
 		ps.popPose();
-		if (player != null && RocraftConfig.INSTANCE.hud2018 && !(me && mc.options.getCameraType().isFirstPerson()))
-			nameTag(ps, out, me ? prof.name : player.getName().getString(), player.getHealth() / player.getMaxHealth(), above);
+		return above;
 	}
 
 	/**
 	 * Roblox humanoid name display: the name in white Legacy (Arial) with a soft dark shadow, a constant size on screen
 	 * however far away (it's a GUI, not part of the world), and under it the green health bar (red background) once hurt.
 	 */
-	private static void nameTag(PoseStack ps, SubmitNodeCollector out, String name, float hp, Vector3f at) {
+	static void nameTag(PoseStack ps, SubmitNodeCollector out, String name, float hp, Vector3f at) {
 		var mc = Minecraft.getInstance();
 		float dist = at.length();
 		if (dist > 100 * 0.28f) return; // NameDisplayDistance 100 studs
@@ -93,6 +104,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		if (hurt) { // a short bar on a grey track, its fill fading green -> yellow -> red as health drops
 			int bw = Math.max(36, px * 3), bh = Math.max(4, px / 4);
 			float h = Math.max(0, hp), g = bw * h;
+			bar(ps, out, -bw / 2f - 1, -bh - 2, bw + 2, bh + 2, 0xCC1E1E1E); // dark outline
 			bar(ps, out, -bw / 2f, -bh - 1, bw, bh, 0x99505050);
 			if (g > 0) bar(ps, out, -bw / 2f, -bh - 1, g, bh, healthColor(h));
 		}

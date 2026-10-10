@@ -38,7 +38,7 @@ public final class RobloxProfile {
 		try {
 			JsonObject body = new JsonObject();
 			body.add("usernames", GSON.toJsonTree(new String[]{username}));
-			body.addProperty("excludeBannedUsers", true);
+			body.addProperty("excludeBannedUsers", false); // banned accounts (e.g. PGHLego1945) still have their avatar
 			JsonArray d = send(HttpRequest.newBuilder(URI.create("https://users.roblox.com/v1/usernames/users"))
 				.header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body.toString())).build())
 				.getAsJsonObject().getAsJsonArray("data");

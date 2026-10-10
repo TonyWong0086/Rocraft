@@ -62,6 +62,11 @@ Everything is in the **Rocraft creative-inventory tab**. Each item is the real R
 
 **Hats:** Dominus Aureus, Dominus Rex, Doge, LOLHOO and Mr. Tentacles. Click one to put it in your helmet slot; it sits on your head exactly where Roblox puts it.
 
+### Robloxian mobs
+Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam, KreekCraft, DenisDaily, Linkmon99 and PGHLego1945 roam the Overworld (rarely) wearing their **real Roblox avatars**, each with a spawn egg in the Rocraft tab.
+- Neutral, like a Roblox NPC: they wander and look at you, and fight back with the Linked Sword if you hit them.
+- 100 health, walk speed 16, their name and health bar overhead, and "oof" when knocked out.
+
 **How gear feels**
 - No Minecraft cooldowns or arm swing: tools fire on every click, apart from the reloads listed above. Only the sword swings.
 - In first person you see the tool's 3D Roblox model in your hand, not a flat icon.

@@ -45,6 +45,11 @@ final class RobloxPack {
 			copyLocal("sounds/oof.ogg", ASSETS.resolve("sounds/oof.ogg"));
 			RbxParticle.writeTextures(ASSETS);
 			for (var e : GEAR.entrySet()) gear(e.getKey(), e.getValue());
+			for (String user : com.rocraft.tools.Robloxian.USERS) { // spawn eggs: the user's avatar headshot
+				Path icon = ASSETS.resolve("textures/item/" + user.toLowerCase(java.util.Locale.ROOT) + "_spawn_egg.png");
+				try { if (!Files.exists(icon)) write(icon, square(headshot(user), 128)); }
+				catch (Exception ex) { Rocraft.LOGGER.warn("{} spawn egg icon skipped: {}", user, ex.toString()); }
+			}
 			for (var e : com.rocraft.tools.Tools.HATS.entrySet()) { // hat icons: the catalog thumbnail, as the 2018 inventory showed them
 				Path icon = ASSETS.resolve("textures/item/" + e.getKey() + ".png");
 				try { if (!Files.exists(icon)) write(icon, square(thumbnail(e.getValue()), 128)); }
@@ -108,6 +113,29 @@ final class RobloxPack {
 		repo.addPack(ID);
 		mc.options.updateResourcePacks(repo);
 		mc.reloadResourcePacks();
+	}
+
+	/** A user's official 150x150 avatar headshot (public endpoints, no key). */
+	static BufferedImage headshot(String username) throws Exception {
+		var body = "{\"usernames\":[\"" + username + "\"],\"excludeBannedUsers\":false}";
+		long id = RobloxProfile.send(HttpRequest.newBuilder(URI.create("https://users.roblox.com/v1/usernames/users"))
+			.header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body)).timeout(Duration.ofSeconds(10)).build())
+			.getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject().get("id").getAsLong();
+		var json = RobloxProfile.send(HttpRequest.newBuilder(URI.create(
+			"https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" + id + "&size=150x150&format=Png&isCircular=false"))
+			.timeout(Duration.ofSeconds(10)).build());
+		var t = json.getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+		if (!"Completed".equals(t.get("state").getAsString())) { // banned accounts' thumbnails are blocked: draw their avatar ourselves
+			var full = AvatarFrame.render(RobloxProfile.load(username, com.rocraft.RocraftConfig.INSTANCE.apiKey));
+			var sq = new BufferedImage(full.getHeight(), full.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			var g = sq.createGraphics();
+			g.drawImage(full, (sq.getWidth() - full.getWidth()) / 2, 0, null);
+			g.dispose();
+			return sq;
+		}
+		byte[] png = RobloxApi.HTTP.send(HttpRequest.newBuilder(URI.create(t.get("imageUrl").getAsString())).timeout(Duration.ofSeconds(10)).build(),
+			HttpResponse.BodyHandlers.ofByteArray()).body();
+		return ImageIO.read(new ByteArrayInputStream(png));
 	}
 
 	/** Official 150x150 asset thumbnail (public endpoint, no key). */
