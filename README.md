@@ -117,6 +117,8 @@ The performance patches are optional: if one can't apply (another mod changed th
 
 ### Stats (F3)
 With the 2018 interface on, F3 shows Roblox-style stats panels under the top bar instead of Minecraft's debug screen:
+- **Meters:** Physics, Render, GPU load and Memory each have a bar showing how much of their budget they use: green under 75%, yellow up to 100%, red when over. Physics' budget is 50 ms a tick. Render's is your frame limit (VSync: your monitor's refresh rate). Memory's is 85% of the heap.
+- **Frame graph:** the last 240 frames as bars, coloured the same way, with the frame budget as a white line. A tall bar is a stutter.
 - **FPS, World, Kernel:** server and render rates, network packets, ping, entities, Parts, debris, chunks, position, biome, light, ragdolls.
 - **Graphics, Performance, Timing:** GPU, backend and load; what each optimisation is doing this frame; the likely bottleneck; detected optimisation mods; frame times (median, p90, p99); recent stutters and their cause (GC, chunk building or other); memory, allocation rate and GC.
 

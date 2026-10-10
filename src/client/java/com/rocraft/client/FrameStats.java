@@ -67,6 +67,13 @@ public final class FrameStats {
 		if (now - statsAt > 250_000_000L) { statsAt = now; recompute(); } // a sort 4x a second, not every frame
 	}
 
+	/** The ring's frame times in ms, oldest first (for the stats graph). */
+	static float[] history() {
+		float[] out = new float[count];
+		for (int i = 0; i < count; i++) out[i] = RING[Math.floorMod(head - count + i, N)] / 1e6f;
+		return out;
+	}
+
 	private static void recompute() {
 		if (count == 0) return;
 		long[] s = new long[count];

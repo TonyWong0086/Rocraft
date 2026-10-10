@@ -33,22 +33,60 @@ public final class RobloxStats {
 		m.popMatrix();
 	}
 
-	/** One panel at (x, y); returns its right edge. Rows are {header} or {label, value}. */
+	/**
+	 * One panel at (x, y); returns its right edge. Rows are {header}, {label, value}, {label, value, load} (load = share
+	 * of its budget, drawn as a meter bar after the values: green under 75%, yellow to 100%, red over) or {GRAPH}.
+	 */
 	private static int panel(GuiGraphicsExtractor g, List<String[]> rows, int x, int y, int px, int line) {
 		String f = RbxFont.LEGACY;
-		int col = 0, w = 0;
-		for (String[] r : rows) if (r.length == 2) col = Math.max(col, RbxFont.width(r[0], px, f));
+		int col = 0, val = 0, w = 0, bar = px * 6, graphH = line * 3;
+		boolean meters = false;
+		for (String[] r : rows) if (r.length >= 2) { col = Math.max(col, RbxFont.width(r[0], px, f)); if (r.length == 3) { meters = true; val = Math.max(val, RbxFont.width(": " + r[1], px, f)); } }
 		col += RbxFont.width(" ", px, f);
-		for (String[] r : rows) w = Math.max(w, r.length == 2 ? col + RbxFont.width(": " + r[1], px, f) : RbxFont.width(r[0], px, f));
+		for (String[] r : rows) w = Math.max(w, r.length >= 2 ? col + RbxFont.width(": " + r[1], px, f) : r[0] == GRAPH ? 0 : RbxFont.width(r[0], px, f));
+		if (meters) w = Math.max(w, col + val + 8 + bar);
+		int h = 0;
+		for (String[] r : rows) h += r[0] == GRAPH ? graphH + 4 : line;
 		int x1 = x + w + 2 * PAD;
-		g.fill(x, y, x1, y + rows.size() * line + 2 * PAD, BG);
+		g.fill(x, y, x1, y + h + 2 * PAD, BG);
 		int ty = y + PAD;
 		for (String[] r : rows) {
+			if (r[0] == GRAPH) { graph(g, x + PAD, ty + 2, w, graphH); ty += graphH + 4; continue; }
 			text(g, r[0], x + PAD, ty, px);
-			if (r.length == 2) text(g, ": " + r[1], x + PAD + col, ty, px);
+			if (r.length >= 2) text(g, ": " + r[1], x + PAD + col, ty, px);
+			if (r.length == 3) meter(g, x + PAD + col + val + 8, ty + line / 4, bar, Math.max(3, line / 2), Float.parseFloat(r[2]));
 			ty += line;
 		}
 		return x1;
+	}
+
+	static final String GRAPH = "#graph";
+
+	private static int loadColor(float load) { return load < 0.75f ? 0xFF1BFC6B : load <= 1 ? 0xFFFAEB00 : 0xFFFF1C00; }
+
+	/** A meter: dark track, filled to load (capped at the track), in its load colour. */
+	private static void meter(GuiGraphicsExtractor g, int x, int y, int w, int h, float load) {
+		g.fill(x, y, x + w, y + h, 0x80000000);
+		int fw = Math.round(w * Math.min(1, Math.max(0, load)));
+		if (fw > 0) g.fill(x, y, x + fw, y + h, loadColor(load));
+	}
+
+	/**
+	 * The last 240 frames' times as bars (taller = slower, coloured against the budget) with the frame budget as a white
+	 * line. The top fits the slowest frames (at least twice the budget), so a slow stretch still shows its shape.
+	 */
+	private static void graph(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+		float[] ms = FrameStats.history();
+		float budget = (float) FrameStats.budgetMs(), top = (float) Math.max(budget * 2, FrameStats.p99 * 1.15);
+		g.fill(x, y, x + w, y + h, 0x80000000);
+		float step = (float) w / FrameStats.N;
+		for (int i = 0; i < ms.length; i++) {
+			int bh = Math.max(1, Math.round(h * Math.min(1, ms[i] / top)));
+			int bx = x + w - Math.round((ms.length - i) * step);
+			g.fill(bx, y + h - bh, Math.max(bx + 1, x + w - Math.round((ms.length - i - 1) * step)), y + h, loadColor(ms[i] / budget));
+		}
+		int by = y + h - Math.round(h * budget / top);
+		g.fill(x, by, x + w, by + 1, 0xC0FFFFFF); // budget
 	}
 
 	private static void text(GuiGraphicsExtractor g, String s, int x, int y, int px) {
@@ -68,10 +106,12 @@ public final class RobloxStats {
 		head(L, "FPS");
 		if (srv != null) {
 			double mspt = srv.getAverageTickTimeNanos() / 1e6, rate = srv.tickRateManager().tickrate();
-			row(L, "Physics", f1(Math.min(rate, 1000 / Math.max(mspt, 1e-3))) + "/s  " + f1(mspt) + " msec " + pct(mspt / (1000 / rate)));
-			row(L, "PhysicsReal", f1(rate) + "/s  throttle@" + (srv.tickRateManager().isFrozen() ? "0%" : "100%"));
-		} else row(L, "Physics", "? (server)");
-		row(L, "Render", mc.getFps() + "/s  " + f1(FrameStats.median) + " msec " + pct(FrameStats.median / budget));
+			double tickBudget = 1000 / rate;
+			meter(L, "Physics", f1(Math.min(rate, 1000 / Math.max(mspt, 1e-3))) + " ticks/s, " + f1(mspt) + " ms of " + f1(tickBudget) + " (" + pct(mspt / tickBudget) + ")", mspt / tickBudget);
+			row(L, "Tick rate", f1(rate) + "/s" + (srv.tickRateManager().isFrozen() ? " (frozen)" : ""));
+		} else row(L, "Physics", "on the server");
+		meter(L, "Render", mc.getFps() + " FPS, " + f1(FrameStats.median) + " ms of " + f1(budget) + " (" + pct(FrameStats.median / budget) + ")", FrameStats.median / budget);
+		L.add(new String[]{GRAPH});
 		row(L, "Heartbeat", "20.0/s");
 		if (conn != null) {
 			row(L, "Network send", f1(conn.getConnection().getAverageSentPackets()) + "/s");
@@ -119,7 +159,7 @@ public final class RobloxStats {
 			row(R, "GPU", d.name());
 			row(R, "Driver", d.vendorName() + " " + d.driverInfo());
 		}
-		row(R, "GPU load", f1(mc.getGpuUtilization()) + "%");
+		meter(R, "GPU load", f1(mc.getGpuUtilization()) + "%", mc.getGpuUtilization() / 100);
 		int limit = mc.options.framerateLimit().get();
 		row(R, "Frame limit", (limit >= 260 ? "unlimited" : String.valueOf(limit)) + (mc.options.enableVsync().get() ? ", VSync" : ""));
 
@@ -153,7 +193,7 @@ public final class RobloxStats {
 		row(R, "Last spikes", last.length() == 0 ? "none" : last.toString());
 		var rt = Runtime.getRuntime();
 		long used = (rt.totalMemory() - rt.freeMemory()) >> 20;
-		row(R, "Memory", used + "M / " + (rt.maxMemory() >> 20) + "M" + (FrameStats.memoryPressure() ? " (pressure)" : ""));
+		meter(R, "Memory", used + "M / " + (rt.maxMemory() >> 20) + "M" + (FrameStats.memoryPressure() ? " (pressure)" : ""), used / (float) (rt.maxMemory() >> 20) / 0.85f);
 		row(R, "Alloc", f1(FrameStats.allocMBs) + " MB/s (render thread)");
 		row(R, "GC", FrameStats.gcCount + " runs, " + FrameStats.gcTotalMs + " ms total");
 		var sec = mc.levelRenderer.sectionRenderDispatcher();
@@ -165,6 +205,8 @@ public final class RobloxStats {
 
 	private static void head(List<String[]> rows, String name) { rows.add(new String[]{"----- " + name + " -----"}); }
 	private static void row(List<String[]> rows, String label, String value) { rows.add(new String[]{label, value}); }
+	/** A row with a meter; load 1 = exactly its budget. */
+	private static void meter(List<String[]> rows, String label, String value, double load) { rows.add(new String[]{label, value, String.valueOf((float) load)}); }
 	private static String f1(double v) { return String.format("%.1f", v); }
 	private static String f2(double v) { return String.format("%.2f", v); }
 	private static String pct(double v) { return Math.round(v * 100) + "%"; }
