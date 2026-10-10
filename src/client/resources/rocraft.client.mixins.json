@@ -10,6 +10,8 @@
 		"ChatComponentAccessor",
 		"ChatScreenAccessor",
 		"ChatScreenMixin",
+		"DynamicUniformsMixin",
+		"FeatureDispatcherMixin",
 		"ItemInHandMixin",
 		"MouseMixin",
 		"SpecialRenderersAccessor",

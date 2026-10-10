@@ -96,6 +96,10 @@ public class RocraftClient implements ClientModInitializer {
 	/** The Roblox R6 body is available, so AvatarLayer draws the character (and its held items). */
 	public static boolean robloxAvatar() { return Rig.body() != null; }
 
+	/** Called by FeatureDispatcherMixin and DynamicUniformsMixin; public so the mixin package can reach them. */
+	public static void addMeshRenderer(net.minecraft.client.renderer.feature.FeatureRendererMap map) { map.put(MeshGpu.TYPE, new MeshGpu()); MeshGpu.ready = true; }
+	public static void meshEndFrame() { MeshGpu.endFrame(); }
+
 	/** Called by SkinMixin; public so the mixin package can reach it. */
 	public static net.minecraft.world.entity.player.PlayerSkin avatarSkin(boolean me, net.minecraft.world.entity.player.PlayerSkin base) {
 		return AvatarSkin.skin(me ? profile : guest, base);

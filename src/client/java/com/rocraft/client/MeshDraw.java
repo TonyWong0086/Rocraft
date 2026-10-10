@@ -19,6 +19,8 @@ final class MeshDraw {
 	BufferedImage image; // source pixels (kept for the Settings avatar picture)
 	private Identifier tex;
 	private static int seq;
+	/** Vertices on the GPU (MeshGpu), uploaded on first draw. */
+	com.mojang.blaze3d.buffers.GpuBuffer gpu;
 
 	private MeshDraw(int corners, BufferedImage image) {
 		count = corners;
@@ -141,12 +143,16 @@ final class MeshDraw {
 		.withShaderDefine("ALPHA_CUTOUT", 0.1f).withShaderDefine("PER_FACE_LIGHTING")
 		.withBindGroupLayout(net.minecraft.client.renderer.BindGroupLayouts.SAMPLER1).withCull(false)
 		.withPrimitiveTopology(com.mojang.blaze3d.PrimitiveTopology.TRIANGLES).build();
-	private static final java.util.Map<Identifier, net.minecraft.client.renderer.rendertype.RenderType> TYPES = new java.util.HashMap<>();
+	private static final java.util.Map<Identifier, net.minecraft.client.renderer.rendertype.RenderType> TYPES = new java.util.HashMap<>(), GPU_TYPES = new java.util.HashMap<>();
 
 	static net.minecraft.client.renderer.rendertype.RenderType type(Identifier tex) {
-		return TYPES.computeIfAbsent(tex, t -> net.minecraft.client.renderer.rendertype.RenderType.create("rocraft_mesh",
-			net.minecraft.client.renderer.rendertype.RenderSetup.builder(TRIANGLES).withTexture("Sampler0", t).useLightmap().useOverlay()
-				.affectsCrumbling().setOutline(net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty.AFFECTS_OUTLINE).createRenderSetup()));
+		return TYPES.computeIfAbsent(tex, t -> type(TRIANGLES, t));
+	}
+
+	private static net.minecraft.client.renderer.rendertype.RenderType type(com.mojang.blaze3d.pipeline.RenderPipeline pipeline, Identifier tex) {
+		return net.minecraft.client.renderer.rendertype.RenderType.create("rocraft_mesh",
+			net.minecraft.client.renderer.rendertype.RenderSetup.builder(pipeline).withTexture("Sampler0", tex).useLightmap().useOverlay()
+				.affectsCrumbling().setOutline(net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty.AFFECTS_OUTLINE).createRenderSetup());
 	}
 
 	/** Submit as entity geometry. */
@@ -158,6 +164,13 @@ final class MeshDraw {
 		var at = ps.last().pose();
 		// distance from the camera in the mesh's own units (studs), so a scaled-up GUI preview stays detailed
 		MeshDraw m = d.lod((at.m30() * at.m30() + at.m31() * at.m31() + at.m32() * at.m32()) / (at.m00() * at.m00() + at.m01() * at.m01() + at.m02() * at.m02()));
+		// GPU path: the mesh stays on the GPU, only its pose goes up (Minecraft's own collectors; anything else writes vertices)
+		var coll = out instanceof net.minecraft.client.renderer.SubmitNodeStorage st ? st.order(0) : out instanceof net.minecraft.client.renderer.SubmitNodeCollection c ? c : null;
+		if (coll != null && MeshGpu.ready) {
+			coll.solid.submit(new MeshGpu.Submit(new Matrix4f(at), new org.joml.Matrix3f(ps.last().normal()), m,
+				GPU_TYPES.computeIfAbsent(tex, t -> type(MeshGpu.PIPELINE, t)), argb, light));
+			return;
+		}
 		out.submitCustomGeometry(ps, type(tex), (pose, vc) -> {
 			float[] p = m.pos, n = m.nrm, uv = m.uv;
 			Matrix4f mp = pose.pose();
