@@ -125,7 +125,7 @@ public final class Tools {
 
 		var bombKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("bomb"));
 		BOMB_ENTITY = Registry.register(BuiltInRegistries.ENTITY_TYPE, bombKey,
-			EntityType.Builder.<BombEntity>of(BombEntity::new, MobCategory.MISC).sized(0.56f, 0.56f).clientTrackingRange(8).build(bombKey));
+			EntityType.Builder.<BombEntity>of(BombEntity::new, MobCategory.MISC).sized(0.56f, 0.56f).clientTrackingRange(8).updateInterval(2).build(bombKey));
 		var projKey = ResourceKey.create(Registries.ENTITY_TYPE, Rocraft.id("projectile"));
 		PROJECTILE = Registry.register(BuiltInRegistries.ENTITY_TYPE, projKey,
 			EntityType.Builder.<Projectile>of(Projectile::new, MobCategory.MISC).sized(0.3f, 0.3f).clientTrackingRange(10).updateInterval(1).build(projKey));

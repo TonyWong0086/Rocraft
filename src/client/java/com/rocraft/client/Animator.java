@@ -58,7 +58,7 @@ final class Animator {
 
 	Matrix4f[] pose(net.minecraft.world.entity.LivingEntity p, boolean holdingGear, boolean swinging, boolean lunging, boolean flying) {
 		long now = System.nanoTime();
-		float dt = Math.min(0.1f, (now - lastNanos) / 1e9f);
+		float dt = net.minecraft.client.Minecraft.getInstance().isPaused() ? 0 : Math.min(0.1f, (now - lastNanos) / 1e9f);
 		lastNanos = now;
 
 		double vx = p == null ? 0 : (p.getX() - p.xo) * 20 / 0.28, vz = p == null ? 0 : (p.getZ() - p.zo) * 20 / 0.28, vy = p == null ? 0 : (p.getY() - p.yo) * 20 / 0.28;

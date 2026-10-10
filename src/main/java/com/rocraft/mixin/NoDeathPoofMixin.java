@@ -7,9 +7,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Roblox characters don't vanish in a smoke poof when they die. */
+/** Roblox characters don't vanish in a smoke poof when they die: they fall apart (client Ragdoll). */
 @Mixin(LivingEntity.class)
 abstract class NoDeathPoofMixin {
 	@Inject(method = "makePoofParticles", at = @At("HEAD"), cancellable = true)
-	private void rocraft$noPoof(CallbackInfo ci) { if ((Object) this instanceof Player) ci.cancel(); }
+	private void rocraft$noPoof(CallbackInfo ci) { if ((Object) this instanceof Player || (Object) this instanceof com.rocraft.tools.Robloxian) ci.cancel(); }
 }

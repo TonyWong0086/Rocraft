@@ -112,6 +112,7 @@ final class Rig {
 		RbxModel.Inst handle = null;
 		for (var c : acc.children) if ("Handle".equals(c.name())) handle = c;
 		if (handle == null) return null;
+		if (handle.child("WrapLayer") != null) return null; // layered clothing: Roblox never shows it on R6 characters
 		Attach at = null;
 		RbxModel.Inst att = null;
 		for (var c : handle.children) if (c.className.equals("Attachment") && ATTACH.containsKey(c.name())) { att = c; at = ATTACH.get(c.name()); }

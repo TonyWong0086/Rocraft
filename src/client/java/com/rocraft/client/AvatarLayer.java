@@ -33,7 +33,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		var helmet = player != null ? player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD) : s.headEquipment;
 		Vector3f above = character(ps, out, light, player, s.id, prof, me, s.rightHandItemStack, s.rightHandItemState, s.leftHandItemState,
 			helmet, s.attackTime, s.xRot, s.outlineColor);
-		if (player != null && RocraftConfig.INSTANCE.hud2018 && !(me && mc.options.getCameraType().isFirstPerson()))
+		if (player != null && player.isAlive() && RocraftConfig.INSTANCE.hud2018 && !(me && mc.options.getCameraType().isFirstPerson()))
 			nameTag(ps, out, me ? prof.name : player.getName().getString(), player.getHealth() / player.getMaxHealth(), above);
 	}
 
@@ -49,6 +49,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		boolean lunging = e instanceof Player && me && System.currentTimeMillis() - Tools.clientLungeAt < 400;
 		boolean flying = e instanceof Player pl && pl.getAbilities().flying;
 		Matrix4f[] pose = Animator.of(e == null ? -1 : id).pose(e, gear, held.is(Tools.LINKED_SWORD) && (attackTime > 0 || lunging), lunging, flying);
+		pose = Ragdoll.pose(e, id, pose); // dead: the parts fall apart
 
 		ps.pushPose();
 		ps.translate(0, 6 / 16f, 0); // HumanoidRootPart centre = torso centre, 6 units below the neck
@@ -67,7 +68,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		var g = Rig.gear(held);
 		if (me && e instanceof Player && held.getItem() == Tools.clientUseItem && System.currentTimeMillis() < Tools.clientUseUntil && Rig.GEAR_ALT.containsKey(held.getItem()))
 			g = Rig.GEAR_ALT.get(held.getItem());
-		if (held.is(Tools.GREEN_BALLOON)) {
+		if (held.is(Tools.GREEN_BALLOON) && !(e != null && e.isDeadOrDying())) {
 			int st = com.rocraft.tools.Balloon.state(held);
 			if (st != 1 && Rig.VARIANTS.containsKey("green_balloon/" + st)) g = Rig.VARIANTS.get("green_balloon/" + st);
 			// WeldArm: the right arm welded straight up holding the string, the left hanging at the side

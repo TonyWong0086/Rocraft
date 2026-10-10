@@ -25,10 +25,10 @@ final class GearEffects {
 				var v = pr.getDeltaMovement();
 				var back = v.lengthSqr() < 1e-6 ? pr.position() : pr.position().subtract(v.normalize().scale(1.2 * 0.28));
 				RbxParticle.fire(l, back.x, back.y + 0.15, back.z, 2, 5, FIRE_COLOR);
-				// the rocket's Swoosh sound flies with it and stops when it explodes (the rocket is destroyed)
+				// the rocket's Swoosh (Looped) flies with it until it explodes (the rocket is destroyed)
 				var swoosh = com.rocraft.RbxSounds.get("rocket_launcher.swoosh");
 				if (swoosh != null && WHOOSHING.add(pr))
-					mc.getSoundManager().play(new net.minecraft.client.resources.sounds.EntityBoundSoundInstance(swoosh, net.minecraft.sounds.SoundSource.PLAYERS, 1f, 1f, pr, pr.getId()));
+					mc.getSoundManager().play(new net.minecraft.client.resources.sounds.EntityBoundSoundInstance(swoosh, net.minecraft.sounds.SoundSource.PLAYERS, 1f, 1f, pr, pr.getId()) {{ looping = true; }});
 			}
 		}
 	}

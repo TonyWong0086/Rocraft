@@ -11,5 +11,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LivingEntity.class)
 abstract class PlayerLandSoundMixin {
 	@Inject(method = "playBlockFallSound", at = @At("HEAD"), cancellable = true)
-	private void rocraft$noThud(CallbackInfo ci) { if ((Object) this instanceof Player) ci.cancel(); }
+	private void rocraft$noThud(CallbackInfo ci) { if ((Object) this instanceof Player || (Object) this instanceof com.rocraft.tools.Robloxian) ci.cancel(); }
 }

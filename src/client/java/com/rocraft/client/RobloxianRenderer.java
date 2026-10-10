@@ -54,7 +54,7 @@ final class RobloxianRenderer extends EntityRenderer<Robloxian, RobloxianRendere
 		ps.translate(0, -1.501f, 0);
 		var above = AvatarLayer.character(ps, out, s.lightCoords, e, s.entityId, prof, false, s.held, null, null, ItemStack.EMPTY, s.attackTime, 0, 0);
 		ps.popPose();
-		if (RocraftConfig.INSTANCE.hud2018) AvatarLayer.nameTag(ps, out, prof.guest ? s.user : prof.name, s.hp, above);
+		if (RocraftConfig.INSTANCE.hud2018 && s.hp > 0) AvatarLayer.nameTag(ps, out, prof.guest ? s.user : prof.name, s.hp, above);
 		super.submit(s, ps, out, cam);
 	}
 }

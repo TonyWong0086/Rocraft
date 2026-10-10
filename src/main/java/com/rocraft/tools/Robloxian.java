@@ -45,7 +45,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 /**
  * A famous Robloxian as a mob, wearing their real Roblox avatar (drawn client side from their account). Empty-handed
  * and peaceful like a Roblox NPC: wanders, looks at players, runs from whoever hurts it. 100 Roblox health
- * (20 Minecraft), WalkSpeed 16, "oof" when knocked out.
+ * (20 Minecraft), WalkSpeed 16, Roblox footsteps/jump/landing sounds, "oof" and falling apart when knocked out.
  */
 public final class Robloxian extends PathfinderMob {
 	/** Roblox usernames: each gets its own mob type (rocraft:<lowercase>) and spawn egg. */
@@ -101,4 +101,11 @@ public final class Robloxian extends PathfinderMob {
 	@Override protected SoundEvent getHurtSound(DamageSource src) { return null; } // Roblox characters are silent when hit
 	@Override protected SoundEvent getAmbientSound() { return null; }
 	@Override public boolean removeWhenFarAway(double distSqr) { return false; }
+	@Override protected void doWaterSplashEffect() {} // Roblox's Splash plays instead (client CharacterSounds)
+
+	/** BreakJoints: the body falls apart where it stood (client Ragdoll) and is cleaned up after 5 s, like a respawn. */
+	@Override
+	protected void tickDeath() {
+		if (++deathTime >= 100 && level() instanceof ServerLevel && !isRemoved()) remove(RemovalReason.KILLED);
+	}
 }

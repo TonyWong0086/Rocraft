@@ -19,7 +19,7 @@
 - Your **real Roblox avatar** is built from Roblox's own R6 meshes, not a Minecraft skin with blocks.
 - **Body colors, shirt and pants** come from your Roblox profile.
 - **Body packages** (Robloxian 2.0, Man, Woman, Boy, Penguin and so on) use the meshes Roblox puts on an R6 character (each part's R6 CharacterMesh), with your clothing wrapped on. Without a package you get the classic blocky R6 body.
-- **Accessories** (hats, hair and so on) and your **face** are loaded from Roblox, not the default smile. Dynamic heads are supported too.
+- **Accessories** (hats, hair and so on) and your **face** are loaded from Roblox, not the default smile. Dynamic heads are supported too. Layered clothing (3D jackets, shirts, shoes) is left off, as Roblox does on R6 characters.
 - **Roblox R6 animations** (idle, walk, jump, fall, climb, sit, tool hold, sword slash and lunge) are read from Roblox's own animation files and crossfaded the way Roblox's Animate script does.
 - **The 2017 Guest:** with no username set you play as the Guest (R cap, ROBLOX Jacket, Black Jeans). Other players always appear as the Guest, since Rocraft can't know their Roblox accounts.
 - **Chat emotes:** `/e dance`, `/e wave`, `/e laugh`, `/e cheer`, `/e point`. Moving cancels them, as in Roblox.
@@ -35,11 +35,11 @@ Everything is in the **Rocraft creative-inventory tab**. Each item is the real R
 | Gear | What it does |
 |---|---|
 | Linked Sword | The blade hurts whatever it touches: 5 just held, 10 for half a second after a click (slash), 30 for a second after a quick double click (lunge). The lunge throws you a little forward and up. Classic slash, lunge and unsheath sounds |
-| Rocket Launcher | 60 studs/s rocket, no gravity, trailing Roblox Fire, 3 s reload. Explodes on anything it touches (you included, once it's clear of you): radius 8, 60 damage, knockback. Other projectiles can shoot it down |
+| Rocket Launcher | 60 studs/s rocket, no gravity, trailing Roblox Fire and its looping whoosh, no reload. Explodes on anything it touches (you included, once it's clear of you): radius 8, 60 damage, knockback. Other projectiles can shoot it down |
 | Superball | Random-color ball at 200 studs/s, 25 damage. It bounces off everything, and the damage halves each time it hits a non-character |
 | Slingshot | Red 1-stud pellet at 85 studs/s, 0.2 s reload, 8 damage (it can hit you too), halved on each bounce and gone below 1 |
 | Paintball Gun | Roblox's ClassicPaintballGun: 300 studs/s paintball in one of 7 colors, 2 damage, 0.5 s reload. Paints the Roblox Part it hits and splats three plates of paint that clean up after 2 minutes |
-| Bomb | Click to plant the classic time bomb: a mirror ball (Reflectance 1) that ticks faster and faster, then explodes |
+| Bomb | Click to plant the classic time bomb: a mirror ball (Reflectance 1) that ticks faster and faster, then explodes. It rolls, bounces, and gets kicked along when you walk into it |
 
 **Building and getting around**
 
@@ -66,12 +66,13 @@ Everything is in the **Rocraft creative-inventory tab**. Each item is the real R
 ### Robloxian mobs
 Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam, KreekCraft, DenisDaily, Linkmon99 and PGHLego1945 roam the Overworld (rarely) wearing their **real Roblox avatars**, each with a spawn egg in the Rocraft tab.
 - Peaceful and empty-handed, like a Roblox NPC: they wander, look at you, and run if you hit them.
-- 100 health, walk speed 16, their name and health bar overhead, and "oof" when knocked out.
+- 100 health, walk speed 16, their name and health bar overhead, and the same Roblox footstep, jump and landing sounds as you.
+- Knocked out, they "oof" and **fall apart** like a Roblox character: head, torso and limbs drop and topple as separate pieces, cleared away after 5 s.
 
 **How gear feels**
 - No Minecraft cooldowns or arm swing: tools fire on every click, apart from the reloads listed above. Only the sword swings.
 - In first person you see the tool's 3D Roblox model in your hand, not a flat icon.
-- **Explosions** are Roblox-style (flash, shockwave, fireball, sparks, smoke), not Minecraft's. Rocket and bomb blasts **tear blocks loose**: they fly off and tumble with physics, then turn into item drops after resting for 5 s. Roblox Parts caught in the blast lose their joints and fall apart.
+- **Explosions** are Roblox-style (flash, shockwave, fireball, sparks, smoke), not Minecraft's. Rocket and bomb blasts **tear blocks loose**: they are thrown out of the crater in every direction (about 10 blocks, some much further), tumbling end over end, then bounce, slide and tip flat before turning into item drops after resting for 5 s. Roblox Parts caught in the blast lose their joints and fall apart.
 
 ### Camera and controls (Roblox-style)
 - **Free cursor**, shown as Roblox's arrow.
@@ -84,7 +85,7 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 ### Movement
 - Roblox **walk speed, jump height and gravity**, converted from studs to Minecraft blocks.
 - Optional fall damage and hunger, both off by default like Roblox.
-- The **"oof"** sound when you die, and no Minecraft hurt sounds, sprint dust or death smoke.
+- The **"oof"** sound when you die, and your character falls apart instead of Minecraft's fall-over, with no hurt sounds, sprint dust or death smoke.
 
 ### 2018 interface
 - **Top bar:** menu, chat and backpack buttons. Your name sits above "Account: 13+", with a health bar under them once you've been hurt.
@@ -187,6 +188,7 @@ All of these can be changed in the in-game **Settings** menu.
 - The hoverboard can climb one-block steps (Roblox's can't); otherwise it would get stuck on Minecraft terrain everywhere. Its ride sounds are only heard by the rider.
 - The Paintball Gun only recolors Roblox Parts (like Trowel walls), not Minecraft blocks.
 - The balloon's lift is close to Roblox's but not exact, because Minecraft adds air drag.
+- Fallen body parts and explosion debris don't collide with each other, and body parts treat the ground under the character as flat.
 
 ## Credits
 - **Inspired by [@coah80](https://x.com/coah80) on X.**

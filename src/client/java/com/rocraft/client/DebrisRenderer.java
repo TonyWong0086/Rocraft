@@ -3,40 +3,52 @@ package com.rocraft.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.rocraft.tools.Debris;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.entity.AbstractMinecartRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.FallingBlockRenderer;
-import net.minecraft.client.renderer.entity.state.FallingBlockRenderState;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import org.joml.Quaternionf;
 
-/** Explosion debris: the falling-block model, tumbling about its centre while it flies (Debris.spin). */
-final class DebrisRenderer extends FallingBlockRenderer {
-	static final class State extends FallingBlockRenderState { float spin; int axis; }
+/**
+ * Explosion debris: the block's model turned about its centre by its tumble (Debris.rot), lit evenly by the light
+ * where the debris is (like a block in a minecart). The falling-block renderer lights each face from the world cell
+ * beside it, which goes black once the block has rolled over (its old bottom face, lit from the ground, ends up on top or the side).
+ */
+final class DebrisRenderer extends EntityRenderer<Debris, DebrisRenderer.State> {
+	static final class State extends EntityRenderState {
+		final Quaternionf rot = new Quaternionf();
+		final BlockModelRenderState block = new BlockModelRenderState();
+	}
 
-	DebrisRenderer(EntityRendererProvider.Context ctx) { super(ctx); }
+	private final BlockModelResolver blocks;
 
-	@Override public FallingBlockRenderState createRenderState() { return new State(); }
+	DebrisRenderer(EntityRendererProvider.Context ctx) {
+		super(ctx);
+		blocks = ctx.getBlockModelResolver();
+		shadowRadius = 0.5f;
+	}
+
+	@Override public State createRenderState() { return new State(); }
 
 	@Override
-	public void extractRenderState(FallingBlockEntity e, FallingBlockRenderState s, float partial) {
-		super.extractRenderState(e, s, partial);
-		if (e instanceof Debris d && s instanceof State st) {
-			st.spin = d.spinO + (d.spin - d.spinO) * partial;
-			st.axis = Math.floorMod(e.getId(), 3);
-		}
+	public void extractRenderState(Debris d, State s, float partial) {
+		super.extractRenderState(d, s, partial);
+		d.rotO.slerp(d.rot, partial, s.rot);
+		blocks.update(s.block, d.getBlockState(), AbstractMinecartRenderer.BLOCK_DISPLAY_CONTEXT);
 	}
 
 	@Override
-	public void submit(FallingBlockRenderState s, PoseStack ps, SubmitNodeCollector out, CameraRenderState cam) {
+	public void submit(State s, PoseStack ps, SubmitNodeCollector out, CameraRenderState cam) {
 		ps.pushPose();
-		if (s instanceof State st) {
-			float a = (float) Math.toRadians(st.spin);
-			ps.translate(0, 0.5f, 0);
-			ps.mulPose(st.axis == 0 ? new Quaternionf().rotateX(a) : st.axis == 1 ? new Quaternionf().rotateZ(a) : new Quaternionf().rotateX(a).rotateY(a * 0.5f));
-			ps.translate(0, -0.5f, 0);
-		}
-		super.submit(s, ps, out, cam);
+		ps.translate(0, 0.5f, 0);
+		ps.mulPose(s.rot);
+		ps.translate(-0.5f, -0.5f, -0.5f);
+		s.block.submit(ps, out, s.lightCoords, OverlayTexture.NO_OVERLAY, s.outlineColor);
 		ps.popPose();
+		super.submit(s, ps, out, cam);
 	}
 }
