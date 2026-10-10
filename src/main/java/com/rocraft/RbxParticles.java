@@ -10,7 +10,8 @@ public final class RbxParticles {
 	public static final SimpleParticleType SMOKE = reg("rbx_smoke"), FIRE = reg("rbx_fire"), SPARK = reg("rbx_spark"),
 		EXPLOSION = reg("rbx_explosion"), EXPLOSION_SMOKE = reg("rbx_explosion_smoke"),
 		SHOCKWAVE = reg("rbx_shockwave"), IMPLOSION = reg("rbx_implosion"),
-		FORCEFIELD_GLOW = reg("rbx_forcefield_glow"), FORCEFIELD_VORTEX = reg("rbx_forcefield_vortex");
+		FORCEFIELD_GLOW = reg("rbx_forcefield_glow"), FORCEFIELD_VORTEX = reg("rbx_forcefield_vortex"),
+		SPARKLE = reg("rbx_sparkle");
 
 	private static SimpleParticleType reg(String name) {
 		return Registry.register(BuiltInRegistries.PARTICLE_TYPE, Rocraft.id(name), FabricParticleTypes.simple(true));

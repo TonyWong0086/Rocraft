@@ -30,7 +30,8 @@ import net.minecraft.world.entity.Entity;
 final class RbxAudio {
 	record Pcm(byte[] data, int rate) {}
 	private static final Map<String, Optional<Pcm>> CACHE = new HashMap<>();
-	private static final SoundEvent EVENT = SoundEvent.createVariableRangeEvent(FabricSoundInstance.EMPTY_SOUND);
+	/** Our own registered stream event (sounds.json "stream" -> Fabric's empty.ogg); Fabric's EMPTY_SOUND has no sounds.json entry in 26.2. */
+	private static final SoundEvent EVENT = SoundEvent.createVariableRangeEvent(com.rocraft.Rocraft.id("stream"));
 
 	/** PCM of content/<rel>, or null if the install lacks it. Cached; first call decodes (small files). */
 	static Pcm pcm(String rel) {

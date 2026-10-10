@@ -37,5 +37,6 @@
 	"protest_sign.angrysound1": {"sounds": ["rocraft:protest_sign/angrysound1"]},
 	"protest_sign.angrysound2": {"sounds": ["rocraft:protest_sign/angrysound2"]},
 	"protest_sign.angrysound3": {"sounds": ["rocraft:protest_sign/angrysound3"]},
-	"oof": {"sounds": ["rocraft:oof"]}
+	"oof": {"sounds": ["rocraft:oof"]},
+	"stream": {"sounds": [{"name": "fabric-sound-api-v1:empty", "stream": true}]}
 }

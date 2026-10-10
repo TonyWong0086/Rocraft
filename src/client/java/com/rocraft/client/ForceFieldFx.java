@@ -26,8 +26,10 @@ final class ForceFieldFx {
 	static void rings(PoseStack ps, SubmitNodeCollector out) {
 		if (!textures() || vortex == null) return;
 		float t = (System.currentTimeMillis() % 100000) / 1000f;
-		ring(ps, out, -0.4f, 3.0f, t * 2.2f);
-		ring(ps, out, -1.9f, 2.6f, -t * 1.7f);
+		// a swirl of faint concentric rings around the waist, ~6 studs across, each turning at its own speed
+		ring(ps, out, -0.35f, 3.3f, t * 1.6f);
+		ring(ps, out, -0.55f, 2.8f, -t * 2.1f + 1);
+		ring(ps, out, -0.75f, 2.3f, t * 2.7f + 2);
 	}
 
 	private static void ring(PoseStack ps, SubmitNodeCollector out, float y, float r, float angle) {
@@ -35,15 +37,15 @@ final class ForceFieldFx {
 		ps.translate(0, y, 0);
 		ps.mulPose(new org.joml.Quaternionf().rotateY(angle));
 		out.submitCustomGeometry(ps, RenderTypes.text(vortex), (pose, vc) -> {
-			quad(vc, pose, -r, 0, -r, -r, 0, r, r, 0, r, r, 0, -r, 0xFFFFEEF6);
+			quad(vc, pose, -r, 0, -r, -r, 0, r, r, 0, r, r, 0, -r, 0xFFFFF2F8);
 		});
 		ps.popPose();
 	}
 
-	/** The bubble: a camera-facing disc 8.5 studs across, centred on the character (centre in camera space). */
+	/** The bubble: a camera-facing disc 8 studs across, centred on the character (centre in camera space). */
 	static void bubble(PoseStack ps, SubmitNodeCollector out, Vector3f centre) {
 		if (!textures() || glow == null) return;
-		float r = 8.5f / 2 * AvatarLayer.S / 0.94f; // 8.5 studs across (~1.75x the character, as Roblox's), edge at 94% of the texture
+		float r = 8f / 2 * AvatarLayer.S; // 8 studs across, centred on the torso (measured from Roblox)
 		ps.pushPose();
 		ps.last().pose().identity().translate(centre).rotate(Minecraft.getInstance().gameRenderer.mainCamera().rotation());
 		ps.last().normal().identity();
@@ -66,9 +68,27 @@ final class ForceFieldFx {
 	private static boolean textures() {
 		if (tried) return glow != null || vortex != null;
 		tried = true;
-		glow = load("forcefield_glow_main", 1.0f);
-		vortex = load("forcefield_vortex_main", 2.8f);
+		glow = bubbleTexture();
+		vortex = load("forcefield_vortex_main", 3.5f);
 		return glow != null || vortex != null;
+	}
+
+	/**
+	 * Measured from Roblox: the bubble is an even light-blue tint (+0, +40, +64 over the scene) with a soft edge
+	 * over its outer ~6% and no bright rim. As a normal blend: (127, 196, 255) at 60%.
+	 */
+	private static Identifier bubbleTexture() {
+		int n = 256;
+		var ni = new NativeImage(n, n, false);
+		for (int y = 0; y < n; y++) for (int x = 0; x < n; x++) {
+			double dx = (x + 0.5) / n * 2 - 1, dy = (y + 0.5) / n * 2 - 1, d = Math.sqrt(dx * dx + dy * dy);
+			double edge = Math.clamp((1 - d) / 0.06, 0, 1);
+			int a = (int) Math.round(153 * edge * edge * (3 - 2 * edge));
+			ni.setPixel(x, y, a << 24 | 127 << 16 | 196 << 8 | 255);
+		}
+		var id = Rocraft.id("forcefield/bubble");
+		Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "rocraft forcefield bubble", ni));
+		return id;
 	}
 
 	private static Identifier load(String name, float gain) {
