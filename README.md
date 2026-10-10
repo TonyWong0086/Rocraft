@@ -98,7 +98,7 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 
 ### Performance
 Two common optimisation-mod features are built in, each in the settings menu's Graphics tab:
-- **Hide Unseen Entities** (like EntityCulling): mobs and players behind solid blocks aren't drawn. Roblox avatars are many meshes each, so this saves more than it would in vanilla.
+- **Hide Unseen Entities** (like EntityCulling): mobs, players and block entities (chests, signs, banners...) behind solid blocks aren't drawn. Roblox avatars are many meshes each, so this saves more than it would in vanilla.
 - **Unfocused FPS Limit** (like Dynamic FPS): 30 FPS while the game window isn't focused.
 
 If a mod that already does the job is installed, Rocraft leaves it to that mod and the setting shows "By <mod>": EntityCulling or Sodium for the first, Dynamic FPS for the second.
@@ -203,4 +203,4 @@ All of these can be changed in the in-game **Settings** menu.
 - Roblox, its assets and the classic gear belong to **Roblox Corporation**. This is an unofficial fan project and is not affiliated with or endorsed by Roblox or Mojang.
 
 ## License
-See [LICENSE](LICENSE). It covers the code only, not any Roblox assets.
+MIT, see [LICENSE](LICENSE). It covers the code only, not any Roblox assets.

@@ -8,14 +8,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
  * Built-in versions of two common client optimisation mods, each switched off when a mod that does the same job is
  * installed (that mod wins, so they never fight):
- * - Entity culling (like EntityCulling; Sodium also hides entities in sections it can't see): entities hidden behind
- *   solid blocks aren't drawn. Roblox avatars are many meshes each, so this matters more here than in vanilla.
+ * - Entity culling (like EntityCulling; Sodium also hides entities in sections it can't see): entities and block
+ *   entities (chests, signs, banners...) hidden behind solid blocks aren't drawn. Roblox avatars are many meshes each,
+ *   so this matters more here than in vanilla.
  * - Unfocused FPS cap (like Dynamic FPS): 30 FPS while the game window isn't focused. Vanilla already throttles a
  *   minimised or idle window.
  */
@@ -23,8 +25,8 @@ public final class Perf {
 	/** The mod that already does each job, or null if Rocraft does it. */
 	static final String CULLING_BY = firstLoaded("entityculling", "sodium"), FPS_BY = firstLoaded("dynamic_fps");
 	static final int UNFOCUSED_FPS = 30, RECHECK_TICKS = 4, MAX_DIST = 96;
-	/** entity id -> {tick last checked, 1 visible / 0 hidden} */
-	private static final Map<Integer, int[]> SEEN = new HashMap<>();
+	/** entity id, or ~block pos for block entities -> {tick last checked, 1 visible / 0 hidden} */
+	private static final Map<Long, int[]> SEEN = new HashMap<>();
 
 	private static String firstLoaded(String... ids) {
 		for (String id : ids) {
@@ -51,11 +53,21 @@ public final class Perf {
 		if (e instanceof LivingEntity le && le.isDeadOrDying()) return true; // its fallen parts spread past its box
 		AABB box = e.getBoundingBox();
 		if (box.getXsize() > 4 || box.getYsize() > 4 || box.getZsize() > 4) return true; // big / multipart: not worth it
+		return visible(e.getId(), box);
+	}
+
+	/** BlockEntityRenderDispatcher hook: false when the block entity is walled off from the camera. */
+	public static boolean visible(BlockEntity be) {
+		return !culling() || visible(~be.getBlockPos().asLong(), new AABB(be.getBlockPos()));
+	}
+
+	private static boolean visible(long key, AABB box) {
+		var mc = Minecraft.getInstance();
 		Vec3 cam = mc.gameRenderer.mainCamera().position();
 		if (box.inflate(1.5).contains(cam) || box.getCenter().distanceToSqr(cam) > MAX_DIST * MAX_DIST) return true;
 		int now = (int) mc.level.getGameTime();
 		if (SEEN.size() > 4096) SEEN.clear(); // ponytail: crude cap instead of tracking entity removal
-		int[] s = SEEN.computeIfAbsent(e.getId(), k -> new int[]{Integer.MIN_VALUE, 1});
+		int[] s = SEEN.computeIfAbsent(key, k -> new int[]{Integer.MIN_VALUE, 1});
 		if (now - s[0] >= RECHECK_TICKS || now < s[0]) { s[0] = now; s[1] = seen(cam, box.inflate(0.1)) ? 1 : 0; }
 		return s[1] == 1;
 	}
