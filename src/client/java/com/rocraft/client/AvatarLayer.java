@@ -96,18 +96,29 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		float perPx = (float) (2 * dist * Math.tan(Math.toRadians(mc.options.fov().get()) / 2) / mc.getWindow().getHeight());
 		int px = Math.max(16, mc.getWindow().getHeight() / 50), w = RbxFont.worldWidth(name, px, "r");
 		boolean hurt = hp < 1;
-		int bw = Math.max(40, px * 3), bh = Math.max(4, px / 4);
-		float ty = -px - (hurt ? bh + 6 : 2), h = Math.max(0, hp), x0 = -bw / 2f, y0 = -bh - 2;
+		// Roblox's bar, measured: ~6x the text height wide, 1 px border + 2 px gap + 2 px fill (scaled with the text)
+		int k = Math.max(1, Math.round(px / 17f)), bw = Math.round(px * 6f), bh = 8 * k;
+		float ty = -px - (hurt ? bh + 3 : 2), h = Math.max(0, hp), x0 = -bw / 2f, y0 = -bh;
 		int a = Math.round(fade * 255);
 		// every layer sits a hair nearer the camera than the one before, so stroke / text and border / fill never z-fight
 		layer(ps, at, perPx, 0, () -> RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", 0, alpha(0x50000000, a)));
 		layer(ps, at, perPx, 1, () -> RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", alpha(0xFFFFFFFF, a), 0));
 		if (!hurt) return;
 		var white = net.minecraft.client.renderer.rendertype.RenderTypes.text(BombRenderer.BALL.texture()); // a 1x1 white texture
-		// Roblox's overhead bar: a thin dark border, a 1 px gap, then the fill (green -> yellow -> red) on a dim track
-		layer(ps, at, perPx, 0, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> ring(vc, pose, x0, y0, bw, bh, 1, 2, alpha(0xE6141414, a))));
-		layer(ps, at, perPx, 1, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> pill(vc, pose, x0, y0, bw, bh, alpha(0x80303030, a))));
-		if (h > 0) layer(ps, at, perPx, 2, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> pill(vc, pose, x0, y0, Math.max(bh, bw * h), bh, alpha(healthColor(h), a))));
+		int col = alpha(healthColor(h), a);
+		// translucent dark grey inside, then the border and the fill both in the health colour (corners clipped by 1 px)
+		layer(ps, at, perPx, 0, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> rect(vc, pose, x0 + k, y0 + k, bw - 2 * k, bh - 2 * k, alpha(0x80646464, a))));
+		layer(ps, at, perPx, 1, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> {
+			rect(vc, pose, x0 + k, y0, bw - 2 * k, k, col);           // top
+			rect(vc, pose, x0 + k, y0 + bh - k, bw - 2 * k, k, col);  // bottom
+			rect(vc, pose, x0, y0 + k, k, bh - 2 * k, col);           // left
+			rect(vc, pose, x0 + bw - k, y0 + k, k, bh - 2 * k, col);  // right
+			if (h > 0) rect(vc, pose, x0 + 3 * k, y0 + 3 * k, (bw - 6 * k) * h, bh - 6 * k, col);
+		}));
+	}
+
+	private static void rect(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, float x, float y, float w, float h, int argb) {
+		quad(vc, pose, argb, x, y, x, y + h, x + w, y + h, x + w, y);
 	}
 
 	private static int alpha(int argb, int a) { return ((argb >>> 24) * a / 255) << 24 | argb & 0xFFFFFF; }
@@ -121,25 +132,6 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		ps.scale(perPx * pull, -perPx * pull, perPx * pull);
 		draw.run();
 		ps.popPose();
-	}
-
-	/** Capsule outline: the band between the capsule grown by `in` and by `out` pixels (drawn both sides). */
-	private static void ring(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, float x, float y, float w, float h, float in, float out, int argb) {
-		float r = h / 2, cy = y + r, l = x + r, rt = Math.max(l, x + w - r);
-		int n = 8;
-		float[][] dir = new float[2 * n + 2][]; // perimeter: right cap top -> bottom, then left cap bottom -> top
-		for (int i = 0; i <= n; i++) {
-			double a = -Math.PI / 2 + Math.PI * i / n;
-			dir[i] = new float[]{rt, (float) Math.cos(a), (float) Math.sin(a)};
-			dir[n + 1 + i] = new float[]{l, (float) -Math.cos(a), (float) -Math.sin(a)};
-		}
-		for (int i = 0; i < dir.length; i++) {
-			float[] p = dir[i], q = dir[(i + 1) % dir.length];
-			float pix = p[0] + p[1] * (r + in), piy = cy + p[2] * (r + in), pox = p[0] + p[1] * (r + out), poy = cy + p[2] * (r + out);
-			float qix = q[0] + q[1] * (r + in), qiy = cy + q[2] * (r + in), qox = q[0] + q[1] * (r + out), qoy = cy + q[2] * (r + out);
-			quad(vc, pose, argb, pix, piy, pox, poy, qox, qoy, qix, qiy);
-			quad(vc, pose, argb, qix, qiy, qox, qoy, pox, poy, pix, piy);
-		}
 	}
 
 	/**
@@ -161,22 +153,8 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 
 	/** Roblox's health colour: green at full, yellow at half, red when nearly dead. */
 	static int healthColor(float hp) {
-		int green = 0x1BFC6B, yellow = 0xFFD21C, red = 0xFF1C00;
+		int green = 0x1BFC6B, yellow = 0xFAEB00, red = 0xFF1C00;
 		return 0xFF000000 | (hp > 0.5f ? BombRenderer.lerp(yellow, green, (hp - 0.5f) * 2) : BombRenderer.lerp(red, yellow, hp * 2)) & 0xFFFFFF;
-	}
-
-	/** A capsule (rounded ends) of quads; the ends are fans of degenerate quads. */
-	private static void pill(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, float x, float y, float w, float h, int argb) {
-		float r = h / 2, cy = y + r, l = x + r, rt = x + w - r;
-		if (rt > l) quad(vc, pose, argb, l, y, l, y + h, rt, y + h, rt, y);
-		int n = 8;
-		for (int i = 0; i < n; i++) {
-			double a0 = Math.PI / 2 + Math.PI * i / n, a1 = Math.PI / 2 + Math.PI * (i + 1) / n;
-			float lx0 = l + r * (float) Math.cos(a0), ly0 = cy + r * (float) Math.sin(a0), lx1 = l + r * (float) Math.cos(a1), ly1 = cy + r * (float) Math.sin(a1);
-			// same winding as the middle quad, or back-face culling drops the caps
-			quad(vc, pose, argb, l, cy, lx1, ly1, lx0, ly0, lx0, ly0);                       // left cap
-			quad(vc, pose, argb, rt, cy, rt + l - lx0, ly0, rt + l - lx1, ly1, rt + l - lx1, ly1); // right cap (mirrored)
-		}
 	}
 
 	private static void quad(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, int argb, float... p) {
