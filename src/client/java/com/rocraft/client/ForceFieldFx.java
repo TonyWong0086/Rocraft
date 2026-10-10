@@ -22,23 +22,39 @@ final class ForceFieldFx {
 	private static Identifier glow, vortex;
 	private static boolean tried;
 
-	/** Rings, in the character's Roblox-stud space (HumanoidRootPart at the origin, y up). */
-	static void rings(PoseStack ps, SubmitNodeCollector out) {
+	/** One vortex ring: born at `born` (ms), at height y (studs from the root), growing r0 -> r1 while it fades in and out. */
+	private record Ring(long born, float life, float y, float angle, float spin, float r0, float r1) {}
+	private static final java.util.Map<Integer, java.util.List<Ring>> RINGS = new java.util.HashMap<>();
+	private static final java.util.Random RAND = new java.util.Random();
+
+	/**
+	 * The vortex, in the character's Roblox-stud space (HumanoidRootPart at the origin, y up): like Roblox's emitter,
+	 * flat rings keep appearing at random heights from the chest to the knees, spin, swell outward and fade, so at any
+	 * moment there's a swirl of rings of different sizes all round the body.
+	 */
+	static void rings(PoseStack ps, SubmitNodeCollector out, int entityId) {
 		if (!textures() || vortex == null) return;
-		float t = (System.currentTimeMillis() % 100000) / 1000f;
-		// a swirl of faint concentric rings around the waist, ~6 studs across, each turning at its own speed
-		ring(ps, out, -0.35f, 3.3f, t * 1.6f);
-		ring(ps, out, -0.55f, 2.8f, -t * 2.1f + 1);
-		ring(ps, out, -0.75f, 2.3f, t * 2.7f + 2);
+		long now = System.currentTimeMillis();
+		var list = RINGS.computeIfAbsent(entityId, k -> new java.util.ArrayList<>());
+		list.removeIf(r -> now - r.born > r.life * 1000);
+		long last = list.isEmpty() ? 0 : list.getLast().born;
+		if (now - last > 70) // ~14 rings a second
+			list.add(new Ring(now, 0.9f + RAND.nextFloat() * 0.6f, -1.8f + RAND.nextFloat() * 2.4f, RAND.nextFloat() * 6.283f,
+				(RAND.nextBoolean() ? 1 : -1) * (1.5f + RAND.nextFloat() * 2), 1.4f + RAND.nextFloat() * 0.8f, 2.8f + RAND.nextFloat() * 0.9f));
+		if (RINGS.size() > 64) RINGS.keySet().removeIf(k -> k != entityId); // ponytail: crude cap instead of tracking entity removal
+		for (var r : list) {
+			float t = (now - r.born) / 1000f / r.life;
+			float alpha = (float) Math.sin(Math.PI * t); // fades in, then out
+			ring(ps, out, r.y, r.r0 + (r.r1 - r.r0) * t, r.angle + r.spin * t * r.life, Math.round(alpha * 255));
+		}
 	}
 
-	private static void ring(PoseStack ps, SubmitNodeCollector out, float y, float r, float angle) {
+	private static void ring(PoseStack ps, SubmitNodeCollector out, float y, float r, float angle, int a) {
 		ps.pushPose();
 		ps.translate(0, y, 0);
 		ps.mulPose(new org.joml.Quaternionf().rotateY(angle));
-		out.submitCustomGeometry(ps, RenderTypes.text(vortex), (pose, vc) -> {
-			quad(vc, pose, -r, 0, -r, -r, 0, r, r, 0, r, r, 0, -r, 0xFFFFF2F8);
-		});
+		int argb = a << 24 | 0xFFF2F8;
+		out.submitCustomGeometry(ps, RenderTypes.text(vortex), (pose, vc) -> quad(vc, pose, -r, 0, -r, -r, 0, r, r, 0, r, r, 0, -r, argb));
 		ps.popPose();
 	}
 
