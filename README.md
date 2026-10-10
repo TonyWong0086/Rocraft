@@ -84,7 +84,6 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 ### Movement
 - Roblox **walk speed, jump height and gravity**, converted from studs to Minecraft blocks.
 - Optional fall damage and hunger, both off by default like Roblox.
-- A **ForceField** (Roblox's sparkle effect) protects you for 10 s after spawning or respawning.
 - The **"oof"** sound when you die, and no Minecraft hurt sounds, sprint dust or death smoke.
 
 ### 2018 interface

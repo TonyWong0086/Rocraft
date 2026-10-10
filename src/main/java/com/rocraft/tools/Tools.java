@@ -73,8 +73,6 @@ public final class Tools {
 	public static EntityType<Debris> DEBRIS;
 	public static EntityType<RobloxPart> PART;
 	public static EntityType<Hoverboard> HOVERBOARD_ENTITY;
-	/** Spawn ForceField: a (re)spawned character can't be hurt for 10 s, like a default SpawnLocation's Duration. */
-	public static final int FORCEFIELD_TICKS = 10 * 20;
 	public static volatile long clientLungeAt; // local player's last lunge (client), drives the toollunge animation
 	/** Local player's current "using" grip (eating, drinking, hugging), client side. */
 	public static volatile Item clientUseItem;
@@ -161,8 +159,6 @@ public final class Tools {
 		MouseTarget.register();
 		Holster.register();
 		ServerTickEvents.END_SERVER_TICK.register(Tools::tick);
-		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, src, amount) ->
-			!(e instanceof Player p && p.tickCount < FORCEFIELD_TICKS) || src.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY));
 	}
 
 	private static Item item(String name, Function<Item.Properties, Item> make) {

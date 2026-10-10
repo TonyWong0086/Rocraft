@@ -15,9 +15,6 @@ final class GearEffects {
 			// Speed Coil: Smoke at the feet while running >= 10 studs/s (Size .5, Opacity .25, RiseVelocity 2)
 			if (p.getMainHandItem().is(Tools.SPEED_COIL) && Math.hypot(p.getX() - p.xo, p.getZ() - p.zo) * 20 / 0.28 >= 10)
 				RbxParticle.smoke(l, p.getX(), p.getY() + 0.05, p.getZ(), 0.5f, 0.25f, 2, 0xFFFFFF);
-			// spawn ForceField (Tools.FORCEFIELD_TICKS after the character appears)
-			if (p.tickCount < com.rocraft.tools.Tools.FORCEFIELD_TICKS && p.isAlive() && !(p == mc.player && mc.options.getCameraType().isFirstPerson()))
-				RbxParticle.forceFieldSparkles(l, p); // the bubble and rings are drawn on the character (ForceFieldFx)
 			// burning (lava, fire): a default Fire in the Torso instead of Minecraft's flames
 			if (p.displayFireAnimation() && !p.isInvisible())
 				RbxParticle.fire(l, p.getX(), p.getY() + 3 * 0.28, p.getZ(), 5, 9, FIRE_COLOR);

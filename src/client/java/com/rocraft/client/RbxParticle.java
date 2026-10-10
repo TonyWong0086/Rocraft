@@ -35,8 +35,6 @@ final class RbxParticle extends SingleQuadParticle {
 	int tint = 0xFFFFFF;
 	String colorRamp, alphaRamp;
 	boolean add, bright, rampIsAlpha; // rampIsAlpha: the colour ramp's brightness is the alpha (Smoke)
-	net.minecraft.world.entity.Entity follow; // moves with this entity (ForceField), offset fixed at spawn
-	private double ox, oy, oz;
 	private final float row;
 
 	private RbxParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SimpleParticleType type, int life) {
@@ -62,14 +60,12 @@ final class RbxParticle extends SingleQuadParticle {
 	RbxParticle sizes(float studs0, float studs1) { size0 = studs0 * STUD; size1 = studs1 * STUD; return this; }
 
 	void add() {
-		if (follow != null) { ox = x - follow.getX(); oy = y - follow.getY(); oz = z - follow.getZ(); }
 		update();
 		Minecraft.getInstance().particleEngine.add(this);
 	}
 
 	@Override public void tick() {
 		super.tick();
-		if (follow != null) setPos(follow.getX() + ox, follow.getY() + oy, follow.getZ() + oz);
 		xd *= drag; yd *= drag; zd *= drag;
 		oRoll = roll;
 		roll += spin;
@@ -193,24 +189,10 @@ final class RbxParticle extends SingleQuadParticle {
 		}
 	}
 
-	/** ForceField sparkles: Roblox's 8-point star (sparkles_main) twinkling up from the head and shoulders. */
-	static void forceFieldSparkles(ClientLevel l, net.minecraft.world.entity.Entity e) {
-		if (l.getRandom().nextFloat() > 0.3f) return;
-		double a = l.getRandom().nextDouble() * Math.PI * 2, r = l.getRandom().nextDouble() * 1.6 * AV;
-		var s = make(l, e.getX() + Math.cos(a) * r, e.getY() + (3.8 + l.getRandom().nextDouble() * 1.5) * AV, e.getZ() + Math.sin(a) * r,
-			0, 1.5 + l.getRandom().nextDouble() * 1.5, 0, RbxParticles.SPARKLE, 1.0f + 0.6f * l.getRandom().nextFloat());
-		if (s == null) return;
-		s.sizes(0.7f, 0.2f); s.tint = 0xFFFFFF; s.add = true; s.bright = true;
-		s.add();
-	}
-
-	/** Blocks per stud of a Rocraft character (AvatarLayer.S), for effects sized to the avatar. */
-	static final double AV = 6 / 16.0;
-
 	static void register() {
 		var reg = ParticleProviderRegistry.getInstance();
 		for (var t : new SimpleParticleType[]{RbxParticles.SMOKE, RbxParticles.FIRE, RbxParticles.SPARK, RbxParticles.EXPLOSION_SMOKE, RbxParticles.SHOCKWAVE, RbxParticles.IMPLOSION,
-				RbxParticles.FORCEFIELD_GLOW, RbxParticles.FORCEFIELD_VORTEX, RbxParticles.SPARKLE})
+				})
 			reg.register(t, sprites -> { SPRITES.put(t, sprites); return (opt, level, x, y, z, vx, vy, vz, rand) -> null; });
 		// the server sends one rbx_explosion with the BlastRadius (studs) as its x speed; the whole effect is built here
 		reg.register(RbxParticles.EXPLOSION, sprites -> {
@@ -222,8 +204,7 @@ final class RbxParticle extends SingleQuadParticle {
 	/** Particle textures for the private pack: Roblox *_main.dds -> PNG. */
 	static final Map<String, String> TEXTURES = Map.of("rbx_smoke", "smoke_main", "rbx_fire", "fire_main", "rbx_spark", "fire_sparks_main",
 		"rbx_explosion", "explosion01_core_main", "rbx_explosion_smoke", "explosion01_smoke_main",
-		"rbx_shockwave", "explosion01_shockwave_main", "rbx_implosion", "explosion01_implosion_main",
-		"rbx_forcefield_glow", "forcefield_glow_main", "rbx_forcefield_vortex", "forcefield_vortex_main", "rbx_sparkle", "sparkles_main");
+		"rbx_shockwave", "explosion01_shockwave_main", "rbx_implosion", "explosion01_implosion_main");
 
 	static void writeTextures(java.nio.file.Path assets) {
 		for (var e : TEXTURES.entrySet()) try {

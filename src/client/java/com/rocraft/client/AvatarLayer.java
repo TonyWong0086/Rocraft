@@ -78,11 +78,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		else if (body != null && rightState != null) heldItem(ps, out, light, pose[Rig.RIGHT_ARM], rightState, 1, outline);
 		if (body != null && leftState != null) heldItem(ps, out, light, pose[Rig.LEFT_ARM], leftState, -1, outline);
 		Vector3f above = ps.last().pose().transformPosition(new Vector3f(0, 3.1f, 0)); // just over the head, in camera space
-		boolean shielded = e instanceof Player pl && pl.tickCount < Tools.FORCEFIELD_TICKS && pl.isAlive();
-		Vector3f middle = ps.last().pose().transformPosition(new Vector3f(0, 0, 0)); // the bubble is centred on the torso
-		if (shielded) ForceFieldFx.rings(ps, out, id);
 		ps.popPose();
-		if (shielded) ForceFieldFx.bubble(ps, out, middle);
 		return above;
 	}
 
