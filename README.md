@@ -113,6 +113,10 @@ Rocraft also watches its own frame times and scales back its own extra work whil
 
 **Stable Frame Pacing** (off by default) caps the frame rate at the highest common step (60, 72, 90, 120...) your slowest 10% of frames can keep up with, so frames arrive evenly instead of racing and then stalling.
 
+Avatar meshes are drawn the way Roblox draws them: as plain triangles (not Minecraft's quads, which need a repeated fourth corner), switching to the mesh's own lower-detail LODs past about 9 and 18 blocks. Meshes without LODs (older accessories) always draw at full detail.
+
+If the game sits at exactly 60 FPS, that is VSync matching a 60 Hz monitor (Video Settings > VSync, or the monitor's refresh rate in Windows display settings), not Rocraft.
+
 The performance patches are optional: if one can't apply (another mod changed the same code), the game still starts without it.
 
 ### Stats (F3)

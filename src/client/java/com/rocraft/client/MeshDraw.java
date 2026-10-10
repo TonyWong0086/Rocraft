@@ -14,6 +14,8 @@ import org.joml.Vector3f;
 final class MeshDraw {
 	final float[] pos, nrm, uv;
 	final int count; // corners (3 per triangle)
+	/** The mesh's coarser Roblox LODs (same texture), drawn further away. */
+	MeshDraw[] lods = {};
 	BufferedImage image; // source pixels (kept for the Settings avatar picture)
 	private Identifier tex;
 	private static int seq;
@@ -28,10 +30,16 @@ final class MeshDraw {
 
 	/** Mesh with its own UVs, vertices moved by m (Roblox CFrame * Offset * Scale). */
 	static MeshDraw of(RbxMesh mesh, Matrix4f m, BufferedImage image) {
-		var d = new MeshDraw(mesh.tris.length, image);
+		var d = of(mesh, mesh.tris, m, image);
+		d.lods = java.util.Arrays.stream(mesh.lods).map(t -> of(mesh, t, m, image)).toArray(MeshDraw[]::new);
+		return d;
+	}
+
+	private static MeshDraw of(RbxMesh mesh, int[] tris, Matrix4f m, BufferedImage image) {
+		var d = new MeshDraw(tris.length, image);
 		var v = new Vector3f();
-		for (int c = 0; c < mesh.tris.length; c++) {
-			int i = mesh.tris[c];
+		for (int c = 0; c < tris.length; c++) {
+			int i = tris[c];
 			m.transformPosition(v.set(mesh.pos[i * 3], mesh.pos[i * 3 + 1], mesh.pos[i * 3 + 2]));
 			d.pos[c * 3] = v.x; d.pos[c * 3 + 1] = v.y; d.pos[c * 3 + 2] = v.z;
 			m.transformDirection(v.set(mesh.nrm[i * 3], mesh.nrm[i * 3 + 1], mesh.nrm[i * 3 + 2])).normalize();
@@ -123,24 +131,53 @@ final class MeshDraw {
 			d.nrm[c * 3] = v.x; d.nrm[c * 3 + 1] = v.y; d.nrm[c * 3 + 2] = v.z;
 		}
 		System.arraycopy(src.uv, 0, d.uv, 0, src.uv.length);
+		d.lods = java.util.Arrays.stream(src.lods).map(l -> transformed(l, m, null)).toArray(MeshDraw[]::new);
 		return d;
 	}
 
-	/** Submit as entity geometry (triangles as quads with the last corner repeated). */
+	/** entityCutout, but drawn as triangles: Roblox meshes are triangles, so no fourth (repeated) corner per face. */
+	private static final com.mojang.blaze3d.pipeline.RenderPipeline TRIANGLES = com.mojang.blaze3d.pipeline.RenderPipeline
+		.builder(net.minecraft.client.renderer.RenderPipelines.ENTITY_SNIPPET).withLocation(Rocraft.id("pipeline/mesh_cutout"))
+		.withShaderDefine("ALPHA_CUTOUT", 0.1f).withShaderDefine("PER_FACE_LIGHTING")
+		.withBindGroupLayout(net.minecraft.client.renderer.BindGroupLayouts.SAMPLER1).withCull(false)
+		.withPrimitiveTopology(com.mojang.blaze3d.PrimitiveTopology.TRIANGLES).build();
+	private static final java.util.Map<Identifier, net.minecraft.client.renderer.rendertype.RenderType> TYPES = new java.util.HashMap<>();
+
+	static net.minecraft.client.renderer.rendertype.RenderType type(Identifier tex) {
+		return TYPES.computeIfAbsent(tex, t -> net.minecraft.client.renderer.rendertype.RenderType.create("rocraft_mesh",
+			net.minecraft.client.renderer.rendertype.RenderSetup.builder(TRIANGLES).withTexture("Sampler0", t).useLightmap().useOverlay()
+				.affectsCrumbling().setOutline(net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty.AFFECTS_OUTLINE).createRenderSetup()));
+	}
+
+	/** Submit as entity geometry. */
 	static void submit(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, int light, MeshDraw d, Identifier tex) {
 		submit(ps, out, light, d, tex, -1);
 	}
 
 	static void submit(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, int light, MeshDraw d, Identifier tex, int argb) {
-		out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.entityCutout(tex), (pose, vc) -> {
-			float[] p = d.pos, n = d.nrm, uv = d.uv;
-			for (int t = 0; t < d.count; t += 3)
-				for (int k = 0; k < 4; k++) {
-					int i = t + Math.min(k, 2);
-					vc.addVertex(pose, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]).setColor(argb).setUv(uv[i * 2], uv[i * 2 + 1])
-						.setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, n[i * 3], n[i * 3 + 1], n[i * 3 + 2]);
-				}
+		var at = ps.last().pose();
+		// distance from the camera in the mesh's own units (studs), so a scaled-up GUI preview stays detailed
+		MeshDraw m = d.lod((at.m30() * at.m30() + at.m31() * at.m31() + at.m32() * at.m32()) / (at.m00() * at.m00() + at.m01() * at.m01() + at.m02() * at.m02()));
+		out.submitCustomGeometry(ps, type(tex), (pose, vc) -> {
+			float[] p = m.pos, n = m.nrm, uv = m.uv;
+			Matrix4f mp = pose.pose();
+			org.joml.Matrix3f mn = pose.normal();
+			int overlay = net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY;
+			var v = new Vector3f();
+			var w = new Vector3f();
+			for (int i = 0; i < m.count; i++) {
+				mp.transformPosition(v.set(p[i * 3], p[i * 3 + 1], p[i * 3 + 2]));
+				mn.transform(w.set(n[i * 3], n[i * 3 + 1], n[i * 3 + 2])).normalize();
+				// one call per vertex: BufferBuilder writes the whole vertex at once
+				vc.addVertex(v.x, v.y, v.z, argb, uv[i * 2], uv[i * 2 + 1], overlay, light, w.x, w.y, w.z);
+			}
 		});
+	}
+
+	/** This mesh or a coarser Roblox LOD for a squared distance in studs: LOD 1 past 24 studs (9 blocks), the coarsest past 48. */
+	MeshDraw lod(float d2) {
+		if (lods.length == 0 || d2 < 24 * 24) return this;
+		return d2 < 48 * 48 ? lods[0] : lods[lods.length - 1];
 	}
 
 	/** Own texture, uploaded on first use (render thread). White if the asset had none. */
