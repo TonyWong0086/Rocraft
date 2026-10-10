@@ -35,7 +35,8 @@ public final class RobloxProfile {
 	public final java.util.List<Emote> emotes = new java.util.ArrayList<>();
 
 	/** Users drawn in one of their saved outfits instead of what they wear now: username -> outfit id. */
-	public static final java.util.Map<String, Long> OUTFITS = java.util.Map.of("Shedletsky", 34915L); // Classic Telamon
+	public static final java.util.Map<String, Long> OUTFITS = java.util.Map.of("Shedletsky", 34915L, // Classic Telamon
+		"builderman", 24477597L, "MyUsernamesThis", 115138494L, "Sk3tchyt", 3019838209L); // "2015", "uniqueee boi", "new reg"
 	/**
 	 * Users drawn in a fixed look that isn't a saved outfit: the same JSON the avatar endpoint returns (asset ids and
 	 * types, body colours), taken from the avatar model in Studio. The assets themselves still load from Roblox.

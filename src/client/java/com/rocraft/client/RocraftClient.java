@@ -103,7 +103,7 @@ public class RocraftClient implements ClientModInitializer {
 
 	static void reloadProfile() {
 		var c = RocraftConfig.INSTANCE;
-		String u = c.username, k = c.apiKey, rig = c.avatarType;
+		String u = c.username, k = c.apiKey, rig = "R15".equals(c.avatarType) ? "R15" : "R6";
 		loading = true;
 		Thread.startVirtualThread(() -> { profile = RobloxProfile.load(u, k, rig); loading = false; });
 	}

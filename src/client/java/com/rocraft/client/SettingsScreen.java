@@ -128,6 +128,7 @@ public final class SettingsScreen extends Screen {
 				y += ROW;
 				RbxFont.draw(g, "Your key stays in config/rocraft.json on this PC.", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
 				y += 44;
+				y = toggle(g, y, rw, "Avatar Type", () -> c.avatarType.equals("R15"), v -> { c.avatarType = v ? "R15" : "R6"; RocraftClient.reloadProfile(); }, "R15", "R6");
 				// setup help: Roblox's assets aren't shipped, they come from the install and the user's own key
 				boolean installed = RobloxAssets.CONTENT != null;
 				y = para(g, installed ? "Roblox install found." : "Roblox isn't installed: install it from roblox.com/download and restart.",
@@ -155,11 +156,6 @@ public final class SettingsScreen extends Screen {
 				y = toggle(g, y, "Roblox Movement", () -> c.robloxMovement, v -> c.robloxMovement = v, "On", "Off");
 				y = toggle(g, y, "Fall Damage", () -> c.fallDamage, v -> c.fallDamage = v, "On", "Off");
 				y = toggle(g, y, "Hunger", () -> c.hunger, v -> c.hunger = v, "On", "Off");
-				// Account / R6 / R15, cycled; Account shows what the Roblox account uses
-				y = toggle(g, y, "Avatar Type", () -> false, v -> {
-					c.avatarType = switch (c.avatarType) { case "Account" -> "R6"; case "R6" -> "R15"; default -> "Account"; };
-					RocraftClient.reloadProfile();
-				}, "", c.avatarType.equals("Account") ? "Account (" + (RocraftClient.profile.r15 != null ? "R15" : "R6") + ")" : c.avatarType);
 				RbxFont.draw(g, "Roblox movement: WalkSpeed 16, JumpPower 50, gravity 196.2", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
 			}
 			default -> {
@@ -211,7 +207,12 @@ public final class SettingsScreen extends Screen {
 
 	/** "Label      <  value  >" selector row; clicking anywhere on the selector flips it. */
 	private int toggle(GuiGraphicsExtractor g, int y, String name, BooleanSupplier get, Consumer<Boolean> set, String on, String off) {
-		int hx = hubX(), hw = hubW();
+		return toggle(g, y, hubW(), name, get, set, on, off);
+	}
+
+	/** Same, w wide (the account page leaves room for the avatar picture). */
+	private int toggle(GuiGraphicsExtractor g, int y, int hw, String name, BooleanSupplier get, Consumer<Boolean> set, String on, String off) {
+		int hx = hubX();
 		label(g, hx, y, hw, name);
 		int ax = hx + hw - 300, aw = 280;
 		boolean hover = in(ax - 10, y, aw + 20, ROW);

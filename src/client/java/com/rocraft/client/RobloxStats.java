@@ -94,7 +94,7 @@ public final class RobloxStats {
 		row(L, "Moving entities", String.valueOf(moving));
 		row(L, "Parts", parts + " (" + loose + " unanchored)");
 		row(L, "Debris", String.valueOf(debris));
-		row(L, "Chunks", level.getChunkSource().getLoadedChunksCount() + " loaded, " + mc.levelRenderer.visibleSections().size() + " sections drawn");
+		row(L, "Chunks", level.getChunkSource().getLoadedChunksCount() + " loaded, " + (Perf.SODIUM ? "drawn by Sodium" : mc.levelRenderer.visibleSections().size() + " sections drawn"));
 		var pos = p.blockPosition();
 		row(L, "Position", String.format("%.1f %.1f %.1f", p.getX(), p.getY(), p.getZ()));
 		row(L, "Facing", p.getDirection().getName() + " (" + f1(net.minecraft.util.Mth.wrapDegrees(p.getYRot())) + " / " + f1(p.getXRot()) + ")");
@@ -157,7 +157,8 @@ public final class RobloxStats {
 		row(R, "Alloc", f1(FrameStats.allocMBs) + " MB/s (render thread)");
 		row(R, "GC", FrameStats.gcCount + " runs, " + FrameStats.gcTotalMs + " ms total");
 		var sec = mc.levelRenderer.sectionRenderDispatcher();
-		if (sec != null) row(R, "Chunk builds", sec.getCompileQueueSize() + " queued, " + sec.getFreeBufferCount() + " free buffers");
+		if (Perf.SODIUM) row(R, "Chunk builds", "by Sodium");
+		else if (sec != null) row(R, "Chunk builds", sec.getCompileQueueSize() + " queued, " + sec.getFreeBufferCount() + " free buffers");
 		left = L;
 		right = R;
 	}

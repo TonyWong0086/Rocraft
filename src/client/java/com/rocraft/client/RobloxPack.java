@@ -152,9 +152,14 @@ final class RobloxPack {
 
 	/** Official 150x150 full-body thumbnail of a saved outfit (public endpoint, no key). */
 	static BufferedImage outfitThumbnail(long outfitId) throws Exception {
-		var t = RobloxProfile.send(HttpRequest.newBuilder(URI.create(
-			"https://thumbnails.roblox.com/v1/users/outfits?userOutfitIds=" + outfitId + "&size=150x150&format=Png"))
-			.timeout(Duration.ofSeconds(10)).build()).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+		com.google.gson.JsonObject t = null;
+		for (int tries = 0; tries < 5; tries++) { // an outfit nobody asked for lately is rendered on demand: "Pending" with no image yet
+			t = RobloxProfile.send(HttpRequest.newBuilder(URI.create(
+				"https://thumbnails.roblox.com/v1/users/outfits?userOutfitIds=" + outfitId + "&size=150x150&format=Png"))
+				.timeout(Duration.ofSeconds(10)).build()).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+			if (t.has("imageUrl") && !t.get("imageUrl").isJsonNull() && !t.get("imageUrl").getAsString().isBlank()) break;
+			Thread.sleep(2000);
+		}
 		byte[] png = RobloxApi.HTTP.send(HttpRequest.newBuilder(URI.create(t.get("imageUrl").getAsString())).timeout(Duration.ofSeconds(10)).build(),
 			HttpResponse.BodyHandlers.ofByteArray()).body();
 		return ImageIO.read(new ByteArrayInputStream(png));

@@ -31,6 +31,8 @@ import net.minecraft.world.phys.Vec3;
 public final class Perf {
 	/** The mod that already does each job, or null if Rocraft does it. */
 	static final String CULLING_BY = firstLoaded("entityculling", "sodium"), FPS_BY = firstLoaded("dynamic_fps");
+	/** Sodium draws the chunks itself: vanilla's section lists and compile queue stay empty. */
+	static final boolean SODIUM = firstLoaded("sodium") != null;
 	static final int UNFOCUSED_FPS = 30, RECHECK_TICKS = 4, MAX_DIST = 96;
 	/** entity id, or ~block pos for block entities -> {tick last checked, 1 visible / 0 hidden} */
 	private static final Map<Long, int[]> SEEN = new HashMap<>();

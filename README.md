@@ -22,7 +22,7 @@
 - **Accessories** (hats, hair and so on) and your **face** are loaded from Roblox, not the default smile. Dynamic heads are supported too. Layered clothing (3D jackets, shirts, shoes) is left off, as Roblox does on R6 characters.
 - **Roblox R6 animations** (idle, walk, jump, fall, climb, sit, tool hold, sword slash and lunge) are read from Roblox's own animation files and crossfaded the way Roblox's Animate script does.
 - **The 2017 Guest:** with no username set you play as the Guest (R cap, ROBLOX Jacket, Black Jeans). Other players always appear as the Guest, since Rocraft can't know their Roblox accounts.
-- **R15 avatars:** if your account uses R15 (or you pick R15 under Settings > Gameplay > Avatar Type), you get the R15 body. It is built the way Roblox builds it: the default rig from your install, with your body packages' R15 parts and joint positions swapped in. Clothing is laid onto the R15 parts with Roblox's own compositing meshes. R15 uses Roblox's 2018 R15 Animate animations. Avatar scaling (height, width, proportions) and animation packs aren't applied yet.
+- **R15 avatars:** pick R15 under **Avatar Type** on the Settings avatar page (where you enter your username and Open Cloud key; R6 is the default) and you get the R15 body. Robloxian mobs use whatever their Roblox avatar or outfit uses. It is built the way Roblox builds it: the default rig from your install, with your body packages' R15 parts and joint positions swapped in. Clothing is laid onto the R15 parts with Roblox's own compositing meshes. R15 uses Roblox's 2018 R15 Animate animations. Avatar scaling (height, width, proportions) and animation packs aren't applied yet.
 - **Emote wheel:** press **.** or click the emotes button on the top bar. It is Roblox's wheel, using the textures from your install, with your account's equipped emotes in their slots and their catalog thumbnails. Click a slot or press 1-8 to play an emote; **.** or Esc closes the wheel. With nothing equipped it offers the classic emotes. As on Roblox, emotes need an R15 avatar. Newer emotes (CurveAnimation) are supported.
 - **Chat emotes:** `/e dance`, `/e wave`, `/e laugh`, `/e cheer`, `/e point` (R6 or R15 versions). Moving cancels them, as in Roblox.
 - **Flying** (creative) works like HD Admin / Adonis fly: no animation, and the body faces wherever the camera looks, pitch included.
@@ -66,7 +66,8 @@ Everything is in the **Rocraft creative-inventory tab**. Each item is the real R
 **Hats:** Dominus Aureus, Dominus Rex, Doge, LOLHOO and Mr. Tentacles. Click one to put it in your helmet slot; it sits on your head exactly where Roblox puts it.
 
 ### Robloxian mobs
-Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam, DenisDaily, Linkmon99, PGHLego1945 and TonyWong_0086 roam the Overworld (rarely) wearing their **real Roblox avatars**, each with a spawn egg in the Rocraft tab.
+Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam, DenisDaily, Linkmon99, PGHLego1945, TonyWong_0086, MyUsernamesThis and Sk3tchyt roam the Overworld (rarely) wearing their **real Roblox avatars**, each with a spawn egg in the Rocraft tab.
+- Some wear a chosen saved outfit instead of their current avatar: Shedletsky (Classic Telamon), builderman ("2015", R6), MyUsernamesThis ("uniqueee boi", R15) and Sk3tchyt ("new reg", R15). DenisDaily wears a fixed look.
 - Peaceful and empty-handed, like a Roblox NPC: they wander, look at you, and run if you hit them.
 - 100 health, walk speed 16, their name and health bar overhead, and the same Roblox footstep, jump and landing sounds as you.
 - Knocked out, they "oof" and **fall apart** like a Roblox character: head, torso and limbs drop and topple as separate pieces, cleared away after 5 s.
@@ -194,7 +195,7 @@ Extra Gradle tasks for checking things without starting Minecraft:
 |---|---|---|
 | `username` | | Your Roblox username |
 | `apiKey` | | Your Open Cloud key (private) |
-| `avatarType` | Account | Your avatar's rig: `Account` (as on Roblox), `R6` or `R15` |
+| `avatarType` | R6 | Your avatar's rig: `R6` or `R15` |
 | `robloxMovement` | on | Roblox speed, jump and gravity |
 | `fallDamage` | off | Minecraft fall damage |
 | `hunger` | off | Minecraft hunger |
@@ -205,6 +206,25 @@ Extra Gradle tasks for checking things without starting Minecraft:
 All of these can be changed in the in-game **Settings** menu.
 
 ---
+
+## Performance mods
+Rocraft has its own light optimizations (entity culling, unfocused FPS limit, adaptive particles and animation). When a mod that does the same job is installed, Rocraft leaves that job to it (the F3 panel shows "by <mod>").
+
+Tested together with Rocraft (Minecraft 26.2, Fabric API 0.161.0). No mixin failures, and the avatar, HUD, chat, F3 panels, emote wheel and settings all render normally.
+
+| Mod | Version tested | Works with Rocraft? | Notes |
+|---|---|---|---|
+| Sodium | 0.9.2 | Yes | Sodium draws the chunks itself, so the F3 panel shows chunks and chunk builds as "by Sodium". |
+| Sodium Extra | 0.9.4 | Yes | If you turn particles off in its settings, Roblox explosion and sparkle effects go too. |
+| Lithium | 0.25.3 | Yes | Roblox movement, gear physics and falling parts behave the same. |
+| FerriteCore | 9.0.0 | Yes | Memory only. |
+| ImmediatelyFast | 1.16.5 | Yes | The 2018 HUD, Roblox fonts and menus draw correctly. |
+| EntityCulling | 1.11.3 | Yes | Rocraft hands its entity culling over to it. |
+| MoreCulling | 1.8.1 | Yes | Needs Cloth Config. |
+| BadOptimizations | 2.4.1 | Yes | |
+| Cloth Config | 26.2.155 | Yes | Library for MoreCulling. |
+
+None of them conflict with Rocraft. Mods that Rocraft also detects and works alongside: C2ME, ModernFix, Dynamic FPS (takes over the unfocused FPS limit), Iris, Krypton, Noisium, VMP. Those haven't been tested in game yet.
 
 ## Known issues
 - Command suggestions (the popup when you type `/`) don't show while the 2018 chat is on.
