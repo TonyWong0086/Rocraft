@@ -161,6 +161,11 @@ public final class SettingsScreen extends Screen {
 				y = toggle(g, y, "2018 Interface", () -> c.hud2018, v -> c.hud2018 = v, "On", "Off");
 				y = toggle(g, y, "Roblox Font", () -> c.robloxFont, v -> c.robloxFont = v, "On", "Off");
 				y = toggle(g, y, "Camera Mode", () -> c.robloxCamera, v -> c.robloxCamera = v, "Classic", "Minecraft");
+				// optimisations another installed mod already does are left to it
+				y = toggle(g, y, "Hide Unseen Entities", () -> c.entityCulling, v -> c.entityCulling = v,
+					Perf.CULLING_BY == null ? "On" : "By " + Perf.CULLING_BY, Perf.CULLING_BY == null ? "Off" : "By " + Perf.CULLING_BY);
+				y = toggle(g, y, "Unfocused FPS Limit", () -> c.unfocusedFps, v -> c.unfocusedFps = v,
+					Perf.FPS_BY == null ? Perf.UNFOCUSED_FPS + " FPS" : "By " + Perf.FPS_BY, Perf.FPS_BY == null ? "Off" : "By " + Perf.FPS_BY);
 				RbxFont.draw(g, "Icons, font and cursor load from your Roblox install.", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
 			}
 		}

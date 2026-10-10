@@ -12,7 +12,8 @@ import net.minecraft.client.gui.screens.ChatScreen;
 /**
  * The 2018 Roblox chat window (Lua chat defaults): top-left under the top bar, 30% x 25% of the screen,
  * "[Name]: message" in SourceSansBold 18 with a light text stroke, names coloured by Roblox's name-colour hash,
- * text fading 30 s after it arrives, and the chat bar while typing. Drawn in screen pixels by Hud2018.
+ * lines filling the window from the top, text fading 30 s after it arrives, the channel welcome message on joining,
+ * and the chat bar while typing. Drawn in screen pixels by Hud2018.
  */
 final class RobloxChat {
 	static final int TEXT = 18, BAR_H = 44, PAD = 8;
@@ -34,6 +35,9 @@ final class RobloxChat {
 
 	private static int seenTick;
 
+	/** The "All" channel's WelcomeMessage, shown to everyone joining (ChatService). */
+	static final String WELCOME = "Chat '/?' or '/help' for a list of chat commands.";
+
 	/** Messages that arrived since the chat bar was last open (the top bar's MessageCounter). */
 	static int unread(Minecraft mc) {
 		var hud = mc.gui.hud;
@@ -49,26 +53,24 @@ final class RobloxChat {
 		int bottom = y0 + h - (open ? BAR_H : 0);
 		if (open) g.fill(x0, y0, x0 + w, y0 + h, 0x66000000); // BackgroundTransparency 0.6
 
-		// wrap messages into lines, newest at the bottom
+		// Roblox fills the window from the top: oldest visible line first, and once it's full the oldest scroll off
 		var hud = mc.gui.hud;
-		int now = hud.getGuiTicks();
-		var all = ((ChatComponentAccessor) hud.getChat()).rocraft$allMessages(); // newest first
-		int y = bottom - PAD;
-		for (var msg : all) {
+		int now = hud.getGuiTicks(), step = TEXT + 2, fit = Math.max(1, (bottom - y0 - 2 * PAD) / step);
+		var shown = new ArrayList<Line>();
+		var alphas = new ArrayList<Integer>();
+		for (var msg : ((ChatComponentAccessor) hud.getChat()).rocraft$allMessages()) { // newest first
+			if (shown.size() >= fit) break;
 			int age = now - msg.addedTime();
 			float alpha = open ? 1 : age < 600 ? 1 : Math.max(0, 1 - (age - 600) / 20f); // ChatWindowTextFadeOutTime 30
-			if (alpha <= 0) { if (!open) break; else continue; }
+			if (alpha <= 0) { if (open) continue; break; }
 			var lines = layout(msg.content().getString(), w - 2 * PAD);
-			for (int i = lines.size() - 1; i >= 0; i--) {
-				y -= TEXT + 2;
-				if (y < y0 + 4) return;
-				var l = lines.get(i);
-				int a = (int) (alpha * 255) << 24;
-				int x = x0 + PAD;
-				if (l.name != null) { stroke(g, l.name, x, y, a | l.nameColor); x += RbxFont.width(l.name, TEXT, false); }
-				stroke(g, l.text, x, y, a | 0xFFFFFF);
-			}
-			if (open) continue;
+			for (int i = lines.size() - 1; i >= 0 && shown.size() < fit; i--) { shown.add(lines.get(i)); alphas.add((int) (alpha * 255) << 24); }
+		}
+		for (int k = shown.size() - 1, y = y0 + PAD; k >= 0; k--, y += step) {
+			var l = shown.get(k);
+			int a = alphas.get(k), x = x0 + PAD;
+			if (l.name != null) { stroke(g, l.name, x, y, a | l.nameColor); x += RbxFont.width(l.name, TEXT, false); }
+			stroke(g, l.text, x, y, a | 0xFFFFFF);
 		}
 		if (open) bar(g, mc, x0, y0 + h - BAR_H, w);
 	}

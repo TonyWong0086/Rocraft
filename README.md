@@ -92,9 +92,16 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 - **Leaderstats** (Level, KOs, Wipeouts) appear in the top bar, each with its heading above its value.
 - A **Backpack-style hotbar**: click a slot or press its number to equip it, and again to unequip. No player list.
 - The backpack icon turns blue while your inventory is open, and the chat icon shows a count of unread messages.
-- **2018 chat:** `[Name]: message` in SourceSans, names colored by Roblox's own name-color algorithm, messages fading after 30 seconds, and the classic hint `To chat click here or press "/" key`.
+- **2018 chat:** fills from the top like Roblox's, opening with `Chat '/?' or '/help' for a list of chat commands.`. `[Name]: message` in SourceSans, names colored by Roblox's own name-color algorithm, messages fading after 30 seconds, and the classic hint `To chat click here or press "/" key`. `/?` and `/help` list the chat commands; `/help <command>` still explains a Minecraft command.
 - **Roblox notifications** (the dark bottom-right cards) replace Minecraft's "Advancement Made!" and "New Recipes Unlocked!" toasts.
 - **Settings menu:** open it with the **Rocraft** button next to Friends on the title screen. It looks like the 2018 Roblox settings menu, with **Avatar**, **Gameplay** and **Graphics** tabs.
+
+### Performance
+Two common optimisation-mod features are built in, each in the settings menu's Graphics tab:
+- **Hide Unseen Entities** (like EntityCulling): mobs and players behind solid blocks aren't drawn. Roblox avatars are many meshes each, so this saves more than it would in vanilla.
+- **Unfocused FPS Limit** (like Dynamic FPS): 30 FPS while the game window isn't focused.
+
+If a mod that already does the job is installed, Rocraft leaves it to that mod and the setting shows "By <mod>": EntityCulling or Sodium for the first, Dynamic FPS for the second.
 
 ### Sounds and particles
 - **Character sounds** from your install (RbxCharacterSounds): footsteps, jump, landing, falling wind, climbing, swimming and splash, replacing Minecraft's.

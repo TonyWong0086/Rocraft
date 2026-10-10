@@ -43,9 +43,20 @@ public class RocraftClient implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.PART, PartRenderer::new);
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.HOVERBOARD_ENTITY, HoverboardRenderer::new);
 		for (var type : com.rocraft.tools.Robloxian.TYPES.keySet()) net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(type, RobloxianRenderer::new);
+		// joining: the chat opens with the "All" channel's welcome message, as in Roblox
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, mc) -> mc.execute(() -> {
+			if (RocraftConfig.INSTANCE.hud2018) mc.gui.hud.getChat().addClientSystemMessage(Component.literal(RobloxChat.WELCOME));
+		}));
 		// classic chat emotes: "/e dance", "/e wave", "/e laugh", "/e cheer", "/e point" play on your character
 		net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
 			var mc = net.minecraft.client.Minecraft.getInstance();
+			if ((command.equals("?") || command.equals("help")) && RocraftConfig.INSTANCE.hud2018) { // Roblox's /? and /help
+				var chat = mc.gui.hud.getChat();
+				for (String line : new String[]{"These are the basic chat commands.", "/e <emote> : play an emote: dance, wave, laugh, cheer or point.",
+						"Minecraft commands work too: /help <command> explains one."})
+					chat.addClientSystemMessage(Component.literal(line));
+				return false;
+			}
 			if (!command.startsWith("e ") || mc.player == null) return true;
 			if (!Animator.of(mc.player.getId()).emote(command.substring(2).trim().toLowerCase(java.util.Locale.ROOT)))
 				mc.gui.hud.getChat().addClientSystemMessage(Component.literal("Unknown emote. Try /e dance, /e wave, /e laugh, /e cheer or /e point."));
