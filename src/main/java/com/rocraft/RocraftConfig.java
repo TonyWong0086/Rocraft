@@ -10,6 +10,7 @@ import net.fabricmc.loader.api.FabricLoader;
 public final class RocraftConfig {
 	public String username = "", apiKey = "";
 	public boolean robloxMovement = true, fallDamage = false, hunger = false; // gameplay
+	public String avatarType = "Account";                                     // your avatar: Account (as on Roblox), R6 or R15
 	public boolean hud2018 = true, robloxFont = true, robloxCamera = true;     // graphics
 	public boolean entityCulling = true, unfocusedFps = true, adaptivePerf = true, stableFps = false;                    // performance (Perf)
 

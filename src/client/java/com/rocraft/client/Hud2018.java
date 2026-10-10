@@ -48,6 +48,16 @@ final class Hud2018 {
 
 	private static void send(int slot) { net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new com.rocraft.tools.Holster(slot)); }
 
+	static final int EMOTES_X = 146;
+
+	/** Is a screen-pixel point on the top bar's emotes button? */
+	static boolean onEmotes(double x, double y) { return x >= EMOTES_X - 4 && x < EMOTES_X + 29 && y < TOP; }
+
+	private static Identifier emotesIcon() {
+		Identifier t = RobloxAssets.tex(UI + "Emotes/EmotesIcon.png");
+		return t != null ? t : BombRenderer.BALL.texture();
+	}
+
 	/** Hotbar slot under a screen-pixel point, or -1. */
 	static int slotAt(double x, double y) {
 		for (int[] s : SLOTS) if (x >= s[0] && x < s[0] + SLOT && y >= s[1] && y < s[1] + SLOT) return s[2];
@@ -83,6 +93,9 @@ final class Hud2018 {
 		}
 		boolean invOpen = mc.gui.screen() instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>;
 		icon(g, invOpen ? "Backpack/Backpack_Down.png" : "Backpack/Backpack.png", 106, 4, 22, 28); // blue while the backpack is open
+		// emotes button (opens the emote wheel, as "." does); dimmed while the wheel is open
+		g.blit(RenderPipelines.GUI_TEXTURED, emotesIcon(), EMOTES_X, 4, 0, 0, 25, 28, 25, 28, 25, 28,
+			mc.gui.screen() instanceof EmoteWheel ? 0xFF808080 : 0xFFFFFFFF);
 		// right side, as the 2018 top bar: [name / "Account: 13+" (health bar when hurt)] [stat columns: name over value]
 		var prof = RocraftClient.profile;
 		String[][] stats = leaderstats(mc);

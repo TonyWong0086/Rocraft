@@ -159,7 +159,7 @@ public final class RbxModel {
 		String name = string(c);
 		int type = c.get() & 0xFF, n = insts.size();
 		switch (type) {
-			case 0x01 -> { for (Inst i : insts) i.props.put(name, string(c)); }
+			case 0x01 -> { for (Inst i : insts) i.props.put(name, name.equals("ValuesAndTimes") ? bytes(c) : string(c)); } // FloatCurve keys are binary
 			case 0x02 -> { for (Inst i : insts) i.props.put(name, c.get() != 0); }
 			case 0x04 -> { float[] f = floats(c, n); for (int k = 0; k < n; k++) insts.get(k).props.put(name, f[k]); }
 			case 0x0E -> {
@@ -210,6 +210,12 @@ public final class RbxModel {
 		float[] a = new float[3];
 		a[i % 3] = s;
 		return a;
+	}
+
+	private static byte[] bytes(ByteBuffer c) {
+		byte[] b = new byte[c.getInt()];
+		c.get(b);
+		return b;
 	}
 
 	private static String string(ByteBuffer c) {

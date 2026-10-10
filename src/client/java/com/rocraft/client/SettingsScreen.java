@@ -155,6 +155,11 @@ public final class SettingsScreen extends Screen {
 				y = toggle(g, y, "Roblox Movement", () -> c.robloxMovement, v -> c.robloxMovement = v, "On", "Off");
 				y = toggle(g, y, "Fall Damage", () -> c.fallDamage, v -> c.fallDamage = v, "On", "Off");
 				y = toggle(g, y, "Hunger", () -> c.hunger, v -> c.hunger = v, "On", "Off");
+				// Account / R6 / R15, cycled; Account shows what the Roblox account uses
+				y = toggle(g, y, "Avatar Type", () -> false, v -> {
+					c.avatarType = switch (c.avatarType) { case "Account" -> "R6"; case "R6" -> "R15"; default -> "Account"; };
+					RocraftClient.reloadProfile();
+				}, "", c.avatarType.equals("Account") ? "Account (" + (RocraftClient.profile.r15 != null ? "R15" : "R6") + ")" : c.avatarType);
 				RbxFont.draw(g, "Roblox movement: WalkSpeed 16, JumpPower 50, gravity 196.2", hx + 20, y + 14, 18, false, 0xFF8C8C8C);
 			}
 			default -> {

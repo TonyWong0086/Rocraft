@@ -35,8 +35,10 @@ final class Rig {
 		Map.entry("LeftGripAttachment", new Attach(LEFT_ARM, 0, -1, 0)), Map.entry("RightGripAttachment", new Attach(RIGHT_ARM, 0, -1, 0)),
 		Map.entry("LeftFootAttachment", new Attach(5, 0, -1, 0)), Map.entry("RightFootAttachment", new Attach(4, 0, -1, 0)));
 
-	/** Something drawn on one body part. */
-	record Piece(int part, MeshDraw draw) {}
+	/** Something drawn on one body part; att = the character attachment it sits on (R15 bodies place it by that), if any. */
+	record Piece(int part, MeshDraw draw, String att) {
+		Piece(int part, MeshDraw draw) { this(part, draw, null); }
+	}
 
 	private static MeshDraw[] body;
 	/** Held gear on the right arm (grip applied), and the bare Handle mesh (for dropped/thrown copies like the Time Bomb). */
@@ -119,7 +121,7 @@ final class Rig {
 		Matrix4f place = at != null
 			? new Matrix4f().translate(at.x(), at.y(), at.z()).mul(cframe(att.cframe("CFrame")).invert())
 			: new Matrix4f().translate(0, 0.5f, 0).mul(cframe(acc.cframe("AttachmentPoint")).invert());
-		return new Piece(at != null ? at.part() : HEAD, handleMesh(handle, place));
+		return new Piece(at != null ? at.part() : HEAD, handleMesh(handle, place), at != null ? att.name() : null);
 	}
 
 	/** Grip CFrame from Tool.GripPos/Forward/Right/Up (columns Right, Up, Right x Up; LookVector = GripForward). */

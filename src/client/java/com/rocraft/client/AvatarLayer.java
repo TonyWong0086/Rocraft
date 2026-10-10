@@ -48,27 +48,47 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		boolean gear = !held.isEmpty() && BuiltInRegistries.ITEM.getKey(held.getItem()).getNamespace().equals(Rocraft.MOD_ID);
 		boolean lunging = e instanceof Player && me && System.currentTimeMillis() - Tools.clientLungeAt < 400;
 		boolean flying = e instanceof Player pl && pl.getAbilities().flying;
-		Matrix4f[] pose = Animator.of(e == null ? -1 : id).pose(e, gear, held.is(Tools.LINKED_SWORD) && (attackTime > 0 || lunging), lunging, flying);
-		pose = Ragdoll.pose(e, id, pose); // dead: the parts fall apart
+		R15Body r15 = prof.r15;
+		Matrix4f[] pose = Animator.of(e == null ? -1 : id).pose(e, gear, held.is(Tools.LINKED_SWORD) && (attackTime > 0 || lunging), lunging, flying, r15);
+		Matrix4f[] parts15 = null;
+		if (r15 != null) {
+			// R15: R6 stand-ins carry the ragdoll (it falls as six pieces) and anything placed on an R6 part
+			parts15 = pose;
+			float drop = 3 - r15.rootToFeet; // the ragdoll's floor is 3 studs under the root, R6's hip height
+			var r6 = com.rocraft.rbx.R15.toR6(pose);
+			for (var m : r6) m.translateLocal(0, -drop, 0);
+			var fallen = Ragdoll.pose(e, id, r6);
+			if (fallen != r6) {
+				for (var m : fallen) m.translateLocal(0, drop, 0);
+				parts15 = com.rocraft.rbx.R15.fromR6(fallen, r15.c0, r15.c1);
+			}
+			pose = com.rocraft.rbx.R15.toR6(parts15);
+		} else pose = Ragdoll.pose(e, id, pose); // dead: the parts fall apart
 
 		ps.pushPose();
-		ps.translate(0, 6 / 16f, 0); // HumanoidRootPart centre = torso centre, 6 units below the neck
+		// HumanoidRootPart centre: R6 = torso centre, 6 units below the neck (3 studs up); R15 rides rootToFeet up
+		ps.translate(0, r15 != null ? 1.5f - r15.rootToFeet * S : 6 / 16f, 0);
 		ps.scale(-S, -S, S);         // Roblox (x, y, z) -> model (-x, -y, z), studs -> blocks
 		if (flying) ps.mulPose(new Quaternionf().rotateX((float) Math.toRadians(-pitch))); // admin fly: BodyGyro.CFrame = camera, pitch too
 		var body = Rig.body();
 		if (body != null) {
 			Identifier skin = AvatarSkin.textureId(prof);
-			for (int i = 0; i < 6; i++)
-				if (i == 0 && prof.head != null) draw(ps, out, light, pose[0], prof.head, prof.head.texture());
-				else draw(ps, out, light, pose[i], prof.bodyParts[i] != null ? prof.bodyParts[i] : body[i], skin);
+			if (prof.head != null) draw(ps, out, light, pose[0], prof.head, prof.head.texture());
+			else draw(ps, out, light, pose[0], body[0], skin);
+			if (r15 != null) { for (int i = 1; i < 15; i++) if (r15.parts[i] != null) draw(ps, out, light, parts15[i], r15.parts[i], r15.parts[i].texture()); }
+			else for (int i = 1; i < 6; i++) draw(ps, out, light, pose[i], prof.bodyParts[i] != null ? prof.bodyParts[i] : body[i], skin);
 		}
-		for (var p : prof.accessories) draw(ps, out, light, pose[p.part()], p.draw(), p.draw().texture());
+		for (var p : prof.accessories) draw(ps, out, light, placed(p, pose, parts15, r15), p.draw(), p.draw().texture());
 		var hat = Rig.HATS.get(helmet.getItem()); // a Roblox hat in the helmet slot
-		if (hat != null) draw(ps, out, light, pose[hat.part()], hat.draw(), hat.draw().texture());
+		if (hat != null) draw(ps, out, light, placed(hat, pose, parts15, r15), hat.draw(), hat.draw().texture());
+		if (r15 != null) { // held things go in the hands: R6 arm matrices standing at each hand's grip
+			pose[Rig.RIGHT_ARM] = grip(parts15, r15, "RightGripAttachment", com.rocraft.rbx.R15.RIGHT_HAND);
+			pose[Rig.LEFT_ARM] = grip(parts15, r15, "LeftGripAttachment", com.rocraft.rbx.R15.LEFT_HAND);
+		}
 		var g = Rig.gear(held);
 		if (me && e instanceof Player && held.getItem() == Tools.clientUseItem && System.currentTimeMillis() < Tools.clientUseUntil && Rig.GEAR_ALT.containsKey(held.getItem()))
 			g = Rig.GEAR_ALT.get(held.getItem());
-		if (held.is(Tools.GREEN_BALLOON) && !(e != null && e.isDeadOrDying())) {
+		if (held.is(Tools.GREEN_BALLOON) && !(e != null && e.isDeadOrDying()) && r15 == null) {
 			int st = com.rocraft.tools.Balloon.state(held);
 			if (st != 1 && Rig.VARIANTS.containsKey("green_balloon/" + st)) g = Rig.VARIANTS.get("green_balloon/" + st);
 			// WeldArm: the right arm welded straight up holding the string, the left hanging at the side
@@ -78,7 +98,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		if (g != null) draw(ps, out, light, pose[g.part()], g.draw(), g.draw().texture());
 		else if (body != null && rightState != null) heldItem(ps, out, light, pose[Rig.RIGHT_ARM], rightState, 1, outline);
 		if (body != null && leftState != null) heldItem(ps, out, light, pose[Rig.LEFT_ARM], leftState, -1, outline);
-		Vector3f above = ps.last().pose().transformPosition(new Vector3f(0, 3.1f, 0)); // just over the head, in camera space
+		Vector3f above = ps.last().pose().transformPosition(new Vector3f(0, (r15 != null ? r15.headY : 1.5f) + 1.6f, 0)); // just over the head, in camera space
 		ps.popPose();
 		return above;
 	}
@@ -189,6 +209,23 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 
 	private static void quad(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, int argb, float... p) {
 		for (int i = 0; i < 4; i++) vc.addVertex(pose, p[i * 2], p[i * 2 + 1], 0).setColor(argb).setUv(0.5f, 0.5f).setLight(0xF000F0);
+	}
+
+	/**
+	 * Where a piece made for R6 goes: on R15 at its attachment, moved by how far that attachment sits from where R6
+	 * has it; otherwise on its R6 part (or that part's R15 stand-in).
+	 */
+	private static Matrix4f placed(Rig.Piece p, Matrix4f[] r6, Matrix4f[] parts15, R15Body r15) {
+		if (r15 == null || p.att() == null || !r15.attach.containsKey(p.att()) || !Rig.ATTACH.containsKey(p.att())) return r6[p.part()];
+		float[] a = r15.attach.get(p.att());
+		var r6at = Rig.ATTACH.get(p.att());
+		return new Matrix4f(parts15[(int) a[0]]).translate(a[1] - r6at.x(), a[2] - r6at.y(), a[3] - r6at.z());
+	}
+
+	/** An R6 arm matrix whose grip (0, -1, 0) lands on the R15 hand's grip attachment. */
+	private static Matrix4f grip(Matrix4f[] parts15, R15Body r15, String att, int hand) {
+		float[] a = r15.attach.getOrDefault(att, new float[]{hand, 0, -0.15f, 0});
+		return new Matrix4f(parts15[(int) a[0]]).translate(a[1], a[2] + 1, a[3]);
 	}
 
 	private static void draw(PoseStack ps, SubmitNodeCollector out, int light, Matrix4f part, MeshDraw d, Identifier tex) {

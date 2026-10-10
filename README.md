@@ -1,6 +1,6 @@
 # Rocraft
 
-**2018-era Roblox inside Minecraft 26.2 (Fabric).** Your real Roblox avatar, Roblox's R6 animations, the classic Roblox gear, the Roblox camera and mouse, the 2018 top bar, chat and settings menu, and Roblox movement physics, all inside a normal Minecraft world.
+**2018-era Roblox inside Minecraft 26.2 (Fabric).** Your real Roblox avatar (R6 or R15), Roblox's animations and emotes, the classic Roblox gear, the Roblox camera and mouse, the 2018 top bar, chat and settings menu, and Roblox movement physics, all inside a normal Minecraft world.
 
 > **This mod is vibecoded.** It was built almost entirely by AI (Claude Code) from prompts, with the user testing in game. Expect rough edges.
 >
@@ -22,7 +22,9 @@
 - **Accessories** (hats, hair and so on) and your **face** are loaded from Roblox, not the default smile. Dynamic heads are supported too. Layered clothing (3D jackets, shirts, shoes) is left off, as Roblox does on R6 characters.
 - **Roblox R6 animations** (idle, walk, jump, fall, climb, sit, tool hold, sword slash and lunge) are read from Roblox's own animation files and crossfaded the way Roblox's Animate script does.
 - **The 2017 Guest:** with no username set you play as the Guest (R cap, ROBLOX Jacket, Black Jeans). Other players always appear as the Guest, since Rocraft can't know their Roblox accounts.
-- **Chat emotes:** `/e dance`, `/e wave`, `/e laugh`, `/e cheer`, `/e point`. Moving cancels them, as in Roblox.
+- **R15 avatars:** if your account uses R15 (or you pick R15 under Settings > Gameplay > Avatar Type), you get the R15 body. It is built the way Roblox builds it: the default rig from your install, with your body packages' R15 parts and joint positions swapped in. Clothing is laid onto the R15 parts with Roblox's own compositing meshes. R15 uses Roblox's 2018 R15 Animate animations. Avatar scaling (height, width, proportions) and animation packs aren't applied yet.
+- **Emote wheel:** press **.** or click the emotes button on the top bar. It is Roblox's wheel, using the textures from your install, with your account's equipped emotes in their slots and their catalog thumbnails. Click a slot or press 1-8 to play an emote; **.** or Esc closes the wheel. With nothing equipped it offers the classic emotes. As on Roblox, emotes need an R15 avatar. Newer emotes (CurveAnimation) are supported.
+- **Chat emotes:** `/e dance`, `/e wave`, `/e laugh`, `/e cheer`, `/e point` (R6 or R15 versions). Moving cancels them, as in Roblox.
 - **Flying** (creative) works like HD Admin / Adonis fly: no animation, and the body faces wherever the camera looks, pitch included.
 - **Your name floats above your head** in Roblox's font, with a green and red health bar once you're hurt.
 - The settings menu's **Avatar** tab shows a live render of your loaded character.
@@ -192,6 +194,7 @@ Extra Gradle tasks for checking things without starting Minecraft:
 |---|---|---|
 | `username` | | Your Roblox username |
 | `apiKey` | | Your Open Cloud key (private) |
+| `avatarType` | Account | Your avatar's rig: `Account` (as on Roblox), `R6` or `R15` |
 | `robloxMovement` | on | Roblox speed, jump and gravity |
 | `fallDamage` | off | Minecraft fall damage |
 | `hunger` | off | Minecraft hunger |
@@ -210,6 +213,8 @@ All of these can be changed in the in-game **Settings** menu.
 - The Paintball Gun only recolors Roblox Parts (like Trowel walls), not Minecraft blocks.
 - The balloon's lift is close to Roblox's but not exact, because Minecraft adds air drag.
 - Fallen body parts and explosion debris don't collide with each other, and body parts treat the ground under the character as flat.
+- R15 characters fall apart as six R6-sized pieces (their limbs stay straight). The avatar picture in Settings and the spawn eggs are still drawn as R6.
+- Emotes only show for you; other players don't see them.
 
 ## Credits
 - **Inspired by [@coah80](https://x.com/coah80) on X.**

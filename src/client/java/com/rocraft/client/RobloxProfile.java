@@ -28,6 +28,11 @@ public final class RobloxProfile {
 	public final MeshDraw[] bodyParts = new MeshDraw[6];
 	public MeshDraw head;        // DynamicHead mesh + face texture (Roblox shows it on R6 too), null = classic head
 	public BufferedImage face;    // classic Face decal, null = default smile
+	/** R15 body when the avatar is R15 (and Roblox's R15 assets could load), else null = R6. */
+	public R15Body r15;
+	/** Emotes equipped on the account's emote wheel: slot 1-8, emote asset id, name. */
+	public record Emote(int slot, long assetId, String name) {}
+	public final java.util.List<Emote> emotes = new java.util.ArrayList<>();
 
 	/** Users drawn in one of their saved outfits instead of what they wear now: username -> outfit id. */
 	public static final java.util.Map<String, Long> OUTFITS = java.util.Map.of("Shedletsky", 34915L); // Classic Telamon
@@ -50,7 +55,10 @@ public final class RobloxProfile {
 	static final Gson GSON = new Gson();
 
 	/** username blank => Guest. Blocking; call off the render thread. */
-	public static RobloxProfile load(String username, String apiKey) {
+	public static RobloxProfile load(String username, String apiKey) { return load(username, apiKey, "Account"); }
+
+	/** rig: "Account" (whatever the account uses), "R6" or "R15". */
+	public static RobloxProfile load(String username, String apiKey, String rig) {
 		RobloxProfile p = new RobloxProfile();
 		boolean guest = username == null || username.isBlank();
 		if (guest) username = GUEST_ACCOUNT;
@@ -74,9 +82,15 @@ public final class RobloxProfile {
 			JsonObject c = a.getAsJsonObject("bodyColor3s");
 			String[] keys = {"headColor3", "torsoColor3", "leftArmColor3", "rightArmColor3", "leftLegColor3", "rightLegColor3"};
 			for (int i = 0; i < 6; i++) if (c != null && c.has(keys[i])) p.colors[i] = Integer.parseInt(c.get(keys[i]).getAsString().replace("#", ""), 16);
+			if (a.has("emotes")) for (var e : a.getAsJsonArray("emotes")) {
+				var o = e.getAsJsonObject();
+				p.emotes.add(new Emote(o.get("position").getAsInt(), o.get("assetId").getAsLong(), o.get("assetName").getAsString()));
+			}
+			var bodyAssets = new java.util.HashMap<String, Long>();
 			if (RobloxApi.hasKey()) for (var e : a.getAsJsonArray("assets")) {
 				var o = e.getAsJsonObject();
 				String type = o.getAsJsonObject("assetType").get("name").getAsString();
+				if (R15Body.PACKAGE_PARTS.containsKey(type)) bodyAssets.put(type, o.get("id").getAsLong());
 				if (type.equals("Torso") || type.endsWith("Arm") || type.endsWith("Leg")) try { characterMesh(p, o.get("id").getAsLong()); }
 					catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("body part {} skipped: {}", o.get("id"), ex.toString()); }
 				if (type.equals("Shirt")) p.shirt = template(o.get("id").getAsLong(), "ShirtTemplate");
@@ -90,6 +104,9 @@ public final class RobloxProfile {
 					if (piece != null) p.accessories.add(piece);
 				} catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("accessory {} skipped: {}", o.get("id"), ex.toString()); }
 			}
+			boolean wantR15 = guest ? rig.equals("R15") : rig.equals("Account") ? a.has("playerAvatarType") && a.get("playerAvatarType").getAsString().equals("R15") : rig.equals("R15");
+			if (wantR15 && RobloxApi.hasKey() && RobloxAssets.CONTENT != null) try { p.r15 = R15Body.build(bodyAssets, p.colors, p.shirt, p.pants); }
+				catch (Exception ex) { com.rocraft.Rocraft.LOGGER.warn("R15 body unavailable, drawing R6: {}", ex.toString()); }
 		} catch (Exception e) {
 			com.rocraft.Rocraft.LOGGER.warn("Roblox avatar partly loaded ({}); using what we have for {}", e.toString(), p.name);
 		}

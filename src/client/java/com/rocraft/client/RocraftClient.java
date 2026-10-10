@@ -29,6 +29,13 @@ public class RocraftClient implements ClientModInitializer {
 			// backpack number keys: equip that slot, or unequip it if it's already held (before vanilla sees the press)
 			for (int i = 0; i < 9; i++) while (mc.options.keyHotbarSlots[i].consumeClick()) Hud2018.toggle(mc, i);
 		});
+		// "." opens the emote wheel, as in Roblox (the wheel closes itself on ".")
+		boolean[] periodDown = {false};
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			boolean down = com.mojang.blaze3d.platform.InputConstants.isKeyDown(mc.getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_PERIOD);
+			if (down && !periodDown[0] && mc.gui.screen() == null) EmoteWheel.open();
+			periodDown[0] = down;
+		});
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			if (mc.player == null) return;
 			RobloxMouse.tick();
@@ -58,7 +65,7 @@ public class RocraftClient implements ClientModInitializer {
 				return false;
 			}
 			if (!command.startsWith("e ") || mc.player == null) return true;
-			if (!Animator.of(mc.player.getId()).emote(command.substring(2).trim().toLowerCase(java.util.Locale.ROOT)))
+			if (!Animator.of(mc.player.getId()).emote(command.substring(2).trim().toLowerCase(java.util.Locale.ROOT), profile.r15 != null))
 				mc.gui.hud.getChat().addClientSystemMessage(Component.literal("Unknown emote. Try /e dance, /e wave, /e laugh, /e cheer or /e point."));
 			return false;
 		});
@@ -96,8 +103,8 @@ public class RocraftClient implements ClientModInitializer {
 
 	static void reloadProfile() {
 		var c = RocraftConfig.INSTANCE;
-		String u = c.username, k = c.apiKey;
+		String u = c.username, k = c.apiKey, rig = c.avatarType;
 		loading = true;
-		Thread.startVirtualThread(() -> { profile = RobloxProfile.load(u, k); loading = false; });
+		Thread.startVirtualThread(() -> { profile = RobloxProfile.load(u, k, rig); loading = false; });
 	}
 }
