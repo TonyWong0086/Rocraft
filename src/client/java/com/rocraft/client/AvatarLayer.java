@@ -90,11 +90,11 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		float ty = -px - (hurt ? 10 : 2);
 		RbxFont.world(ps, out, name, -w / 2f + 1, ty + 1, px, RbxFont.LEGACY, 0x99000000); // shadow
 		RbxFont.world(ps, out, name, -w / 2f, ty, px, RbxFont.LEGACY, 0xFFFFFFFF);
-		if (hurt) {
-			int bw = Math.max(40, px * 4), bh = Math.max(4, px / 4);
-			float g = bw * Math.max(0, hp);
-			bar(ps, out, -bw / 2f, -bh - 1, g, bh, 0xFF4B974B);
-			bar(ps, out, -bw / 2f + g, -bh - 1, bw - g, bh, 0xFFC4281C);
+		if (hurt) { // a short bar on a grey track, its fill fading green -> yellow -> red as health drops
+			int bw = Math.max(36, px * 3), bh = Math.max(4, px / 4);
+			float h = Math.max(0, hp), g = bw * h;
+			bar(ps, out, -bw / 2f, -bh - 1, bw, bh, 0x99505050);
+			if (g > 0) bar(ps, out, -bw / 2f, -bh - 1, g, bh, healthColor(h));
 		}
 		ps.popPose();
 	}
@@ -114,6 +114,12 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		ps.translate(side / 16f, 2 / 16f, -10 / 16f);
 		item.submit(ps, out, light, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, outline);
 		ps.popPose();
+	}
+
+	/** Roblox's health colour: green at full, yellow at half, red when nearly dead. */
+	static int healthColor(float hp) {
+		int green = 0x1BFC6B, yellow = 0xFFD21C, red = 0xFF1C00;
+		return 0xFF000000 | (hp > 0.5f ? BombRenderer.lerp(yellow, green, (hp - 0.5f) * 2) : BombRenderer.lerp(red, yellow, hp * 2)) & 0xFFFFFF;
 	}
 
 	private static void bar(PoseStack ps, SubmitNodeCollector out, float x, float y, float w, float h, int argb) {

@@ -97,8 +97,7 @@ final class Hud2018 {
 		float hp = Math.max(0, Math.min(1, mc.player.getHealth() / mc.player.getMaxHealth()));
 		if (hp < 1) {
 			bar(g, "TopBar/HealthBarBase.png", nx, 30, nameW, 4, 0xFFFFFFFF);
-			int col = hp > 0.5f ? 0xFF1BFC6B : hp > 0.25f ? 0xFFFFD21C : 0xFFFF1C00;
-			if (hp > 0) bar(g, "TopBar/HealthBar.png", nx, 30, Math.max(4, Math.round(nameW * hp)), 4, col);
+			if (hp > 0) bar(g, "TopBar/HealthBar.png", nx, 30, Math.max(4, Math.round(nameW * hp)), 4, 0xFF1BFC6B); // top bar: always green on white
 		}
 		int sx = nx + nameW;
 		for (int i = 0; i < stats.length; i++) {
