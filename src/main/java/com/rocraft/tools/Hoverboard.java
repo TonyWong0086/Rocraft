@@ -104,9 +104,13 @@ public final class Hoverboard extends Entity {
 		if (s != null) level().playSound(rider instanceof Player p ? p : null, getX(), getY(), getZ(), s, SoundSource.PLAYERS, 0.6f, 1f);
 	}
 
+	/** Deck height: the rider's feet stand here (the platform sits at the wheels' axles). */
+	static final double DECK = 0.75 * McFrame.STUD;
+
 	@Override
 	protected void positionRider(Entity passenger, MoveFunction move) {
-		super.positionRider(passenger, move);
+		if (!hasPassenger(passenger)) return;
+		move.accept(passenger, getX(), getY() + DECK, getZ()); // standing on it, not Minecraft's seated offset
 		passenger.setYRot(getYRot()); // the rider stands facing the way the board rolls
 		passenger.setYHeadRot(getYRot());
 		if (passenger instanceof LivingEntity l) l.setYBodyRot(getYRot());

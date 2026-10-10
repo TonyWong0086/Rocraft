@@ -22,19 +22,27 @@ final class RbxFont {
 	private static final Map<String, Atlas> CACHE = new HashMap<>();
 	private static final Map<String, Optional<Font>> BASE = new HashMap<>();
 
-	private static Font base(boolean bold) {
+	/** Roblox's Legacy font (humanoid name displays): Arial. */
+	static final String LEGACY = "arial";
+
+	private static Font base(boolean bold) { return base(bold ? "SourceSansPro-Bold.ttf" : "SourceSansPro-Regular.ttf"); }
+
+	private static Font base(String n) {
 		if (!RocraftConfig.INSTANCE.robloxFont) return null;
-		String n = bold ? "SourceSansPro-Bold.ttf" : "SourceSansPro-Regular.ttf";
+		if (n.equals(LEGACY)) n = "C:/Windows/Fonts/arial.ttf";
 		return BASE.computeIfAbsent(n, k -> {
-			var p = RobloxAssets.file("fonts/" + k);
+			var p = k.contains("/") ? (java.nio.file.Files.exists(java.nio.file.Path.of(k)) ? java.nio.file.Path.of(k) : RobloxAssets.file("fonts/SourceSansPro-Regular.ttf"))
+				: RobloxAssets.file("fonts/" + k);
 			try { return Optional.ofNullable(p == null ? null : Font.createFont(Font.TRUETYPE_FONT, p.toFile())); }
 			catch (Exception e) { Rocraft.LOGGER.warn("font {} failed: {}", k, e.toString()); return Optional.empty(); }
 		}).orElse(null);
 	}
 
-	private static Atlas atlas(int px, boolean bold) {
-		return CACHE.computeIfAbsent(px + (bold ? "b" : "r"), k -> {
-			Font f = base(bold).deriveFont((float) px);
+	private static Atlas atlas(int px, boolean bold) { return atlas(px, bold ? "b" : "r"); }
+
+	private static Atlas atlas(int px, String font) {
+		return CACHE.computeIfAbsent(px + font, k -> {
+			Font f = (font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)).deriveFont((float) px);
 			var probe = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics();
 			probe.setFont(f);
 			var fm = probe.getFontMetrics();
@@ -57,7 +65,7 @@ final class RbxFont {
 			g.dispose();
 			var ni = new NativeImage(W, H, false);
 			for (int py = 0; py < H; py++) for (int pxl = 0; pxl < W; pxl++) ni.setPixel(pxl, py, img.getRGB(pxl, py));
-			Identifier id = Rocraft.id("rbxfont/" + k);
+			Identifier id = Rocraft.id("rbxfont/" + k.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_.-]", "_"));
 			Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "rocraft font " + k, ni));
 			return new Atlas(id, W, H, lineH, u, v, w);
 		});
@@ -97,7 +105,20 @@ final class RbxFont {
 	 * unlit. Falls back to Minecraft's font when the Roblox font is off.
 	 */
 	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, int px, boolean bold, int argb) {
-		if (base(bold) == null) {
+		world(ps, out, s, x, y, px, bold ? "b" : "r", argb);
+	}
+
+	/** Width of s in a world font ("b", "r" or LEGACY). */
+	static int worldWidth(String s, int px, String font) {
+		if ((font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)) == null) return Math.round(Minecraft.getInstance().font.width(s) * px / 9f);
+		Atlas a = atlas(px, font);
+		int n = 0;
+		for (char c : s.toCharArray()) n += a.w[ch(c)];
+		return n;
+	}
+
+	static void world(com.mojang.blaze3d.vertex.PoseStack ps, net.minecraft.client.renderer.SubmitNodeCollector out, String s, float x, float y, int px, String font, int argb) {
+		if ((font.equals("b") ? base(true) : font.equals("r") ? base(false) : base(font)) == null) {
 			ps.pushPose();
 			ps.translate(x, y, 0);
 			ps.scale(px / 9f, px / 9f, 1);
@@ -106,7 +127,7 @@ final class RbxFont {
 			ps.popPose();
 			return;
 		}
-		Atlas a = atlas(px, bold);
+		Atlas a = atlas(px, font);
 		out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.entityTranslucentEmissive(a.id), (pose, vc) -> {
 			float cx = x;
 			for (char c0 : s.toCharArray()) {

@@ -73,6 +73,9 @@ public class RocraftClient implements ClientModInitializer {
 		});
 	}
 
+	/** The Roblox R6 body is available, so AvatarLayer draws the character (and its held items). */
+	public static boolean robloxAvatar() { return Rig.body() != null; }
+
 	/** Called by SkinMixin; public so the mixin package can reach it. */
 	public static net.minecraft.world.entity.player.PlayerSkin avatarSkin(boolean me, net.minecraft.world.entity.player.PlayerSkin base) {
 		return AvatarSkin.skin(me ? profile : guest, base);

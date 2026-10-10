@@ -137,7 +137,8 @@ final class Rig {
 		"teddy", grip(0.5f, -1.5f, -1.56f, 0, -0.707f, -0.707f, 0, -0.707f, 0.707f));
 
 	/** Grips a tool's script sets on equip instead of the saved Tool.Grip (the hoverboard's saved one is its display grip). */
-	static final Map<String, float[]> EQUIP_GRIP = Map.of("hoverboard", new float[]{0, -0.1f, -0.2f, 0, -1, 0, -1, 0, 0, 0, 0, -1});
+	static final Map<String, float[]> EQUIP_GRIP = Map.of("hoverboard", new float[]{0, -0.1f, -0.2f, 0, -1, 0, -1, 0, 0, 0, 0, -1},
+		"green_balloon", grip(0, -1, 0, 0, 0, -1, 1, 0, 0)); // BalloonScript onEquipped: GripPos (0,-1,0), Right (0,0,-1), Up (1,0,0)
 	/** Extra looks a tool's script switches to: "green_balloon/2" and "/3" (swollen), "green_balloon/0" (popped). */
 	static final Map<String, Piece> VARIANTS = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -188,7 +189,10 @@ final class Rig {
 			for (var c : tool.children) if ("Handle".equals(c.name())) handle = c;
 			var c0 = cframe(new float[]{0, -1, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0});
 			var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(Rocraft.id(name));
-			float[] grip = EQUIP_GRIP.getOrDefault(name, tool.cframe("Grip"));
+			// a Handle's RightGripAttachment, when it has one, is what the character's hand lines up with (the saved Grip can be stale)
+			RbxModel.Inst att = null;
+			for (var c : handle.children) if (c.className.equals("Attachment") && "RightGripAttachment".equals(c.name())) att = c;
+			float[] grip = EQUIP_GRIP.getOrDefault(name, att != null && att.cframe("CFrame") != null ? att.cframe("CFrame") : tool.cframe("Grip"));
 			GEAR.put(item, new Piece(RIGHT_ARM, handleMesh(handle, new Matrix4f(c0).mul(cframe(grip).invert()))));
 			if (name.equals("green_balloon")) { // BalloonScript: Mesh.Scale 2 / 3 as it rises; popped: mesh 26725510, GripPos (0, -0.4, 0)
 				var mesh = handle.child("SpecialMesh");

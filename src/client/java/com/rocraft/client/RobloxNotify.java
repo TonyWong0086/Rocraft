@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
  * Drawn by Hud2018 in screen pixels.
  */
 public final class RobloxNotify {
-	static final int W = 260, H = 70, GAP = 8, SLIDE_MS = 250, DURATION_MS = 5000;
+	static final int W = 260, GAP = 8, SLIDE_MS = 250, DURATION_MS = 5000;
 	private record Note(String title, String text, ItemStack icon, long start) {}
 	private static final List<Note> NOTES = new ArrayList<>();
 
@@ -27,34 +27,37 @@ public final class RobloxNotify {
 	static void draw(GuiGraphicsExtractor g, int W0, int H0) {
 		long now = System.currentTimeMillis();
 		NOTES.removeIf(n -> now - n.start > DURATION_MS + SLIDE_MS);
-		int y = H0 - 16 - H;
+		int bottom = H0 - 16;
 		var m = g.pose();
-		for (int i = NOTES.size() - 1; i >= 0; i--, y -= H + GAP) {
+		for (int i = NOTES.size() - 1; i >= 0; i--) {
 			Note n = NOTES.get(i);
+			int tx0 = n.icon != null ? 64 : 12, tw = W - 10 - tx0;
+			var lines = n.text.isEmpty() ? List.<String>of() : wrap(n.text, tw, 16);
+			int nl = Math.min(2, lines.size());
+			// snug card: the same 10 px margin above the title and below the last line, no empty band at the bottom
+			int h = Math.max(n.icon != null ? 60 : 0, 10 + 22 + nl * 17 + 10), y = bottom - h;
+			bottom = y - GAP;
 			long age = now - n.start;
 			float in = Math.min(1, age / (float) SLIDE_MS), out = Math.max(0, (age - DURATION_MS) / (float) SLIDE_MS);
 			float t = in - out; // 0 = off screen to the right, 1 = in place (Quad ease)
 			t = t * (2 - t);
 			int x = W0 - Math.round((W + 16) * t); // slides in from the right edge
-			card(g, x, y);
-			int tx = x + 12;
+			card(g, x, y, h);
 			if (n.icon != null) {
 				m.pushMatrix();
-				m.translate(x + 11, y + (H - 48) / 2f);
-				m.scale(3, 3);
+				m.translate(x + 10, y + (h - 44) / 2f);
+				m.scale(44 / 16f, 44 / 16f);
 				g.item(n.icon, 0, 0);
 				m.popMatrix();
-				tx = x + 70;
 			}
-			int tw = x + W - 10 - tx;
-			RbxFont.draw(g, fit(n.title, tw, 20, true), tx, y + 10, 20, true, 0xFFFFFFFF);
-			var lines = wrap(n.text, tw, 16);
-			for (int l = 0; l < Math.min(2, lines.size()); l++) RbxFont.draw(g, lines.get(l), tx, y + 34 + l * 17, 16, false, 0xFFC8C8C8);
+			int tx = x + tx0, ty = y + (h - (22 + nl * 17)) / 2;
+			RbxFont.draw(g, fit(n.title, tw, 20, true), tx, ty, 20, true, 0xFFFFFFFF);
+			for (int l = 0; l < nl; l++) RbxFont.draw(g, lines.get(l), tx, ty + 22 + l * 17, 16, false, 0xFFC8C8C8);
 		}
 	}
 
 	/** RoundedRect8px.png 9-sliced, Color3(31,31,31) at transparency 0.2. */
-	private static void card(GuiGraphicsExtractor g, int x, int y) {
+	private static void card(GuiGraphicsExtractor g, int x, int y, int H) {
 		var t = RobloxAssets.tex("textures/ui/RoundedRect8px.png");
 		int c = 0xCC1F1F1F;
 		if (t == null) { g.fill(x, y, x + W, y + H, c); return; }

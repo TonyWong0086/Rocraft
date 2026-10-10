@@ -156,6 +156,7 @@ public final class Tools {
 			.build());
 
 		MouseTarget.register();
+		Holster.register();
 		ServerTickEvents.END_SERVER_TICK.register(Tools::tick);
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, src, amount) ->
 			!(e instanceof Player p && p.tickCount < FORCEFIELD_TICKS) || src.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY));
@@ -182,6 +183,7 @@ public final class Tools {
 			if ((long) e[0] <= tick) { it.remove(); ((Runnable) e[1]).run(); }
 		}
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+			Holster.tick(p);
 			Item now = p.getMainHandItem().getItem();
 			if (HELD.get(p.getUUID()) != now) { // Tool.Equipped
 				SoundEvent s = now == LINKED_SWORD ? RbxSounds.UNSHEATH : now == GRAVITY_COIL ? RbxSounds.GRAVITY_COIL

@@ -79,17 +79,17 @@ final class RobloxChat {
 		var input = ((ChatScreenAccessor) mc.gui.screen()).rocraft$input();
 		String text = input.getValue();
 		int tx = x + 14, ty = y + (BAR_H - 24) / 2;
-		if (text.isEmpty()) RbxFont.draw(g, "To chat click here or press \"/\" key", tx, ty, TEXT, false, 0xFF6E6E6E);
-		else RbxFont.draw(g, text, tx, ty, TEXT, false, 0xFF000000);
+		if (text.isEmpty()) RbxFont.draw(g, "To chat click here or press \"/\" key", tx, ty, TEXT, true, 0xFF6E6E6E); // ChatBar: SourceSansBold
+		else RbxFont.draw(g, text, tx, ty, TEXT, true, 0xFF000000);
 		if ((System.currentTimeMillis() / 500) % 2 == 0) {
-			int cx = tx + RbxFont.width(text.substring(0, Math.min(text.length(), input.getCursorPosition())), TEXT, false);
+			int cx = tx + RbxFont.width(text.substring(0, Math.min(text.length(), input.getCursorPosition())), TEXT, true);
 			g.fill(cx, ty + 2, cx + 1, ty + 22, 0xFF000000);
 		}
 	}
 
 	private static void stroke(GuiGraphicsExtractor g, String s, int x, int y, int argb) {
-		int shade = ((argb >>> 24) / 4) << 24; // TextStrokeTransparency 0.75
-		RbxFont.draw(g, s, x + 1, y + 1, TEXT, true, shade);
+		int shade = ((argb >>> 24) * 2 / 5) << 24; // TextStrokeTransparency 0.6: an outline all round, not a drop shadow
+		for (int[] o : new int[][]{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}) RbxFont.draw(g, s, x + o[0], y + o[1], TEXT, true, shade);
 		RbxFont.draw(g, s, x, y, TEXT, true, argb);
 	}
 

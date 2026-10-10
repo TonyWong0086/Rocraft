@@ -10,6 +10,7 @@
 		"ChatComponentAccessor",
 		"ChatScreenAccessor",
 		"ChatScreenMixin",
+		"ItemInHandMixin",
 		"MouseMixin",
 		"SpecialRenderersAccessor",
 		"MoveAccessor",

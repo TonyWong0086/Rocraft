@@ -95,7 +95,7 @@ final class RbxParticle extends SingleQuadParticle {
 	@Override protected Layer getLayer() {
 		if (additive == null) {
 			var atlas = Layer.TRANSLUCENT.textureAtlasLocation();
-			var noDepthWrite = new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false);
+			var noDepthWrite = new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false); // 26.x depth is reversed (DepthStencilState.DEFAULT)
 			additive = new Layer(true, atlas, RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET).withLocation(Rocraft.id("pipeline/additive_particle"))
 				.withColorTargetState(new ColorTargetState(BlendFunction.LIGHTNING)).withDepthStencilState(noDepthWrite).build());
 			soft = new Layer(true, atlas, RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET).withLocation(Rocraft.id("pipeline/soft_particle"))
@@ -134,7 +134,7 @@ final class RbxParticle extends SingleQuadParticle {
 		for (int i = 0; i < 2; i++) {
 			double r = size * 0.15 * STUD;
 			var p = make(l, x + rnd(l) * r, y + rnd(l) * r * 0.5, z + rnd(l) * r, rnd(l) * 0.6, heat * (0.55 + 0.25 * l.getRandom().nextFloat()), rnd(l) * 0.6,
-				RbxParticles.FIRE, 0.9f + 0.4f * l.getRandom().nextFloat());
+				RbxParticles.FIRE, 1.2f + 0.5f * l.getRandom().nextFloat());
 			if (p == null) return;
 			p.sizes(size * 0.85f, size * 0.3f);
 			p.tint = color; p.colorRamp = "fire_color"; p.alphaRamp = "fire_alpha"; p.add = true; p.bright = true;
@@ -162,16 +162,16 @@ final class RbxParticle extends SingleQuadParticle {
 
 	/** Explosion with BlastRadius r (studs): flash, shockwave ring, fireball core, flying sparks and lingering smoke. */
 	static void explosion(ClientLevel l, double x, double y, double z, float r) {
-		var im = make(l, x, y, z, 0, 0, 0, RbxParticles.IMPLOSION, 0.25f);
+		var im = make(l, x, y, z, 0, 0, 0, RbxParticles.IMPLOSION, 0.4f);
 		if (im == null) return;
 		im.sizes(r * 2.2f, r * 0.4f); im.tint = 0xFFE6B4; im.colorRamp = "explosion01_implosion_color"; im.add = true; im.bright = true;
 		im.add();
-		var sw = make(l, x, y, z, 0, 0, 0, RbxParticles.SHOCKWAVE, 0.35f);
+		var sw = make(l, x, y, z, 0, 0, 0, RbxParticles.SHOCKWAVE, 0.6f);
 		sw.sizes(r * 0.5f, r * 3.5f); sw.add = true; sw.bright = true;
 		sw.add();
 		for (int i = 0; i < 5; i++) {
 			var c = make(l, x + rnd(l) * r * 0.2 * STUD, y + rnd(l) * r * 0.2 * STUD, z + rnd(l) * r * 0.2 * STUD,
-				rnd(l) * r * 0.3, rnd(l) * r * 0.3 + r * 0.2, rnd(l) * r * 0.3, RbxParticles.EXPLOSION, 0.55f + 0.25f * l.getRandom().nextFloat());
+				rnd(l) * r * 0.3, rnd(l) * r * 0.3 + r * 0.2, rnd(l) * r * 0.3, RbxParticles.EXPLOSION, 1.0f + 0.4f * l.getRandom().nextFloat());
 			c.sizes(r * 0.7f, r * 1.7f); c.colorRamp = "explosion_color"; c.alphaRamp = "explosion_alpha"; c.add = true; c.bright = true;
 			c.spin = (float) rnd(l) * 0.04f; c.drag = 0.9f;
 			c.add();
@@ -179,14 +179,14 @@ final class RbxParticle extends SingleQuadParticle {
 		for (int i = 0; i < 10; i++) {
 			double dx = rnd(l), dy = Math.abs(rnd(l)), dz = rnd(l);
 			var s = make(l, x + dx * r * 0.4 * STUD, y + dy * r * 0.3 * STUD, z + dz * r * 0.4 * STUD, dx * r * 0.6, dy * r * 0.4 + 2, dz * r * 0.6,
-				RbxParticles.EXPLOSION_SMOKE, 1.6f + l.getRandom().nextFloat());
+				RbxParticles.EXPLOSION_SMOKE, 3.0f + 1.5f * l.getRandom().nextFloat());
 			s.sizes(r * 0.8f, r * 1.9f); s.colorRamp = "explosion01_smoke_color_new"; s.alphaRamp = "explosion01_smoke_alpha"; s.opacity = 2.5f;
 			s.spin = (float) rnd(l) * 0.02f; s.drag = 0.92f;
 			s.add();
 		}
 		for (int i = 0; i < 24; i++) {
 			double dx = rnd(l), dy = rnd(l) * 0.5 + 0.5, dz = rnd(l), n = Math.sqrt(dx * dx + dy * dy + dz * dz), v = r * (2 + 2 * l.getRandom().nextFloat());
-			var s = make(l, x, y, z, dx / n * v, dy / n * v, dz / n * v, RbxParticles.SPARK, 0.5f + 0.4f * l.getRandom().nextFloat());
+			var s = make(l, x, y, z, dx / n * v, dy / n * v, dz / n * v, RbxParticles.SPARK, 0.9f + 0.5f * l.getRandom().nextFloat());
 			s.sizes(0.5f, 0.2f); s.colorRamp = "explosion_color"; s.add = true; s.bright = true; s.drag = 0.94f;
 			s.gravity = 0.4f;
 			s.add();

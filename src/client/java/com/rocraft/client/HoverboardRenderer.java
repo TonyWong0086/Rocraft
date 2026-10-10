@@ -32,7 +32,7 @@ final class HoverboardRenderer extends EntityRenderer<Hoverboard, HoverboardRend
 			ps.pushPose();
 			ps.mulPose(Axis.YP.rotationDegrees(180 - s.yRot)); // Roblox LookVector (-Z) -> the entity's facing
 			ps.scale(k, k, k);
-			ps.translate(0, 0.5f, 0); // Handle is 1 stud tall, centred
+			ps.translate(0, 0.65f, 0); // the board mesh (x1.25) is 1.3 studs tall, centred: wheels on the ground
 			MeshDraw.submit(ps, out, s.lightCoords, d, d.texture());
 			ps.popPose();
 		}

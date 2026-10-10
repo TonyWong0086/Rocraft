@@ -49,7 +49,8 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 				else draw(ps, out, light, pose[i], body[i], skin);
 		}
 		for (var p : prof.accessories) draw(ps, out, light, pose[p.part()], p.draw(), p.draw().texture());
-		var hat = Rig.HATS.get(s.headEquipment.getItem()); // a Roblox hat in the helmet slot
+		var helmet = player != null ? player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD) : s.headEquipment;
+		var hat = Rig.HATS.get(helmet.getItem()); // a Roblox hat in the helmet slot
 		if (hat != null) draw(ps, out, light, pose[hat.part()], hat.draw(), hat.draw().texture());
 		var g = Rig.gear(held);
 		if (me && player != null && held.getItem() == Tools.clientUseItem && System.currentTimeMillis() < Tools.clientUseUntil && Rig.GEAR_ALT.containsKey(held.getItem()))
@@ -62,6 +63,8 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 			pose[Rig.LEFT_ARM] = new Matrix4f(pose[Rig.TORSO]).translate(-1.5f, 0, 0);
 		}
 		if (g != null) draw(ps, out, light, pose[g.part()], g.draw(), g.draw().texture());
+		else if (body != null) heldItem(ps, out, light, pose[Rig.RIGHT_ARM], s.rightHandItemState, 1, s.outlineColor);
+		if (body != null) heldItem(ps, out, light, pose[Rig.LEFT_ARM], s.leftHandItemState, -1, s.outlineColor);
 		Vector3f above = ps.last().pose().transformPosition(new Vector3f(0, 3.1f, 0)); // just over the head, in camera space
 		ps.popPose();
 		if (player != null && RocraftConfig.INSTANCE.hud2018 && !(me && mc.options.getCameraType().isFirstPerson()))
@@ -69,23 +72,47 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	}
 
 	/**
-	 * Roblox humanoid name display: the name in white SourceSans facing the camera, and under it the green health bar
-	 * (red background) once the humanoid has been hurt.
+	 * Roblox humanoid name display: the name in white Legacy (Arial) with a soft dark shadow, a constant size on screen
+	 * however far away (it's a GUI, not part of the world), and under it the green health bar (red background) once hurt.
 	 */
 	private static void nameTag(PoseStack ps, SubmitNodeCollector out, String name, float hp, Vector3f at) {
+		var mc = Minecraft.getInstance();
+		float dist = at.length();
+		if (dist > 100 * 0.28f) return; // NameDisplayDistance 100 studs
+		// world units per screen pixel at this distance, so 1 unit below = 1 screen pixel
+		float perPx = (float) (2 * dist * Math.tan(Math.toRadians(mc.options.fov().get()) / 2) / mc.getWindow().getHeight());
 		ps.pushPose();
-		ps.last().pose().identity().translate(at).rotate(Minecraft.getInstance().gameRenderer.mainCamera().rotation());
+		ps.last().pose().identity().translate(at).rotate(mc.gameRenderer.mainCamera().rotation());
 		ps.last().normal().identity();
-		ps.scale(0.0125f, -0.0125f, 0.0125f); // 1 unit = 1 font pixel, ~16 px per block
-		int px = 32, w = RbxFont.width(name, px, true);
-		RbxFont.world(ps, out, name, -w / 2f + 2, -px - 8 + 2, px, true, 0x80000000); // light text stroke
-		RbxFont.world(ps, out, name, -w / 2f, -px - 8, px, true, 0xFFFFFFFF);
-		if (hp < 1) {
-			int bw = 100, bh = 10;
+		ps.scale(perPx, -perPx, perPx);
+		int px = Math.max(14, mc.getWindow().getHeight() / 60), w = RbxFont.worldWidth(name, px, RbxFont.LEGACY);
+		boolean hurt = hp < 1;
+		float ty = -px - (hurt ? 10 : 2);
+		RbxFont.world(ps, out, name, -w / 2f + 1, ty + 1, px, RbxFont.LEGACY, 0x99000000); // shadow
+		RbxFont.world(ps, out, name, -w / 2f, ty, px, RbxFont.LEGACY, 0xFFFFFFFF);
+		if (hurt) {
+			int bw = Math.max(40, px * 4), bh = Math.max(4, px / 4);
 			float g = bw * Math.max(0, hp);
-			bar(ps, out, -bw / 2f, 0, g, bh, 0xFF4B974B);
-			bar(ps, out, -bw / 2f + g, 0, bw - g, bh, 0xFFC4281C);
+			bar(ps, out, -bw / 2f, -bh - 1, g, bh, 0xFF4B974B);
+			bar(ps, out, -bw / 2f + g, -bh - 1, bw - g, bh, 0xFFC4281C);
 		}
+		ps.popPose();
+	}
+
+	/**
+	 * A Minecraft item in the Roblox hand: from the Roblox arm into the frame Minecraft's arm would have (pivot at the
+	 * shoulder, 1/16-block pixels, y down), then ItemInHandLayer's own hand offset. side: 1 right, -1 left.
+	 */
+	private static void heldItem(PoseStack ps, SubmitNodeCollector out, int light, Matrix4f arm, net.minecraft.client.renderer.item.ItemStackRenderState item, int side, int outline) {
+		if (item.isEmpty()) return;
+		ps.pushPose();
+		ps.mulPose(arm);
+		ps.scale(-1 / S, -1 / S, 1 / S);       // Roblox studs -> Minecraft model blocks (x and y flipped)
+		ps.translate(side / 16f, -4 / 16f, 0); // arm centre -> shoulder pivot (the arm box spans -2..10 px below it)
+		ps.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90));
+		ps.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
+		ps.translate(side / 16f, 2 / 16f, -10 / 16f);
+		item.submit(ps, out, light, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, outline);
 		ps.popPose();
 	}
 

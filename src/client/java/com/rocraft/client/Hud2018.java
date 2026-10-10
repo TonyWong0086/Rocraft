@@ -29,12 +29,24 @@ final class Hud2018 {
 	 * Backpack: equip a slot, or unequip it if it is the one already held (number key or click). Unequipped = holding
 	 * an empty hotbar slot, which the Roblox hotbar doesn't show.
 	 */
+	/** A tool unequipped while the hotbar was full (Holster): its slot and a copy to keep drawing it there. */
+	static int holsterSlot = -1;
+	static net.minecraft.world.item.ItemStack holsterItem = net.minecraft.world.item.ItemStack.EMPTY;
+	private static long holsterAt;
+
 	static void toggle(Minecraft mc, int slot) {
 		var inv = mc.player.getInventory();
+		if (slot == holsterSlot) { send(slot); holsterSlot = -1; inv.setSelectedSlot(slot); return; } // re-equip
 		if (slot != inv.getSelectedSlot() || inv.getItem(slot).isEmpty()) { inv.setSelectedSlot(slot); return; }
 		for (int i = 0; i < 9; i++) if (inv.getItem(i).isEmpty()) { inv.setSelectedSlot(i); return; }
-		// ponytail: every hotbar slot is full, so there is no empty hand to switch to; the tool stays equipped
+		// every hotbar slot is full: the server puts the tool aside so the hand is empty, and it keeps its slot here
+		send(slot);
+		holsterSlot = slot;
+		holsterItem = inv.getItem(slot).copy();
+		holsterAt = System.currentTimeMillis();
 	}
+
+	private static void send(int slot) { net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new com.rocraft.tools.Holster(slot)); }
 
 	/** Hotbar slot under a screen-pixel point, or -1. */
 	static int slotAt(double x, double y) {
@@ -101,15 +113,18 @@ final class Hud2018 {
 
 		// backpack hotbar: only filled slots, keeping their real number so 1-9 keys still match
 		var inv = mc.player.getInventory();
+		if (holsterSlot >= 0 && (inv.getSelectedSlot() != holsterSlot || !inv.getItem(holsterSlot).isEmpty() && System.currentTimeMillis() - holsterAt > 1000))
+			holsterSlot = -1; // the server put it back (another slot was picked)
 		List<Integer> slots = new ArrayList<>();
-		for (int i = 0; i < 9; i++) if (!inv.getItem(i).isEmpty()) slots.add(i);
+		for (int i = 0; i < 9; i++) if (!inv.getItem(i).isEmpty() || i == holsterSlot) slots.add(i);
 		int x = (W - (slots.size() * (SLOT + GAP) - GAP)) / 2, y = H - SLOT - 4;
 		SLOTS.clear();
 		for (int i : slots) {
 			SLOTS.add(new int[]{x, y, i});
-			if (i == inv.getSelectedSlot()) g.fill(x - 3, y - 3, x + SLOT + 3, y + SLOT + 3, EQUIP);
-			g.fill(x, y, x + SLOT, y + SLOT, i == inv.getSelectedSlot() ? 0xE01F1F1F : BG);
-			var st = inv.getItem(i);
+			boolean on = i == inv.getSelectedSlot() && i != holsterSlot;
+			if (on) g.fill(x - 3, y - 3, x + SLOT + 3, y + SLOT + 3, EQUIP);
+			g.fill(x, y, x + SLOT, y + SLOT, on ? 0xE01F1F1F : BG);
+			var st = i == holsterSlot ? holsterItem : inv.getItem(i);
 			m.pushMatrix();
 			m.translate(x + 8, y + 8);
 			m.scale(44 / 16f, 44 / 16f);

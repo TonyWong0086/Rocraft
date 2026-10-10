@@ -18,7 +18,7 @@ final class Blast {
 	static void at(ServerLevel sl, Entity source, double radius, float damage, DamageSource src, String sound) {
 		Vec3 c = source.position();
 		sl.sendParticles(com.rocraft.RbxParticles.EXPLOSION, c.x, c.y, c.z, 0, radius / McFrame.STUD, 0, 0, 1);
-		RbxSounds.play(source, RbxSounds.get(sound));
+		RbxSounds.play(source, RbxSounds.get(sound), 8f); // heard ~128 blocks away, like Roblox's long rolloff
 		for (Entity e : sl.getEntities(source, source.getBoundingBox().inflate(radius), e -> e.distanceTo(source) <= radius)) {
 			var push = e.position().subtract(c).normalize().scale(0.8 * (1 - e.distanceTo(source) / radius) + 0.2);
 			if (e instanceof RobloxPart part) { part.breakJoints(part.getDeltaMovement().add(push.x, push.y + 0.3, push.z)); continue; }
@@ -43,7 +43,9 @@ final class Blast {
 			if (state.getDestroySpeed(sl, pos) < 0 || state.getBlock().getExplosionResistance() >= 1200) continue; // bedrock, obsidian...
 			Vec3 dir = d < 1e-3 ? new Vec3(0, 1, 0) : mid.subtract(c).scale(1 / d);
 			double strength = 0.25 + 0.75 * (1 - d / radius);
-			Vec3 v = dir.scale(strength).add((rand.nextDouble() - 0.5) * 0.2, 0.25 + rand.nextDouble() * 0.2, (rand.nextDouble() - 0.5) * 0.2);
+			// thrown outward and always up: blocks under the blast would otherwise be pushed into the ground and never move
+			Vec3 v = new Vec3(dir.x * strength + (rand.nextDouble() - 0.5) * 0.2, Math.abs(dir.y) * strength * 0.6 + 0.4 + rand.nextDouble() * 0.25,
+				dir.z * strength + (rand.nextDouble() - 0.5) * 0.2);
 			Debris.launch(sl, pos.immutable(), state, v);
 		}
 	}

@@ -32,8 +32,7 @@ public final class Launcher extends Item {
 		Vec3 dir = target.subtract(head).normalize();
 		switch (kind) {
 			case Projectile.ROCKET -> { // spawn 5 studs out along the launcher, fly straight at the mouse
-				Projectile.spawn(sl, p, kind, head.add(dir.scale(5 * stud)), dir.scale(60), -1);
-				com.rocraft.RbxSounds.play(p, com.rocraft.RbxSounds.get("rocket_launcher.swoosh"));
+				Projectile.spawn(sl, p, kind, head.add(dir.scale(5 * stud)), dir.scale(60), -1); // its Swoosh rides on the rocket (GearEffects)
 			}
 			case Projectile.SUPERBALL -> { // from the root part, 5 studs out, BrickColor.Random()
 				Vec3 root = p.position().add(0, 3 * stud, 0);

@@ -30,9 +30,12 @@ public final class RbxSounds {
 		return Registry.register(BuiltInRegistries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(id));
 	}
 
-	public static void play(Entity at, SoundEvent s) {
+	public static void play(Entity at, SoundEvent s) { play(at, s, 1f); }
+
+	/** volume > 1 only widens the range Minecraft lets it be heard from (16 blocks x volume). */
+	public static void play(Entity at, SoundEvent s, float volume) {
 		if (s == null) return;
-		at.level().playSound(null, at.getX(), at.getY(), at.getZ(), s, SoundSource.PLAYERS, 1f, 1f);
+		at.level().playSound(null, at.getX(), at.getY(), at.getZ(), s, SoundSource.PLAYERS, volume, 1f);
 	}
 
 	static void init() {} // forces class load during mod init
