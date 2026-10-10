@@ -193,19 +193,15 @@ final class RbxParticle extends SingleQuadParticle {
 		}
 	}
 
-	/** One tick of a 2017 ForceField around a character: the soft blue glow shell and its spinning vortex rings. */
-	static void forceField(ClientLevel l, net.minecraft.world.entity.Entity e) {
-		double x = e.getX(), y = e.getY() + 3 * STUD, z = e.getZ();
-		var g = make(l, x, y, z, 0, 0, 0, RbxParticles.FORCEFIELD_GLOW, 0.5f);
-		if (g == null) return;
-		g.sizes(7.5f, 7.5f); g.colorRamp = "forcefield_glow_color"; g.alphaRamp = "forcefield_glow_alpha"; g.add = true; g.bright = true; g.follow = e;
-		g.add();
-		if ((e.tickCount & 1) == 0) {
-			var v = make(l, x, y, z, 0, 0, 0, RbxParticles.FORCEFIELD_VORTEX, 0.6f);
-			v.sizes(6.5f, 7.2f); v.colorRamp = "forcefield_vortex_color"; v.alphaRamp = "forcefield_alpha"; v.add = true; v.bright = true; v.follow = e;
-			v.spin = (l.getRandom().nextBoolean() ? 1 : -1) * 0.15f;
-			v.add();
-		}
+	/** ForceField sparkles: little white specks drifting up out of the bubble. */
+	static void forceFieldSparkles(ClientLevel l, net.minecraft.world.entity.Entity e) {
+		if (l.getRandom().nextFloat() > 0.45f) return;
+		double a = l.getRandom().nextDouble() * Math.PI * 2, r = (0.5 + l.getRandom().nextDouble() * 2) * STUD;
+		var s = make(l, e.getX() + Math.cos(a) * r, e.getY() + (2.5 + l.getRandom().nextDouble() * 3) * STUD, e.getZ() + Math.sin(a) * r,
+			0, 2.5 + l.getRandom().nextDouble() * 1.5, 0, RbxParticles.SPARK, 1.2f + 0.6f * l.getRandom().nextFloat());
+		if (s == null) return;
+		s.sizes(0.3f, 0.1f); s.tint = 0xFFFFFF; s.add = true; s.bright = true;
+		s.add();
 	}
 
 	static void register() {

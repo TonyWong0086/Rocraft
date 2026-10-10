@@ -78,7 +78,11 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		else if (body != null && rightState != null) heldItem(ps, out, light, pose[Rig.RIGHT_ARM], rightState, 1, outline);
 		if (body != null && leftState != null) heldItem(ps, out, light, pose[Rig.LEFT_ARM], leftState, -1, outline);
 		Vector3f above = ps.last().pose().transformPosition(new Vector3f(0, 3.1f, 0)); // just over the head, in camera space
+		boolean shielded = e instanceof Player pl && pl.tickCount < Tools.FORCEFIELD_TICKS && pl.isAlive();
+		Vector3f middle = ps.last().pose().transformPosition(new Vector3f(0, -0.5f, 0));
+		if (shielded) ForceFieldFx.rings(ps, out);
 		ps.popPose();
+		if (shielded) ForceFieldFx.bubble(ps, out, middle);
 		return above;
 	}
 
@@ -140,7 +144,10 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	/** Billboard pose at `at` (camera space) with 1 unit = 1 screen pixel, nudged onto the pixel grid, pulled `k` steps toward the camera. */
 	private static void layer(PoseStack ps, Vector3f at, float perPx, float snapX, float snapY, int k, Runnable draw) {
 		ps.pushPose();
-		float pull = 1 - k * 0.002f;
+		// slid 2.5 studs toward the camera along the line of sight: same spot and size on screen, but in front of the
+		// head and its hats instead of behind them
+		float front = Math.max(0.15f, 1 - 2.5f * 0.28f / Math.max(1e-3f, at.length()));
+		float pull = front * (1 - k * 0.002f);
 		ps.last().pose().identity().translate(at.x * pull, at.y * pull, at.z * pull).rotate(Minecraft.getInstance().gameRenderer.mainCamera().rotation());
 		ps.last().normal().identity();
 		ps.scale(perPx * pull, -perPx * pull, perPx * pull);
