@@ -133,7 +133,7 @@ final class RbxFont {
 		out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.text(a.id), (pose, vc) -> {
 			if (outline != 0) for (int[] o : new int[][]{{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {1, 1}, {-1, 1}, {1, -1}})
 				glyphs(vc, pose, a, s, x + o[0], y + o[1], outline);
-			glyphs(vc, pose, a, s, x, y, argb);
+			if (argb >>> 24 != 0) glyphs(vc, pose, a, s, x, y, argb);
 		});
 	}
 

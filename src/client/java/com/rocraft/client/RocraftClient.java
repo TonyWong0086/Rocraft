@@ -53,6 +53,7 @@ public class RocraftClient implements ClientModInitializer {
 		});
 		reloadProfile();
 		Thread.startVirtualThread(() -> guest = RobloxProfile.load("", RocraftConfig.INSTANCE.apiKey));
+		com.rocraft.tools.Robloxian.USERS.forEach(RobloxianRenderer::profile); // preload every mob's avatar at startup
 		boolean[] firstRun = {RocraftConfig.FIRST_RUN};
 		boolean[] packOn = {false};
 		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {

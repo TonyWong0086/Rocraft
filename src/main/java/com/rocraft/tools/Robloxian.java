@@ -43,9 +43,9 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
- * A famous Robloxian as a mob, wearing their real Roblox avatar (drawn client side from their account). Neutral like
- * a Roblox NPC: wanders and looks at players, and fights back with the Linked Sword when hit. 100 Roblox health
- * (20 Minecraft), WalkSpeed 16, the sword's slash damage (10), "oof" when knocked out.
+ * A famous Robloxian as a mob, wearing their real Roblox avatar (drawn client side from their account). Empty-handed
+ * and peaceful like a Roblox NPC: wanders, looks at players, runs from whoever hurts it. 100 Roblox health
+ * (20 Minecraft), WalkSpeed 16, "oof" when knocked out.
  */
 public final class Robloxian extends PathfinderMob {
 	/** Roblox usernames: each gets its own mob type (rocraft:<lowercase>) and spawn egg. */
@@ -79,33 +79,22 @@ public final class Robloxian extends PathfinderMob {
 	static AttributeSupplier.Builder attributes() {
 		return Mob.createMobAttributes()
 			.add(Attributes.MAX_HEALTH, 100 * 0.2)
-			.add(Attributes.MOVEMENT_SPEED, 0.32) // mobs move at about speed^2: 0.32 ~ WalkSpeed 16
-			.add(Attributes.ATTACK_DAMAGE, 10 * 0.2) // Linked Sword slash
-			.add(Attributes.FOLLOW_RANGE, 32);
+			.add(Attributes.MOVEMENT_SPEED, 0.32); // mobs move at about speed^2: 0.32 ~ WalkSpeed 16
 	}
 
 	@Override
 	protected void registerGoals() {
 		goalSelector.addGoal(0, new FloatGoal(this));
-		goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0, true));
+		goalSelector.addGoal(1, new net.minecraft.world.entity.ai.goal.PanicGoal(this, 1.25));
 		goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
 		goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 12));
 		goalSelector.addGoal(7, new RandomLookAroundGoal(this));
-		targetSelector.addGoal(1, new HurtByTargetGoal(this));
 	}
 
 	@Override
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData data) {
-		setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Tools.LINKED_SWORD));
-		setDropChance(EquipmentSlot.MAINHAND, 0);
-		return super.finalizeSpawn(level, difficulty, reason, data);
-	}
-
-	@Override
-	public boolean doHurtTarget(ServerLevel level, Entity target) {
-		boolean hit = super.doHurtTarget(level, target);
-		RbxSounds.play(this, RbxSounds.SLASH);
-		return hit;
+	protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput in) {
+		super.readAdditionalSaveData(in);
+		setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY); // older Robloxians were spawned holding a sword
 	}
 
 	@Override protected SoundEvent getDeathSound() { return RbxSounds.OOF; }

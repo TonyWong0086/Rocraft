@@ -65,7 +65,7 @@ Everything is in the **Rocraft creative-inventory tab**. Each item is the real R
 
 ### Robloxian mobs
 Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam, KreekCraft, DenisDaily, Linkmon99 and PGHLego1945 roam the Overworld (rarely) wearing their **real Roblox avatars**, each with a spawn egg in the Rocraft tab.
-- Neutral, like a Roblox NPC: they wander and look at you, and fight back with the Linked Sword if you hit them.
+- Peaceful and empty-handed, like a Roblox NPC: they wander, look at you, and run if you hit them.
 - 100 health, walk speed 16, their name and health bar overhead, and "oof" when knocked out.
 
 **How gear feels**

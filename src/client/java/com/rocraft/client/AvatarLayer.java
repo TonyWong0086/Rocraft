@@ -88,30 +88,58 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	 */
 	static void nameTag(PoseStack ps, SubmitNodeCollector out, String name, float hp, Vector3f at) {
 		var mc = Minecraft.getInstance();
-		float dist = at.length();
-		if (dist > 100 * 0.28f) return; // NameDisplayDistance 100 studs
-		// world units per screen pixel at this distance, so 1 unit below = 1 screen pixel
+		float dist = at.length(), stud = 0.28f;
+		// NameDisplayDistance 100 studs: fades out over the last 20 (and back in as you come closer)
+		float fade = Math.clamp((100 * stud - dist) / (20 * stud), 0, 1);
+		if (fade <= 0) return;
+		// world units per screen pixel at this distance: 1 unit below = 1 screen pixel, so it keeps one size on screen
 		float perPx = (float) (2 * dist * Math.tan(Math.toRadians(mc.options.fov().get()) / 2) / mc.getWindow().getHeight());
-		ps.pushPose();
-		ps.last().pose().identity().translate(at).rotate(mc.gameRenderer.mainCamera().rotation());
-		ps.last().normal().identity();
-		ps.scale(perPx, -perPx, perPx);
 		int px = Math.max(16, mc.getWindow().getHeight() / 50), w = RbxFont.worldWidth(name, px, "r");
 		boolean hurt = hp < 1;
-		int bw = Math.max(40, px * 3), bh = Math.max(5, px / 3);
-		float ty = -px - (hurt ? bh + 4 : 2);
-		// white Source Sans with a light dark stroke, like Roblox's name display
-		RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", 0xFFFFFFFF, 0x50000000);
-		if (hurt) { // rounded bar: dark outline, grey track, then the fill fading green -> yellow -> red
-			float h = Math.max(0, hp), x0 = -bw / 2f, y0 = -bh - 1;
-			var white = BombRenderer.BALL.texture(); // a 1x1 white texture
-			out.submitCustomGeometry(ps, net.minecraft.client.renderer.rendertype.RenderTypes.text(white), (pose, vc) -> {
-				pill(vc, pose, x0 - 1, y0 - 1, bw + 2, bh + 2, 0xB4141414);
-				pill(vc, pose, x0, y0, bw, bh, 0xFF505050);
-				if (h > 0) pill(vc, pose, x0, y0, Math.max(bh, bw * h), bh, healthColor(h));
-			});
-		}
+		int bw = Math.max(40, px * 3), bh = Math.max(4, px / 4);
+		float ty = -px - (hurt ? bh + 6 : 2), h = Math.max(0, hp), x0 = -bw / 2f, y0 = -bh - 2;
+		int a = Math.round(fade * 255);
+		// every layer sits a hair nearer the camera than the one before, so stroke / text and border / fill never z-fight
+		layer(ps, at, perPx, 0, () -> RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", 0, alpha(0x50000000, a)));
+		layer(ps, at, perPx, 1, () -> RbxFont.world(ps, out, name, -w / 2f, ty, px, "r", alpha(0xFFFFFFFF, a), 0));
+		if (!hurt) return;
+		var white = net.minecraft.client.renderer.rendertype.RenderTypes.text(BombRenderer.BALL.texture()); // a 1x1 white texture
+		// Roblox's overhead bar: a thin dark border, a 1 px gap, then the fill (green -> yellow -> red) on a dim track
+		layer(ps, at, perPx, 0, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> ring(vc, pose, x0, y0, bw, bh, 1, 2, alpha(0xE6141414, a))));
+		layer(ps, at, perPx, 1, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> pill(vc, pose, x0, y0, bw, bh, alpha(0x80303030, a))));
+		if (h > 0) layer(ps, at, perPx, 2, () -> out.submitCustomGeometry(ps, white, (pose, vc) -> pill(vc, pose, x0, y0, Math.max(bh, bw * h), bh, alpha(healthColor(h), a))));
+	}
+
+	private static int alpha(int argb, int a) { return ((argb >>> 24) * a / 255) << 24 | argb & 0xFFFFFF; }
+
+	/** Billboard pose at `at` (camera space), pulled `k` steps toward the camera. */
+	private static void layer(PoseStack ps, Vector3f at, float perPx, int k, Runnable draw) {
+		ps.pushPose();
+		float pull = 1 - k * 0.002f;
+		ps.last().pose().identity().translate(at.x * pull, at.y * pull, at.z * pull).rotate(Minecraft.getInstance().gameRenderer.mainCamera().rotation());
+		ps.last().normal().identity();
+		ps.scale(perPx * pull, -perPx * pull, perPx * pull);
+		draw.run();
 		ps.popPose();
+	}
+
+	/** Capsule outline: the band between the capsule grown by `in` and by `out` pixels (drawn both sides). */
+	private static void ring(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose pose, float x, float y, float w, float h, float in, float out, int argb) {
+		float r = h / 2, cy = y + r, l = x + r, rt = Math.max(l, x + w - r);
+		int n = 8;
+		float[][] dir = new float[2 * n + 2][]; // perimeter: right cap top -> bottom, then left cap bottom -> top
+		for (int i = 0; i <= n; i++) {
+			double a = -Math.PI / 2 + Math.PI * i / n;
+			dir[i] = new float[]{rt, (float) Math.cos(a), (float) Math.sin(a)};
+			dir[n + 1 + i] = new float[]{l, (float) -Math.cos(a), (float) -Math.sin(a)};
+		}
+		for (int i = 0; i < dir.length; i++) {
+			float[] p = dir[i], q = dir[(i + 1) % dir.length];
+			float pix = p[0] + p[1] * (r + in), piy = cy + p[2] * (r + in), pox = p[0] + p[1] * (r + out), poy = cy + p[2] * (r + out);
+			float qix = q[0] + q[1] * (r + in), qiy = cy + q[2] * (r + in), qox = q[0] + q[1] * (r + out), qoy = cy + q[2] * (r + out);
+			quad(vc, pose, argb, pix, piy, pox, poy, qox, qoy, qix, qiy);
+			quad(vc, pose, argb, qix, qiy, qox, qoy, pox, poy, pix, piy);
+		}
 	}
 
 	/**
