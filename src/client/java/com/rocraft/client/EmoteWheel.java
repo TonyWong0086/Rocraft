@@ -52,7 +52,7 @@ public final class EmoteWheel extends Screen {
 
 	@Override public boolean isPauseScreen() { return false; }
 
-	private int s() { return minecraft.getWindow().getGuiScale(); }
+	private int s() { return Hud2018.PX; } // Roblox pixels per GUI unit, so the screen follows Minecraft's GUI scale
 
 	@Override
 	public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float dt) {
@@ -61,7 +61,7 @@ public final class EmoteWheel extends Screen {
 		my = mouseY * s;
 		var m = g.pose();
 		m.pushMatrix();
-		m.scale(1f / s, 1f / s); // screen pixels
+		m.scale(1f / s, 1f / s); // Roblox pixels
 		int D = H >= 900 ? 400 : 300, cx = W / 2, cy = H / 2;
 		float k = D / 400f; // Large textures are laid out for a 400 px wheel
 		boolean r15 = RocraftClient.profile.r15 != null;

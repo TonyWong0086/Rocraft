@@ -13,16 +13,18 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
 /**
- * 2018 Roblox HUD, drawn in real screen pixels like Roblox does: top bar (menu, chat, backpack, name, health),
+ * 2018 Roblox HUD, drawn in Roblox pixels (Hud2018.PX per GUI unit, so it follows Minecraft's GUI scale): top bar (menu, chat, backpack, name, health),
  * player list under it, backpack hotbar at the bottom. Vanilla bars hide while it's on (Graphics > 2018 HUD).
  */
 final class Hud2018 {
 	static final String UI = "textures/ui/";
 	static final int BG = 0x801F1F1F;            // Color3(31,31,31), transparency 0.5
 	static final int EQUIP = 0xFF5A8EE9;         // Color3(90,142,233), equipped slot border
+	/** Roblox pixels per Minecraft GUI unit: the 2018 UI scales with Minecraft's GUI scale and looks 1:1 at GUI scale 2. */
+	static final int PX = 2;
 	static final int TOP = 36, SLOT = 60, GAP = 5;
 
-	/** Hotbar slots drawn last frame: {x, y, inventory slot} in screen pixels, for mouse clicks. */
+	/** Hotbar slots drawn last frame: {x, y, inventory slot} in Roblox pixels, for mouse clicks. */
 	static final List<int[]> SLOTS = new ArrayList<>();
 
 	/**
@@ -75,10 +77,10 @@ final class Hud2018 {
 	static void draw(GuiGraphicsExtractor g, DeltaTracker dt) {
 		Minecraft mc = Minecraft.getInstance();
 		if (!RocraftConfig.INSTANCE.hud2018 || mc.player == null) return;
-		int s = mc.getWindow().getGuiScale(), W = g.guiWidth() * s, H = g.guiHeight() * s;
+		int s = PX, W = g.guiWidth() * s, H = g.guiHeight() * s;
 		var m = g.pose();
 		m.pushMatrix();
-		m.scale(1f / s, 1f / s); // from here on, 1 unit = 1 screen pixel
+		m.scale(1f / s, 1f / s); // from here on, 1 unit = 1 Roblox pixel (PX per GUI unit)
 
 		// top bar
 		g.fill(0, 0, W, TOP, BG);

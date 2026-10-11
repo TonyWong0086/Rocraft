@@ -17,7 +17,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 /**
  * Rocraft settings drawn as the 2018 Roblox settings menu (SettingsHub): dark shield, tab bar with the menu icons and
- * blue selection underline, rows of "label  < value >", rounded menu buttons. Laid out in real screen pixels with
+ * blue selection underline, rows of "label  < value >", rounded menu buttons. Laid out in Roblox pixels (Hud2018.PX per GUI unit) with
  * Roblox's own textures and SourceSans, like the HUD.
  */
 public final class SettingsScreen extends Screen {
@@ -38,7 +38,7 @@ public final class SettingsScreen extends Screen {
 	private final Screen parent;
 	private int tab;
 	private EditBox user, key;
-	private int mx, my; // mouse, screen px
+	private int mx, my; // mouse, Roblox px
 
 	public SettingsScreen(Screen parent, int tab) {
 		super(Component.literal("Rocraft Settings"));
@@ -46,7 +46,7 @@ public final class SettingsScreen extends Screen {
 		this.tab = tab;
 	}
 
-	private int s() { return minecraft.getWindow().getGuiScale(); }
+	private int s() { return Hud2018.PX; } // Roblox pixels per GUI unit, so the screen follows Minecraft's GUI scale
 	private int W() { return width * s(); }
 	private int H() { return height * s(); }
 	private int hubW() { return Math.min(860, W() - 40); }

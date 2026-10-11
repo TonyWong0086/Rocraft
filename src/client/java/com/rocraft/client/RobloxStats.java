@@ -22,11 +22,11 @@ public final class RobloxStats {
 		if (mc.player == null || mc.level == null) return;
 		long now = System.currentTimeMillis();
 		if (now - builtAt > 250) { builtAt = now; build(mc); }
-		int s = mc.getWindow().getGuiScale(), H = g.guiHeight() * s;
+		int s = Hud2018.PX, H = g.guiHeight() * s;
 		int px = H >= 900 ? 15 : 12, line = px + px / 4 + 1;
 		var m = g.pose();
 		m.pushMatrix();
-		m.scale(1f / s, 1f / s); // screen pixels, like the rest of the 2018 HUD
+		m.scale(1f / s, 1f / s); // Roblox pixels, like the rest of the 2018 HUD
 		int x = 8, y = Hud2018.TOP + 8;
 		x = panel(g, left, x, y, px, line) + 8;
 		panel(g, right, x, y, px, line);

@@ -13,7 +13,7 @@ import net.minecraft.client.gui.screens.ChatScreen;
  * The 2018 Roblox chat window (Lua chat defaults): top-left under the top bar, 30% x 25% of the screen,
  * "[Name]: message" in SourceSansBold 18 with a light text stroke, names coloured by Roblox's name-colour hash,
  * lines filling the window from the top, text fading 30 s after it arrives, the channel welcome message on joining,
- * and the chat bar while typing. Drawn in screen pixels by Hud2018.
+ * and the chat bar while typing. Drawn in Roblox pixels by Hud2018.
  */
 final class RobloxChat {
 	static final int TEXT = 18, BAR_H = 44, PAD = 8;

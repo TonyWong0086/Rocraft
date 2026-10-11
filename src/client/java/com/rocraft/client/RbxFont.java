@@ -89,11 +89,15 @@ final class RbxFont {
 	/** Width of s in a font ("b", "r" or LEGACY). */
 	static int width(String s, int px, String font) {
 		if (font(font) == null) return Math.round(Minecraft.getInstance().font.width(s) * px / 9f);
-		Atlas a = atlas(px, font);
+		float k = sharp();
+		Atlas a = atlas(px * k, font);
 		int n = 0;
 		for (char c : s.toCharArray()) n += a.w[ch(c)];
-		return n;
+		return Math.round(n / k);
 	}
+
+	/** Screen pixels per Roblox pixel: HUD text is rasterised at its on-screen size, so it stays sharp at any GUI scale. */
+	private static float sharp() { return Minecraft.getInstance().getWindow().getGuiScale() / (float) Hud2018.PX; }
 
 	static void draw(GuiGraphicsExtractor g, String s, int x, int y, int px, boolean bold, int argb) { draw(g, s, x, y, px, bold ? "b" : "r", argb); }
 
@@ -110,12 +114,19 @@ final class RbxFont {
 			m.popMatrix();
 			return;
 		}
-		Atlas a = atlas(px, font);
+		float k = sharp();
+		Atlas a = atlas(px * k, font);
+		var m = g.pose();
+		m.pushMatrix();
+		m.translate(x, y);
+		m.scale(1 / k, 1 / k);
+		int cx = 0;
 		for (char c0 : s.toCharArray()) {
 			int c = ch(c0);
-			g.blit(RenderPipelines.GUI_TEXTURED, a.id, x, y, a.u[c], a.v[c], a.w[c], a.lineH, a.texW, a.texH, argb);
-			x += a.w[c];
+			g.blit(RenderPipelines.GUI_TEXTURED, a.id, cx, 0, a.u[c], a.v[c], a.w[c], a.lineH, a.texW, a.texH, argb);
+			cx += a.w[c];
 		}
+		m.popMatrix();
 	}
 
 	/**

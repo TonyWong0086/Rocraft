@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
  * 2018 Roblox notifications (StarterGui:SetCore("SendNotification"), NotificationScript2): 200 x 64 square-cornered
  * see-through black boxes at the bottom right, newest at the bottom, sliding in from the right (0.35 s, Sine), shown
  * 5 s; optional 48 px icon on the left, bold 18 px white title, 14 px light grey text under it. Drawn by Hud2018 in
- * screen pixels. Look measured from a 2018 screenshot.
+ * Roblox pixels. Look measured from a 2018 screenshot.
  */
 public final class RobloxNotify {
 	static final int W = 200, H = 64, GAP = 4, MARGIN = 4, SLIDE_MS = 350, DURATION_MS = 5000;

@@ -86,7 +86,8 @@ public final class RobloxMouse {
 		if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 			if (active() && press && com.rocraft.RocraftConfig.INSTANCE.hud2018) { // clicking a backpack slot equips / unequips it
 				var w = mc.getWindow();
-				double sx = mc.mouseHandler.xpos() * w.getWidth() / w.getScreenWidth(), sy = mc.mouseHandler.ypos() * w.getHeight() / w.getScreenHeight();
+				double k = (double) Hud2018.PX / w.getGuiScale(); // framebuffer pixels -> the HUD's Roblox pixels
+				double sx = mc.mouseHandler.xpos() * w.getWidth() / w.getScreenWidth() * k, sy = mc.mouseHandler.ypos() * w.getHeight() / w.getScreenHeight() * k;
 				int slot = Hud2018.slotAt(sx, sy);
 				if (slot >= 0) { Hud2018.toggle(mc, slot); return true; }
 				if (Hud2018.onEmotes(sx, sy)) { EmoteWheel.open(); return true; }
