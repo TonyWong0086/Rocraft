@@ -10,10 +10,7 @@ import net.minecraft.resources.Identifier;
 
 /** Reads UI textures and fonts from the user's own Roblox install at runtime. Nothing is copied into the mod. */
 final class RobloxAssets {
-	static final Path CONTENT = find();
-	private static final Map<String, Optional<Identifier>> TEX = new HashMap<>();
-
-	/** Where Roblox Player/Studio keep their files on each OS; "*" matches any one folder. */
+	/** Where Roblox Player/Studio keep their files on each OS; "*" matches any one folder. Must stay above CONTENT (static init order). */
 	private static final String[] INSTALLS = {
 		"%LOCALAPPDATA%/Roblox/Versions", "C:/Program Files (x86)/Roblox/Versions", "C:/Program Files/Roblox/Versions",
 		"/Applications/Roblox.app/Contents/Resources", "/Applications/RobloxStudio.app/Contents/Resources",
@@ -22,6 +19,8 @@ final class RobloxAssets {
 		"~/.var/app/org.vinegarhq.Sober/data/sober", "~/.var/app/org.vinegarhq.Vinegar/data/vinegar", "~/.local/share/vinegar",
 		"~/.wine/drive_c/users/*/AppData/Local/Roblox/Versions",
 		"~/.local/share/grapejuice/prefixes/*/drive_c/users/*/AppData/Local/Roblox/Versions"};
+	static final Path CONTENT = find();
+	private static final Map<String, Optional<Identifier>> TEX = new HashMap<>();
 
 	/** The newest Roblox content/ folder (one holding fonts/) under any known install, or null. */
 	private static Path find() {
