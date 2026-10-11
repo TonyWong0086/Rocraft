@@ -311,7 +311,7 @@ The oldest tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel, foods, Te
 <details>
 <summary><b>Will other players see my avatar?</b></summary>
 
-Yes, if they have Rocraft too. When you join a world, Rocraft tells the server your Roblox username and rig (R6 or R15), and the server passes it to everyone else, so each player sees the others' real avatars and the emotes they play. This works on a dedicated server, on Open to LAN, and on worlds shared with e4mc; the host just needs Rocraft installed. Players without Rocraft, or without a Roblox username set, appear as the 2017 Guest. Each viewer downloads the avatars with their own API key.
+Yes, if they have Rocraft too. When you join a world, Rocraft tells the server your Roblox username and rig (R6 or R15), and the server passes it to everyone else, so each player sees the others' real avatars and the emotes they play. This works on a dedicated server, on Open to LAN, and on worlds shared with e4all; the host just needs Rocraft installed. Players without Rocraft, or without a Roblox username set, appear as the 2017 Guest. Each viewer downloads the avatars with their own API key.
 </details>
 
 <details>
