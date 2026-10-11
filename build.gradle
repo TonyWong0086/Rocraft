@@ -3,6 +3,10 @@ plugins {
 	id 'maven-publish'
 }
 
+// every build is told apart by its commit (1.0.0+f02435d): a jar that only says 1.0.0 looks unchanged to launchers' shared instances
+def gitCommit = providers.exec { commandLine 'git', 'rev-parse', '--short', 'HEAD'; ignoreExitValue = true }.standardOutput.asText.get().trim()
+if (gitCommit) version = "${version}+${gitCommit}"
+
 repositories {
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
