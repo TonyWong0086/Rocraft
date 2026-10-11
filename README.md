@@ -11,7 +11,7 @@ Your real Roblox avatar, the classic gear, the 2018 interface and Roblox physics
 [![Java 25](https://img.shields.io/badge/Java-25-ED8B00?style=for-the-badge)](https://adoptium.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-00A2FF?style=for-the-badge)](LICENSE)
 
-[**Quick start**](#-quick-start) · [**Features**](#-features) · [**What makes it different**](#-what-makes-it-different) · [**Under the hood**](#-under-the-hood) · [**Compatibility**](#-compatibility) · [**FAQ**](#-faq)
+[**Quick start**](#quick-start) · [**Features**](#features) · [**What makes it different**](#what-makes-it-different) · [**Under the hood**](#under-the-hood) · [**Compatibility**](#compatibility) · [**FAQ**](#faq)
 
 ![Your avatar and the Robloxian mobs in a Minecraft world, with the 2018 top bar and the classic gear in the backpack hotbar](screenshots/robloxians.png)
 
@@ -19,25 +19,25 @@ Your real Roblox avatar, the classic gear, the 2018 interface and Roblox physics
 
 ---
 
-## ✨ At a glance
+## At a glance
 
 <table>
 <tr>
 <td width="33%" valign="top">
 
-### 🧍 Your real avatar
+### Your real avatar
 Built from Roblox's own meshes, not a reshaped Minecraft skin. R6 or R15, with your clothes, accessories, face, body package and Roblox's animations.
 
 </td>
 <td width="33%" valign="top">
 
-### ⚔️ The classic gear
+### The classic gear
 Linked Sword, Rocket Launcher, Superball, Trowel, coils, Hoverboard and more. Each is the real Roblox model, behaving the way its original script did.
 
 </td>
 <td width="33%" valign="top">
 
-### 🖥️ The 2018 interface
+### The 2018 interface
 Top bar, backpack hotbar, 2018 chat, notifications, the settings menu, the emote wheel and Roblox-style F3 stats.
 
 </td>
@@ -45,19 +45,19 @@ Top bar, backpack hotbar, 2018 chat, notifications, the settings menu, the emote
 <tr>
 <td valign="top">
 
-### 🏃 Roblox physics
+### Roblox physics
 Walk speed 16, Roblox jump height and gravity, worked out in studs and fitted to Minecraft's tick. Characters fall apart and "oof" when they die.
 
 </td>
 <td valign="top">
 
-### 👥 Robloxian mobs
+### Robloxian mobs
 Shedletsky, builderman, Stickmasterluke and ten others roam the world in their real avatars or a chosen classic outfit.
 
 </td>
 <td valign="top">
 
-### 🔒 Nothing shipped, nothing hooked
+### Nothing shipped, nothing hooked
 No Roblox asset is in the jar. Everything loads from your own Roblox install and your own API key, and the Roblox client is never touched.
 
 </td>
@@ -66,7 +66,7 @@ No Roblox asset is in the jar. Everything loads from your own Roblox install and
 
 ---
 
-## 🚀 Quick start
+## Quick start
 
 > [!IMPORTANT]
 > Rocraft needs **Roblox installed on the same PC** and a **free Roblox Open Cloud API key**. That's how it gets Roblox's assets without shipping any of them. Without them you get plain Minecraft visuals, the Guest's body colours, no animations and no gear models.
@@ -96,7 +96,7 @@ The same steps are in game, with a button that opens the credentials page and a 
 
 ---
 
-## 🎮 Features
+## Features
 
 ### Avatar
 - **Your real Roblox avatar**, built from Roblox's own R6 meshes, with body colours, shirt and pants from your profile.
@@ -112,7 +112,7 @@ The same steps are in game, with a button that opens the credentials page and a 
 Everything is in the **Rocraft creative-inventory tab**, using the real Roblox model, grip, icon and sounds. Damage is scaled ×0.2, so Roblox's 100 health maps to Minecraft's 20.
 
 <details>
-<summary><b>⚔️ Weapons</b></summary>
+<summary><b>Weapons</b></summary>
 
 | Gear | What it does |
 |---|---|
@@ -125,7 +125,7 @@ Everything is in the **Rocraft creative-inventory tab**, using the real Roblox m
 </details>
 
 <details>
-<summary><b>🧱 Building and getting around</b></summary>
+<summary><b>Building and getting around</b></summary>
 
 | Gear | What it does |
 |---|---|
@@ -138,7 +138,7 @@ Everything is in the **Rocraft creative-inventory tab**, using the real Roblox m
 </details>
 
 <details>
-<summary><b>🍔 Food, fun and hats</b></summary>
+<summary><b>Food, fun and hats</b></summary>
 
 | Gear | What it does |
 |---|---|
@@ -190,7 +190,7 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 
 ---
 
-## 💎 What makes it different
+## What makes it different
 
 **It's Roblox's data, not an imitation.** Rocraft doesn't approximate Roblox with Minecraft models. It reads Roblox's own file formats and runs them in Minecraft:
 - **Meshes:** every Roblox `.mesh` version from 1.00 to 7.00, including the Draco-compressed geometry newer meshes use.
@@ -215,7 +215,7 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 
 ---
 
-## 🛠️ Under the hood
+## Under the hood
 
 | Layer | Technology |
 |---|---|
@@ -252,27 +252,27 @@ src/client/java/com/rocraft/client/
 
 ---
 
-## 🧩 Compatibility
+## Compatibility
 
 Tested with these performance mods (Minecraft 26.2, Fabric API 0.161.0): no mixin failures, and the avatar, HUD, chat, F3 panels, emote wheel and settings all render normally.
 
 | Mod | Version | Status | Notes |
 |---|---|:-:|---|
-| Sodium | 0.9.2 | ✅ | F3 shows chunks and chunk builds as "by Sodium" |
-| Sodium Extra | 0.9.4 | ✅ | Turning particles off also hides Roblox's effects |
-| Lithium | 0.25.3 | ✅ | Roblox movement and gear physics unchanged |
-| FerriteCore | 9.0.0 | ✅ | Memory only |
-| ImmediatelyFast | 1.16.5 | ✅ | HUD, fonts and menus draw correctly |
-| EntityCulling | 1.11.3 | ✅ | Rocraft hands its entity culling over to it |
-| MoreCulling | 1.8.1 | ✅ | Needs Cloth Config |
-| BadOptimizations | 2.4.1 | ✅ | |
-| Cloth Config | 26.2.155 | ✅ | |
+| Sodium | 0.9.2 | Yes | F3 shows chunks and chunk builds as "by Sodium" |
+| Sodium Extra | 0.9.4 | Yes | Turning particles off also hides Roblox's effects |
+| Lithium | 0.25.3 | Yes | Roblox movement and gear physics unchanged |
+| FerriteCore | 9.0.0 | Yes | Memory only |
+| ImmediatelyFast | 1.16.5 | Yes | HUD, fonts and menus draw correctly |
+| EntityCulling | 1.11.3 | Yes | Rocraft hands its entity culling over to it |
+| MoreCulling | 1.8.1 | Yes | Needs Cloth Config |
+| BadOptimizations | 2.4.1 | Yes | |
+| Cloth Config | 26.2.155 | Yes | |
 
 Rocraft also detects C2ME, ModernFix, Dynamic FPS, Iris, Krypton, Noisium and VMP and works alongside them, but these haven't been tested in game. When a mod already does one of Rocraft's built-in optimisations (entity culling, unfocused FPS limit), Rocraft steps aside and the setting shows "By <mod>".
 
 ---
 
-## ⚙️ Settings
+## Settings
 
 Everything is in the in-game **Settings** menu and saved to `config/rocraft.json`.
 
@@ -296,7 +296,7 @@ The **Graphics** tab adds:
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 <details>
 <summary><b>Where do the Roblox assets come from?</b></summary>
@@ -328,7 +328,7 @@ No. The Roblox client is never launched, hooked or modified. Rocraft reads files
 
 ---
 
-## 🧭 Known limitations
+## Known limitations
 - Command suggestions (the `/` popup) don't show while the 2018 chat is on.
 - Particle sizes and lifetimes are estimates.
 - The hoverboard climbs one-block steps (Roblox's can't), so it doesn't get stuck on terrain. Only the rider hears its ride sounds.
@@ -339,7 +339,7 @@ No. The Roblox client is never launched, hooked or modified. Rocraft reads files
 
 ---
 
-## 🔨 Build from source
+## Build from source
 
 ```bash
 ./gradlew build          # → build/libs/rocraft-1.0.0.jar
@@ -349,7 +349,7 @@ No. The Roblox client is never launched, hooked or modified. Rocraft reads files
 
 ---
 
-## 🙏 Credits
+## Credits
 
 - **Inspired by [@coah80](https://x.com/coah80)** on X.
 - **Built with [Claude Code](https://claude.com/claude-code).** Rocraft is vibecoded: written almost entirely by AI from prompts, with every feature tested in game. Expect the occasional rough edge, and please report it.
