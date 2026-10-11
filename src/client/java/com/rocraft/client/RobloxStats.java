@@ -90,7 +90,8 @@ public final class RobloxStats {
 	}
 
 	private static void text(GuiGraphicsExtractor g, String s, int x, int y, int px) {
-		RbxFont.draw(g, s, x, y, px, RbxFont.CODE, 0xFFFFFFFF); // plain white, no shadow, as Roblox's stats
+		RbxFont.draw(g, s, x + 1, y + 1, px, RbxFont.CODE, 0xFF000000); // black drop shadow, as Roblox's stats
+		RbxFont.draw(g, s, x, y, px, RbxFont.CODE, 0xFFFFFFFF);
 	}
 
 	private static void build(Minecraft mc) {
