@@ -19,7 +19,7 @@ import net.minecraft.resources.Identifier;
 final class Hud2018 {
 	static final String UI = "textures/ui/";
 	static final int BG = 0x801F1F1F;            // Color3(31,31,31), transparency 0.5
-	static final int EQUIP = 0x805A8EE9;         // Color3(90,142,233), transparency 0.5: equipped slot
+	static final int EQUIP = 0xFF5A8EE9;         // Color3(90,142,233), equipped slot border
 	static final int TOP = 36, SLOT = 60, GAP = 5;
 
 	/** Hotbar slots drawn last frame: {x, y, inventory slot} in screen pixels, for mouse clicks. */
@@ -134,7 +134,13 @@ final class Hud2018 {
 		for (int i : slots) {
 			SLOTS.add(new int[]{x, y, i});
 			boolean on = i == inv.getSelectedSlot() && i != holsterSlot;
-			g.fill(x, y, x + SLOT, y + SLOT, on ? EQUIP : BG); // equipped: the slot itself turns blue, no outer border
+			g.fill(x, y, x + SLOT, y + SLOT, BG); // same background equipped or not
+			if (on) { // equipped: a heavy blue border around the slot
+				g.fill(x - 3, y - 3, x + SLOT + 3, y, EQUIP);
+				g.fill(x - 3, y + SLOT, x + SLOT + 3, y + SLOT + 3, EQUIP);
+				g.fill(x - 3, y, x, y + SLOT, EQUIP);
+				g.fill(x + SLOT, y, x + SLOT + 3, y + SLOT, EQUIP);
+			}
 			var st = i == holsterSlot ? holsterItem : inv.getItem(i);
 			m.pushMatrix();
 			m.translate(x + 8, y + 8);
