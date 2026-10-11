@@ -135,11 +135,12 @@ final class Hud2018 {
 			SLOTS.add(new int[]{x, y, i});
 			boolean on = i == inv.getSelectedSlot() && i != holsterSlot;
 			g.fill(x, y, x + SLOT, y + SLOT, BG); // same background equipped or not
-			if (on) { // equipped: a heavy blue border around the slot
-				g.fill(x - 3, y - 3, x + SLOT + 3, y, EQUIP);
-				g.fill(x - 3, y + SLOT, x + SLOT + 3, y + SLOT + 3, EQUIP);
-				g.fill(x - 3, y, x, y + SLOT, EQUIP);
-				g.fill(x + SLOT, y, x + SLOT + 3, y + SLOT, EQUIP);
+			if (on) { // equipped: a blue border inside the slot, a tenth of its size thick (Roblox's SLOT_EQUIP_THICKNESS)
+				int t = SLOT / 10;
+				g.fill(x, y, x + SLOT, y + t, EQUIP);
+				g.fill(x, y + SLOT - t, x + SLOT, y + SLOT, EQUIP);
+				g.fill(x, y + t, x + t, y + SLOT - t, EQUIP);
+				g.fill(x + SLOT - t, y + t, x + SLOT, y + SLOT - t, EQUIP);
 			}
 			var st = i == holsterSlot ? holsterItem : inv.getItem(i);
 			m.pushMatrix();
