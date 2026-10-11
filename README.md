@@ -281,6 +281,7 @@ Everything is in the in-game **Settings** menu and saved to `config/rocraft.json
 | `username` | | Your Roblox username |
 | `apiKey` | | Your Open Cloud key (private) |
 | `avatarType` | `R6` | `R6` or `R15` |
+| `robloxPath` | | Only if Rocraft can't find Roblox on its own (the log says "No Roblox install found"): your Roblox install or its `content` folder, e.g. `/Applications/Roblox.app` |
 | `robloxMovement` | on | Roblox walk speed, jump height and gravity |
 | `fallDamage` | off | Minecraft fall damage |
 | `hunger` | off | Minecraft hunger |

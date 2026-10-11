@@ -22,20 +22,30 @@ final class RobloxAssets {
 	static final Path CONTENT = find();
 	private static final Map<String, Optional<Identifier>> TEX = new HashMap<>();
 
-	/** The newest Roblox content/ folder (one holding fonts/) under any known install, or null. */
+	/** The newest Roblox content/ folder (one holding textures/) under robloxPath from the config, else under any known install; or null. */
 	private static Path find() {
-		String home = System.getProperty("user.home"), local = System.getenv("LOCALAPPDATA");
+		String home = System.getProperty("user.home").replace('\\', '/'), local = System.getenv("LOCALAPPDATA");
+		String manual = com.rocraft.RocraftConfig.INSTANCE.robloxPath.trim().replace('\\', '/').replaceFirst("^~", home);
 		List<Path> found = new ArrayList<>();
-		for (String pattern : INSTALLS) {
-			if (pattern.startsWith("%LOCALAPPDATA%") && local == null) continue;
-			for (Path root : expand(pattern.replace("%LOCALAPPDATA%", String.valueOf(local)).replaceFirst("^~", home.replace('\\', '/'))))
-				try (var s = Files.find(root, 4, (p, a) -> a.isDirectory() && p.getFileName().toString().equals("content") && Files.isDirectory(p.resolve("fonts")))) {
-					s.forEach(found::add);
-				} catch (Exception ignored) {}
+		if (!manual.isEmpty()) contentUnder(Path.of(manual), found);
+		if (found.isEmpty()) {
+			if (!manual.isEmpty()) Rocraft.LOGGER.warn("robloxPath {} has no Roblox content folder; searching the usual places", manual);
+			for (String pattern : INSTALLS) {
+				if (pattern.startsWith("%LOCALAPPDATA%") && local == null) continue;
+				for (Path root : expand(pattern.replace("%LOCALAPPDATA%", String.valueOf(local)).replaceFirst("^~", home))) contentUnder(root, found);
+			}
 		}
 		Path best = found.stream().max(Comparator.comparingLong(p -> p.toFile().lastModified())).orElse(null);
-		Rocraft.LOGGER.info(best == null ? "No Roblox install found; using placeholder UI" : "Roblox content: " + best);
+		if (best == null) Rocraft.LOGGER.warn("No Roblox install found; using placeholder UI. Set robloxPath in config/rocraft.json to your Roblox install.");
+		else Rocraft.LOGGER.info("Roblox content: {}", best);
 		return best;
+	}
+
+	private static void contentUnder(Path root, List<Path> found) {
+		try (var s = Files.find(root, 4, (p, a) -> a.isDirectory() && p.getFileName() != null
+				&& p.getFileName().toString().equalsIgnoreCase("content") && Files.isDirectory(p.resolve("textures")))) {
+			s.forEach(found::add);
+		} catch (Exception ignored) {}
 	}
 
 	/** Existing folders matching a path whose "*" segments match any one folder. */

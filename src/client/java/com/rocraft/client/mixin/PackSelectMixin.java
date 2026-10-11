@@ -12,7 +12,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class PackSelectMixin {
 	@Inject(method = "loadSelectedResourcePacks", at = @At("HEAD"))
 	private void rocraft$selectRobloxPack(PackRepository repository, CallbackInfo ci) {
-		var packs = ((Options) (Object) this).resourcePacks;
-		if (!packs.contains(com.rocraft.client.RocraftClient.ROBLOX_PACK)) packs.add(com.rocraft.client.RocraftClient.ROBLOX_PACK);
+		var o = (Options) (Object) this;
+		String id = com.rocraft.client.RocraftClient.ROBLOX_PACK;
+		if (!o.resourcePacks.contains(id)) o.resourcePacks.add(id);
+		// vanilla skips a pack for one launch when it comes off the incompatible list (an old pack format), so never leave it there
+		o.incompatibleResourcePacks.remove(id);
 	}
 }
