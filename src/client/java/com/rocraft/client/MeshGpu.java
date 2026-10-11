@@ -1,27 +1,27 @@
 package com.rocraft.client;
 
-import com.mojang.blaze3d.GpuFormat;
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.buffers.Std140Builder;
-import com.mojang.blaze3d.pipeline.BindGroupLayout;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.shaders.UniformType;
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
+import com.mojang.renderpearl.api.pipeline.DepthStencilState;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.UniformType;
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 import com.rocraft.Rocraft;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import net.minecraft.client.renderer.BindGroupLayouts;
-import net.minecraft.client.renderer.DynamicUniformStorage;
+import net.minecraft.client.renderer.DynamicGpuDataStorage;
+import net.minecraft.client.renderer.DynamicGpuDataStorageMapped;
+import net.minecraft.client.renderer.oit.OitStage;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.feature.FeatureFrameContext;
 import net.minecraft.client.renderer.feature.FeatureRenderer;
@@ -52,9 +52,9 @@ final class MeshGpu implements FeatureRenderer<MeshGpu.Submit> {
 		.withBindGroupLayout(BindGroupLayouts.SAMPLER0_SAMPLER1_SAMPLER2)
 		.withBindGroupLayout(BindGroupLayout.builder().withUniform("RocraftMesh", UniformType.UNIFORM_BUFFER).build())
 		.withVertexBinding(0, FORMAT).withPrimitiveTopology(PrimitiveTopology.TRIANGLES).withDepthStencilState(DepthStencilState.DEFAULT)
-		.withCull(false).build();
+		.withCull(false).withColorTargetState(com.mojang.renderpearl.api.pipeline.ColorTargetState.DEFAULT).build();
 	private static final int UBO_SIZE = new com.mojang.blaze3d.buffers.Std140SizeCalculator().putMat4f().putMat4f().putVec4().putIVec4().get();
-	private static DynamicUniformStorage<Uniform> uniforms;
+	private static DynamicGpuDataStorageMapped<Uniform> uniforms;
 	/** Buffers of meshes that were garbage collected, closed on the render thread. */
 	private static final ConcurrentLinkedQueue<GpuBuffer> DEAD = new ConcurrentLinkedQueue<>();
 	private static final java.lang.ref.Cleaner CLEANER = java.lang.ref.Cleaner.create();
@@ -64,7 +64,7 @@ final class MeshGpu implements FeatureRenderer<MeshGpu.Submit> {
 		@Override public FeatureRendererType<Submit> featureType() { return TYPE; }
 	}
 
-	private record Uniform(Matrix4f pose, Matrix4f normal, int argb, int light) implements DynamicUniformStorage.DynamicUniform {
+	private record Uniform(Matrix4f pose, Matrix4f normal, int argb, int light) implements DynamicGpuDataStorage.DynamicGpuData {
 		@Override public void write(ByteBuffer b) {
 			int overlay = net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY;
 			Std140Builder.intoBuffer(b).putMat4f(pose).putMat4f(normal)
@@ -79,14 +79,14 @@ final class MeshGpu implements FeatureRenderer<MeshGpu.Submit> {
 
 	@Override
 	public void prepareGroup(FeatureFrameContext context, List<Submit> submits, boolean strictlyOrdered) {
-		if (uniforms == null) uniforms = new DynamicUniformStorage<>("Rocraft mesh UBO", UBO_SIZE, 256);
+		if (uniforms == null) uniforms = new DynamicGpuDataStorageMapped<>("Rocraft mesh UBO", UBO_SIZE, 128, 2); // usage as Minecraft's transforms UBO
 		var types = new IdentityHashMap<RenderType, PreparedRenderType>();
 		var u = new Uniform[submits.size()];
 		for (int i = 0; i < u.length; i++) {
 			var s = submits.get(i);
 			u[i] = new Uniform(s.pose, new Matrix4f(s.normal), s.argb, s.light);
 		}
-		GpuBufferSlice[] slices = uniforms.writeUniforms(u);
+		GpuBufferSlice[] slices = uniforms.writeData(u);
 		var draws = new ArrayList<Draw>(u.length);
 		for (int i = 0; i < u.length; i++) {
 			var s = submits.get(i);
@@ -96,37 +96,34 @@ final class MeshGpu implements FeatureRenderer<MeshGpu.Submit> {
 	}
 
 	@Override
-	public void executeGroup(FeatureFrameContext context, int groupIndex, List<Submit> submits, boolean strictlyOrdered) {
+	public void executeGroup(FeatureFrameContext context, OitStage stage, RenderPass pass, int groupIndex, List<Submit> submits, boolean strictlyOrdered) {
 		List<Draw> draws = groups.get(groupIndex);
 		if (draws.isEmpty()) return;
-		// as PreparedRenderType.drawFromBuffer, but one pass for every mesh
-		var first = draws.get(0).type;
-		var target = first.outputTarget().getRenderTarget();
-		var color = RenderSystem.outputColorTextureOverride != null ? RenderSystem.outputColorTextureOverride : target.getColorTextureView();
-		var depth = !target.useDepth ? null : RenderSystem.outputDepthTextureOverride != null ? RenderSystem.outputDepthTextureOverride : target.getDepthTextureView();
-		try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Rocraft meshes", color, Optional.empty(), depth, OptionalDouble.empty())) {
-			pass.setPipeline(PIPELINE);
-			var sc = first.scissorState();
-			if (sc.enabled()) pass.enableScissor(sc.x(), sc.y(), sc.width(), sc.height());
-			RenderSystem.bindDefaultUniforms(pass);
-			PreparedRenderType bound = null;
-			for (var d : draws) {
-				if (d.type != bound) {
-					bound = d.type;
-					pass.setUniform("DynamicTransforms", bound.dynamicTransforms());
-					for (var t : bound.textures()) pass.bindTexture(t.name(), t.textureView(), t.sampler());
-				}
-				pass.setUniform("RocraftMesh", d.uniform);
-				pass.setVertexBuffer(0, d.vertices.slice());
-				pass.draw(d.count, 1, 0, 0);
+		// as PreparedRenderType.drawFromBuffer, on the pass Minecraft hands us, with one pipeline bind for every mesh
+		pass.pushDebugGroup(() -> "Rocraft meshes");
+		pass.setPipeline(RenderSystem.getCompiledPipeline(PIPELINE));
+		var sc = draws.get(0).type.scissorState();
+		if (sc.enabled()) pass.enableScissor(sc.x(), sc.y(), sc.width(), sc.height());
+		RenderSystem.bindDefaultUniforms(pass);
+		PreparedRenderType bound = null;
+		for (var d : draws) {
+			if (d.type != bound) {
+				bound = d.type;
+				pass.setUniform("DynamicTransforms", bound.dynamicTransforms());
+				for (var t : bound.textures()) pass.setUniform(t.name(), t.textureView(), t.sampler());
 			}
+			pass.setUniform("RocraftMesh", d.uniform);
+			pass.setVertexBuffer(0, d.vertices.slice());
+			pass.draw(d.count, 1, 0, 0);
 		}
+		if (sc.enabled()) pass.disableScissor();
+		pass.popDebugGroup();
 	}
 
 	@Override
 	public void finishExecute(FeatureFrameContext context) { groups.clear(); }
 
-	/** End of frame (DynamicUniforms.reset): next frame's uniforms go in the ring's next buffer; dropped meshes freed. */
+	/** End of frame (DynamicGpuData.reset): next frame's uniforms go in the ring's next buffer; dropped meshes freed. */
 	static void endFrame() {
 		if (uniforms != null) uniforms.endFrame();
 		for (GpuBuffer b; (b = DEAD.poll()) != null; ) b.close();

@@ -38,8 +38,8 @@ record GearSpecial(String gear) implements NoDataSpecialModelRenderer {
 		// item = T(0.25, 0.25, 0.5) * S(stud) * Rz(-45) * Rx(90) * T(0, 1, 0) * armSpace  (RightGripAttachment is arm (0,-1,0))
 		ps.translate(0.25f, 0.25f, 0.5f);
 		ps.scale(0.28f, 0.28f, 0.28f);
-		ps.mulPose(Axis.ZP.rotationDegrees(-45));
-		ps.mulPose(Axis.XP.rotationDegrees(90));
+		ps.rotate(Axis.ZP.rotationDegrees(-45));
+		ps.rotate(Axis.XP.rotationDegrees(90));
 		ps.translate(0, 1, 0);
 		MeshDraw.submit(ps, out, light, piece.draw(), piece.draw().texture());
 		ps.popPose();

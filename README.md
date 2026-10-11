@@ -6,7 +6,7 @@
 
 Your real Roblox avatar, the classic gear, the 2018 interface and Roblox physics, all inside a normal Minecraft world.
 
-[![Minecraft 26.2](https://img.shields.io/badge/Minecraft-26.2-62B47A?style=for-the-badge)](https://www.minecraft.net)
+[![Minecraft 26.3](https://img.shields.io/badge/Minecraft-26.3-62B47A?style=for-the-badge)](https://www.minecraft.net)
 [![Fabric](https://img.shields.io/badge/Mod%20loader-Fabric-DBD0B4?style=for-the-badge)](https://fabricmc.net)
 [![Java 25](https://img.shields.io/badge/Java-25-ED8B00?style=for-the-badge)](https://adoptium.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-00A2FF?style=for-the-badge)](LICENSE)
@@ -71,13 +71,13 @@ No Roblox asset is in the jar. Everything loads from your own Roblox install and
 > [!IMPORTANT]
 > Rocraft needs **Roblox installed on the same PC** and a **free Roblox Open Cloud API key**. That's how it gets Roblox's assets without shipping any of them. Without them you get plain Minecraft visuals, the Guest's body colours, no animations and no gear models.
 
-**Requirements:** Minecraft **26.2** · Fabric Loader **0.19+** · **Fabric API** · **Java 25** · Roblox Player or Studio · an Open Cloud API key
+**Requirements:** Minecraft **26.3** · Fabric Loader **0.19+** · **Fabric API** · **Java 25** · Roblox Player or Studio · an Open Cloud API key
 
 | Step | |
 |:-:|---|
 | **1** | **Install Roblox** and open it once so it finishes downloading. Rocraft finds it automatically in `%LOCALAPPDATA%\Roblox\Versions`. |
 | **2** | **Create an API key** ([how](#getting-an-api-key)). |
-| **3** | **Install Fabric Loader** for 26.2, then put **Fabric API** and the **Rocraft jar** in your `mods` folder. Any launcher works; Modrinth App is tested. |
+| **3** | **Install Fabric Loader** for 26.3, then put **Fabric API** and the **Rocraft jar** in your `mods` folder. Any launcher works; Modrinth App is tested. |
 | **4** | **Launch the game.** Rocraft's settings open on first run: enter your Roblox username and key, then press **Load Avatar**. |
 | **5** | **Restart once.** Rocraft builds the "Rocraft Roblox Assets" resource pack and turns it on. After the restart, the gear, animations and sounds are all in. |
 
@@ -105,7 +105,7 @@ The same steps are in game, with a button that opens the credentials page and a 
 - **Roblox's animations** (idle, walk, jump, fall, climb, sit, tool hold, slash, lunge) come from Roblox's own animation files, crossfaded the way the Animate script does.
 - **R15:** switch **Avatar Type** to R15 in Settings → Avatar (R6 is the default). The body is assembled the way Roblox does it: the default rig from your install, your body packages' parts and joints swapped in, clothing laid on with Roblox's compositing meshes, and 2018 R15 Animate animations.
 - **Emotes:** press `.` for Roblox's emote wheel, with your account's equipped emotes and their catalog thumbnails. The chat emotes `/e dance`, `/e wave`, `/e laugh`, `/e cheer` and `/e point` work too. As on Roblox, the wheel needs an R15 avatar.
-- **The 2017 Guest:** with no username set, you play as the Guest (R cap, ROBLOX Jacket, Black Jeans). Other players always appear as the Guest.
+- **The 2017 Guest:** with no username set, you play as the Guest (R cap, ROBLOX Jacket, Black Jeans). In multiplayer, other players with Rocraft appear as their own Roblox avatars.
 - **Admin-style flying** in creative, like HD Admin / Adonis: the body faces wherever the camera looks.
 
 ### Classic gear
@@ -219,7 +219,7 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 
 | Layer | Technology |
 |---|---|
-| **Platform** | Minecraft 26.2 · Fabric Loader 0.19 · Fabric API · Fabric Loom (Gradle) |
+| **Platform** | Minecraft 26.3 · Fabric Loader 0.19 · Fabric API · Fabric Loom (Gradle) |
 | **Language** | Java 25: records, virtual threads for downloads, switch expressions |
 | **Game integration** | SpongePowered Mixin: camera, mouse, input, HUD, chat, toasts, entity rendering, culling and frame limiting. The performance patches are optional, so the game still starts if one can't apply |
 | **Rendering** | Minecraft's Blaze3D: custom render pipelines (triangle-topology entity cutout, additive particles), GPU-resident vertex buffers with per-draw uniform blocks, and Roblox mesh LODs |
@@ -254,7 +254,7 @@ src/client/java/com/rocraft/client/
 
 ## Compatibility
 
-Tested with these performance mods (Minecraft 26.2, Fabric API 0.161.0): no mixin failures, and the avatar, HUD, chat, F3 panels, emote wheel and settings all render normally.
+Tested with these performance mods on Minecraft 26.2 (Fabric API 0.161.0): no mixin failures, and the avatar, HUD, chat, F3 panels, emote wheel and settings all render normally. They have not been re-tested on 26.3 yet.
 
 | Mod | Version | Status | Notes |
 |---|---|:-:|---|
@@ -311,7 +311,7 @@ The oldest tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel, foods, Te
 <details>
 <summary><b>Will other players see my avatar?</b></summary>
 
-No. Other players always appear as the 2017 Guest, because Rocraft can't know their Roblox accounts. Emotes also show only for you.
+Yes, if they have Rocraft too. When you join a world, Rocraft tells the server your Roblox username and rig (R6 or R15), and the server passes it to everyone else, so each player sees the others' real avatars and the emotes they play. This works on a dedicated server, on Open to LAN, and on worlds shared with e4mc; the host just needs Rocraft installed. Players without Rocraft, or without a Roblox username set, appear as the 2017 Guest. Each viewer downloads the avatars with their own API key.
 </details>
 
 <details>

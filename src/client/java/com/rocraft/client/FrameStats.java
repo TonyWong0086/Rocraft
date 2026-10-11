@@ -113,8 +113,8 @@ public final class FrameStats {
 	/** The primary monitor's refresh rate (60 if unknown). */
 	static int refreshRate() {
 		if (refresh == 0) {
-			var mode = org.lwjgl.glfw.GLFW.glfwGetVideoMode(org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor());
-			refresh = mode == null || mode.refreshRate() <= 0 ? 60 : mode.refreshRate();
+			var mode = org.lwjgl.sdl.SDLVideo.SDL_GetCurrentDisplayMode(org.lwjgl.sdl.SDLVideo.SDL_GetPrimaryDisplay());
+			refresh = mode == null || mode.refresh_rate() <= 0 ? 60 : Math.round(mode.refresh_rate());
 		}
 		return refresh;
 	}

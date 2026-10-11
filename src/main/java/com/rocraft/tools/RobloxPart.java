@@ -57,7 +57,7 @@ public final class RobloxPart extends Entity {
 	void breakJoints(Vec3 velocity) {
 		entityData.set(ANCHORED, false);
 		setDeltaMovement(velocity);
-		hurtMarked = true;
+		syncVelocity = true;
 	}
 
 	@Override protected void defineSynchedData(SynchedEntityData.Builder b) {

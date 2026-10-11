@@ -1,7 +1,14 @@
 package com.rocraft.client;
 
 import com.rocraft.RocraftConfig;
+import com.rocraft.Sync;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -9,7 +16,7 @@ import net.minecraft.network.chat.Component;
 
 public class RocraftClient implements ClientModInitializer {
 	public static volatile RobloxProfile profile = new RobloxProfile(); // Guest until loaded
-	/** How everyone else looks (their Roblox accounts aren't known): the 2017 Guest. */
+	/** How players without a Roblox username (or without Rocraft on the server) look: the 2017 Guest. */
 	public static volatile RobloxProfile guest = new RobloxProfile();
 	static volatile boolean loading;
 
@@ -32,7 +39,7 @@ public class RocraftClient implements ClientModInitializer {
 		// "." opens the emote wheel, as in Roblox (the wheel closes itself on ".")
 		boolean[] periodDown = {false};
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-			boolean down = com.mojang.blaze3d.platform.InputConstants.isKeyDown(mc.getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_PERIOD);
+			boolean down = com.mojang.blaze3d.platform.InputConstants.isKeyDown(com.mojang.blaze3d.platform.InputConstants.KEY_PERIOD);
 			if (down && !periodDown[0] && mc.gui.screen() == null) EmoteWheel.open();
 			periodDown[0] = down;
 		});
@@ -43,6 +50,9 @@ public class RocraftClient implements ClientModInitializer {
 			GearEffects.tick(mc);
 			CharacterSounds.tick(mc);
 			MouseAim.tick(mc);
+			// KOs and Wipeouts for the top bar: the server only sends stats when asked (as the Statistics screen does)
+			if (mc.player.tickCount % 100 == 1 && RocraftConfig.INSTANCE.hud2018) mc.getConnection().send(
+				new net.minecraft.network.protocol.game.ServerboundClientCommandPacket(net.minecraft.network.protocol.game.ServerboundClientCommandPacket.Action.REQUEST_STATS));
 		});
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.BOMB_ENTITY, BombRenderer::new);
 		net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.rocraft.tools.Tools.PROJECTILE, ProjectileRenderer::new);
@@ -53,7 +63,12 @@ public class RocraftClient implements ClientModInitializer {
 		// joining: the chat opens with the "All" channel's welcome message, as in Roblox
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, mc) -> mc.execute(() -> {
 			if (RocraftConfig.INSTANCE.hud2018) mc.gui.hud.getChat().addClientSystemMessage(Component.literal(RobloxChat.WELCOME));
+			sendAvatar();
 		}));
+		// multiplayer: other players' Roblox accounts and emotes, relayed by the server
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, mc) -> AVATARS.clear());
+		ClientPlayNetworking.registerGlobalReceiver(Sync.Avatar.TYPE, (msg, ctx) -> AVATARS.put(msg.player(), msg));
+		ClientPlayNetworking.registerGlobalReceiver(Sync.Emote.TYPE, (msg, ctx) -> Animator.of(msg.entity()).emote(msg.anim()));
 		// classic chat emotes: "/e dance", "/e wave", "/e laugh", "/e cheer", "/e point" play on your character
 		net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
 			var mc = net.minecraft.client.Minecraft.getInstance();
@@ -65,8 +80,9 @@ public class RocraftClient implements ClientModInitializer {
 				return false;
 			}
 			if (!command.startsWith("e ") || mc.player == null) return true;
-			if (!Animator.of(mc.player.getId()).emote(command.substring(2).trim().toLowerCase(java.util.Locale.ROOT), profile.r15 != null))
-				mc.gui.hud.getChat().addClientSystemMessage(Component.literal("Unknown emote. Try /e dance, /e wave, /e laugh, /e cheer or /e point."));
+			long id = Animator.pick(command.substring(2).trim().toLowerCase(java.util.Locale.ROOT), profile.r15 != null);
+			if (id != 0) emote(id);
+			else mc.gui.hud.getChat().addClientSystemMessage(Component.literal("Unknown emote. Try /e dance, /e wave, /e laugh, /e cheer or /e point."));
 			return false;
 		});
 		reloadProfile();
@@ -101,14 +117,39 @@ public class RocraftClient implements ClientModInitializer {
 	public static void meshEndFrame() { MeshGpu.endFrame(); }
 
 	/** Called by SkinMixin; public so the mixin package can reach it. */
-	public static net.minecraft.world.entity.player.PlayerSkin avatarSkin(boolean me, net.minecraft.world.entity.player.PlayerSkin base) {
-		return AvatarSkin.skin(me ? profile : guest, base);
+	public static net.minecraft.world.entity.player.PlayerSkin avatarSkin(Player p, net.minecraft.world.entity.player.PlayerSkin base) {
+		return AvatarSkin.skin(profileOf(p), base);
+	}
+
+	/** player UUID -> the Roblox account they wear, as the server relayed it */
+	private static final Map<UUID, Sync.Avatar> AVATARS = new ConcurrentHashMap<>();
+
+	/** Who a player is: you are your profile; others are their synced Roblox account, or the Guest. */
+	static RobloxProfile profileOf(Player p) {
+		if (p == null || p == Minecraft.getInstance().player) return profile;
+		var a = AVATARS.get(p.getUUID());
+		return a == null || a.username().isEmpty() ? guest : RobloxianRenderer.profile(a.username(), a.rig());
+	}
+
+	/** Play an emote on your character and show it to everyone nearby. */
+	static void emote(long animId) {
+		var mc = Minecraft.getInstance();
+		if (mc.player == null) return;
+		Animator.of(mc.player.getId()).emote(animId);
+		if (ClientPlayNetworking.canSend(Sync.Emote.TYPE)) ClientPlayNetworking.send(new Sync.Emote(0, animId));
+	}
+
+	private static String rig() { return "R15".equals(RocraftConfig.INSTANCE.avatarType) ? "R15" : "R6"; }
+
+	private static void sendAvatar() {
+		if (ClientPlayNetworking.canSend(Sync.Avatar.TYPE)) ClientPlayNetworking.send(new Sync.Avatar(new UUID(0, 0), RocraftConfig.INSTANCE.username, rig()));
 	}
 
 	static void reloadProfile() {
 		var c = RocraftConfig.INSTANCE;
-		String u = c.username, k = c.apiKey, rig = "R15".equals(c.avatarType) ? "R15" : "R6";
+		String u = c.username, k = c.apiKey, rig = rig();
 		loading = true;
 		Thread.startVirtualThread(() -> { profile = RobloxProfile.load(u, k, rig); loading = false; });
+		if (Minecraft.getInstance().getConnection() != null) sendAvatar();
 	}
 }

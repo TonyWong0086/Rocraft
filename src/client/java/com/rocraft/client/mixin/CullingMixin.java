@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(EntityRenderDispatcher.class)
 abstract class CullingMixin {
 	@Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true)
-	private <E extends Entity> void rocraft$cull(E e, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
+	private <E extends Entity> void rocraft$cull(E e, Frustum frustum, double x, double y, double z, float partial, CallbackInfoReturnable<Boolean> cir) {
 		if (cir.getReturnValueZ() && !com.rocraft.client.Perf.visible(e)) cir.setReturnValue(false);
 	}
 }

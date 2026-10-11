@@ -18,14 +18,17 @@ final class RobloxianRenderer extends EntityRenderer<Robloxian, RobloxianRendere
 	static final class State extends EntityRenderState {
 		int entityId; String user; float bodyRot, attackTime, hp; ItemStack held = ItemStack.EMPTY;
 	}
-	/** username -> avatar; the Guest look until their account has loaded. */
+	/** username/rig -> avatar; the Guest look until their account has loaded. */
 	private static final Map<String, RobloxProfile> PROFILES = new ConcurrentHashMap<>();
 
 	RobloxianRenderer(EntityRendererProvider.Context ctx) { super(ctx); shadowRadius = 0.5f; }
 
-	static RobloxProfile profile(String user) {
-		return PROFILES.computeIfAbsent(user, u -> {
-			Thread.startVirtualThread(() -> PROFILES.put(u, RobloxProfile.load(u, RocraftConfig.INSTANCE.apiKey)));
+	static RobloxProfile profile(String user) { return profile(user, "Account"); }
+
+	/** rig: "Account", "R6" or "R15" (other players' pick, synced from their settings). */
+	static RobloxProfile profile(String user, String rig) {
+		return PROFILES.computeIfAbsent(user + "/" + rig, k -> {
+			Thread.startVirtualThread(() -> PROFILES.put(k, RobloxProfile.load(user, RocraftConfig.INSTANCE.apiKey, rig)));
 			return RocraftClient.guest;
 		});
 	}
@@ -38,7 +41,7 @@ final class RobloxianRenderer extends EntityRenderer<Robloxian, RobloxianRendere
 		s.entityId = e.getId();
 		s.user = e.username;
 		s.bodyRot = net.minecraft.util.Mth.rotLerp(partial, e.yBodyRotO, e.yBodyRot);
-		s.attackTime = e.getAttackAnim(partial);
+		s.attackTime = e.getSwingAnimation(partial);
 		s.hp = e.getHealth() / e.getMaxHealth();
 		s.held = e.getMainHandItem().copy();
 	}
@@ -49,7 +52,7 @@ final class RobloxianRenderer extends EntityRenderer<Robloxian, RobloxianRendere
 		var prof = profile(s.user);
 		ps.pushPose();
 		// the living-entity model space AvatarLayer draws in: facing the body yaw, y down, origin 1.5 blocks up
-		ps.mulPose(Axis.YP.rotationDegrees(180 - s.bodyRot));
+		ps.rotate(Axis.YP.rotationDegrees(180 - s.bodyRot));
 		ps.scale(-1, -1, 1);
 		ps.translate(0, -1.501f, 0);
 		var above = AvatarLayer.character(ps, out, s.lightCoords, e, s.entityId, prof, false, s.held, null, null, ItemStack.EMPTY, s.attackTime, 0, 0);

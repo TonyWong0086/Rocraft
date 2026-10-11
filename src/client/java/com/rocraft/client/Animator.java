@@ -55,12 +55,10 @@ final class Animator {
 	private long lastNanos = System.nanoTime();
 	private boolean wasOnGround = true, wasSwinging;
 
-	/** Start a chat emote ("/e dance"); stops as soon as the character moves, like Roblox. */
-	boolean emote(String name, boolean r15) {
+	/** The animation for a chat emote ("/e dance" picks one of three), 0 if unknown. Emotes stop as soon as the character moves, like Roblox. */
+	static long pick(String name, boolean r15) {
 		long[] ids = (r15 ? R15_EMOTES : EMOTES).get(name);
-		if (ids == null) return false;
-		emote = ids[(int) (Math.random() * ids.length)];
-		return true;
+		return ids == null ? 0 : ids[(int) (Math.random() * ids.length)];
 	}
 
 	/** Play an animation as an emote (the emote wheel), downloading it first if needed. */

@@ -50,7 +50,7 @@ final class PartRenderer extends EntityRenderer<RobloxPart, PartRenderer.State> 
 		Identifier white = BombRenderer.BALL.texture();
 		ps.pushPose(); // tumbling about its centre after a blast
 		ps.translate(0, h / 2, 0);
-		ps.mulPose(s.rot);
+		ps.rotate(s.rot);
 		ps.translate(0, -h / 2, 0);
 		out.submitCustomGeometry(ps, RenderTypes.entityCutout(studs != null ? studs : white), (pose, vc) -> {
 			for (int i = 0; i < nx; i++) for (int k = 0; k < nz; k++) { // one stud per cell

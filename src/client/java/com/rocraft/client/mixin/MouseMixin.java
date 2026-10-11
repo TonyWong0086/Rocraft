@@ -22,7 +22,7 @@ abstract class MouseMixin {
 	}
 
 	@Inject(method = "onMove", at = @At("HEAD"))
-	private void rocraft$drag(long window, double x, double y, CallbackInfo ci) {
-		if (RobloxMouse.active()) RobloxMouse.move(x, y);
+	private void rocraft$drag(long window, double x, double y, double dx, double dy, CallbackInfo ci) {
+		if (RobloxMouse.active()) RobloxMouse.move(dx, dy);
 	}
 }

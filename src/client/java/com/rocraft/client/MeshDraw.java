@@ -20,7 +20,7 @@ final class MeshDraw {
 	private Identifier tex;
 	private static int seq;
 	/** Vertices on the GPU (MeshGpu), uploaded on first draw. */
-	com.mojang.blaze3d.buffers.GpuBuffer gpu;
+	com.mojang.renderpearl.api.buffers.GpuBuffer gpu;
 
 	private MeshDraw(int corners, BufferedImage image) {
 		count = corners;
@@ -138,18 +138,18 @@ final class MeshDraw {
 	}
 
 	/** entityCutout, but drawn as triangles: Roblox meshes are triangles, so no fourth (repeated) corner per face. */
-	private static final com.mojang.blaze3d.pipeline.RenderPipeline TRIANGLES = com.mojang.blaze3d.pipeline.RenderPipeline
+	private static final com.mojang.renderpearl.api.pipeline.RenderPipeline TRIANGLES = com.mojang.renderpearl.api.pipeline.RenderPipeline
 		.builder(net.minecraft.client.renderer.RenderPipelines.ENTITY_SNIPPET).withLocation(Rocraft.id("pipeline/mesh_cutout"))
 		.withShaderDefine("ALPHA_CUTOUT", 0.1f).withShaderDefine("PER_FACE_LIGHTING")
 		.withBindGroupLayout(net.minecraft.client.renderer.BindGroupLayouts.SAMPLER1).withCull(false)
-		.withPrimitiveTopology(com.mojang.blaze3d.PrimitiveTopology.TRIANGLES).build();
+		.withPrimitiveTopology(com.mojang.renderpearl.api.pipeline.PrimitiveTopology.TRIANGLES).withColorTargetState(com.mojang.renderpearl.api.pipeline.ColorTargetState.DEFAULT).build();
 	private static final java.util.Map<Identifier, net.minecraft.client.renderer.rendertype.RenderType> TYPES = new java.util.HashMap<>(), GPU_TYPES = new java.util.HashMap<>();
 
 	static net.minecraft.client.renderer.rendertype.RenderType type(Identifier tex) {
 		return TYPES.computeIfAbsent(tex, t -> type(TRIANGLES, t));
 	}
 
-	private static net.minecraft.client.renderer.rendertype.RenderType type(com.mojang.blaze3d.pipeline.RenderPipeline pipeline, Identifier tex) {
+	private static net.minecraft.client.renderer.rendertype.RenderType type(com.mojang.renderpearl.api.pipeline.RenderPipeline pipeline, Identifier tex) {
 		return net.minecraft.client.renderer.rendertype.RenderType.create("rocraft_mesh",
 			net.minecraft.client.renderer.rendertype.RenderSetup.builder(pipeline).withTexture("Sampler0", tex).useLightmap().useOverlay()
 				.affectsCrumbling().setOutline(net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty.AFFECTS_OUTLINE).createRenderSetup());

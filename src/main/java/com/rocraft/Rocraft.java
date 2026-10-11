@@ -35,6 +35,7 @@ public class Rocraft implements ModInitializer {
 		RbxSounds.init();
 		RbxParticles.init();
 		com.rocraft.tools.Tools.register();
+		Sync.register();
 		LOGGER.info("Rocraft loaded");
 	}
 

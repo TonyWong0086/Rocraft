@@ -1,13 +1,14 @@
 #version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // core/entity.vsh with PER_FACE_LIGHTING, for a mesh kept on the GPU in its own part space: the part pose, colour,
 // light and overlay come per draw from the RocraftMesh block instead of per vertex
 
-#moj_import <minecraft:light.glsl>
-#moj_import <minecraft:fog.glsl>
-#moj_import <minecraft:dynamictransforms.glsl>
-#moj_import <minecraft:projection.glsl>
-#moj_import <minecraft:sample_lightmap.glsl>
+#include <minecraft:light.glsl>
+#include <minecraft:fog.glsl>
+#include <minecraft:dynamictransforms.glsl>
+#include <minecraft:projection.glsl>
+#include <minecraft:sample_lightmap.glsl>
 
 layout(std140) uniform RocraftMesh {
     mat4 MeshPose;
@@ -16,20 +17,21 @@ layout(std140) uniform RocraftMesh {
     ivec4 MeshLightOverlay; // xy = UV2 (light), zw = UV1 (overlay)
 };
 
-in vec3 Position;
-in vec2 UV0;
-in vec3 Normal;
+layout(location = 0) in vec3 Position;
+layout(location = 1) in vec2 UV0;
+layout(location = 2) in vec3 Normal;
 
 uniform sampler2D Sampler1;
 uniform sampler2D Sampler2;
 
-out float sphericalVertexDistance;
-out float cylindricalVertexDistance;
-out vec4 vertexPerFaceColorBack;
-out vec4 vertexPerFaceColorFront;
-out vec4 lightMapColor;
-out vec4 overlayColor;
-out vec2 texCoord0;
+// locations as core/entity.vsh, so core/entity.fsh reads them
+layout(location = 0) out float sphericalVertexDistance;
+layout(location = 1) out float cylindricalVertexDistance;
+layout(location = 2) out vec4 vertexPerFaceColorBack;
+layout(location = 3) out vec4 vertexPerFaceColorFront;
+layout(location = 4) out vec4 lightMapColor;
+layout(location = 5) out vec4 overlayColor;
+layout(location = 6) out vec2 texCoord0;
 
 void main() {
     vec3 pos = (MeshPose * vec4(Position, 1.0)).xyz;

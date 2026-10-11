@@ -136,7 +136,7 @@ public final class SettingsScreen extends Screen {
 				y = para(g, "Getting an Open Cloud API key (free, needed to load the Roblox assets):", hx + 20, y, rw - 40, 18, true, 0xFFFFFFFF) + 4;
 				for (String step : SETUP) y = para(g, step, hx + 32, y, rw - 52, 17, false, 0xFFC8C8C8);
 				button(g, hx + 20, y + 6, 300, ROW - 12, "Open Roblox Credentials", false,
-					() -> net.minecraft.client.gui.screens.ConfirmLinkScreen.confirmLinkNow(this, CREDENTIALS_URL));
+					() -> net.minecraft.client.gui.screens.ConfirmLinkScreen.confirmLinkNow(this, java.net.URI.create(CREDENTIALS_URL)));
 				var p = RocraftClient.profile;
 				// avatar frame: your character as it loads, like the 2018 avatar thumbnail
 				int px = hx + rw + (hw - rw) / 2, fy = rowsTop(), fw = AvatarFrame.W, fh = AvatarFrame.H;

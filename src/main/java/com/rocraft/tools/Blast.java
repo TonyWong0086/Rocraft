@@ -25,7 +25,7 @@ final class Blast {
 			if (e instanceof RobloxPart part) { parts.add(part); continue; }
 			var push = e.position().subtract(c).normalize().scale(0.8 * (1 - e.distanceTo(source) / radius) + 0.2);
 			e.push(push.x, push.y + 0.3, push.z);
-			e.hurtMarked = true;
+			e.syncVelocity = true;
 			if (e instanceof LivingEntity le) le.hurtServer(sl, src, damage);
 		}
 		breakBlocks(sl, c, radius);

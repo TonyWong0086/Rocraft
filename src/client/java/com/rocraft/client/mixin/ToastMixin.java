@@ -21,7 +21,7 @@ abstract class ToastMixin {
 		if (toast instanceof AdvancementToast a) {
 			var acc = (AdvancementToastAccessor) a;
 			acc.rocraft$advancement().value().display().ifPresent(d ->
-				RobloxNotify.show(d.getType().getDisplayName().getString(), d.getTitle().getString(), acc.rocraft$icon()));
+				RobloxNotify.show(d.type().getDisplayName().getString(), d.title().getString(), acc.rocraft$icon()));
 			ci.cancel();
 		} else if (toast instanceof RecipeToast) {
 			RobloxNotify.show(Component.translatable("recipe.toast.title").getString(), Component.translatable("recipe.toast.description").getString(), null);

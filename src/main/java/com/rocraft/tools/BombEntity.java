@@ -76,7 +76,7 @@ public final class BombEntity extends Entity {
 			double closing = ev.dot(n) - getDeltaMovement().dot(n);
 			if (closing > 0) setDeltaMovement(getDeltaMovement().add(n.scale(closing * 1.5 + 0.02)).add(0, 0.05, 0));
 			else setDeltaMovement(getDeltaMovement().add(n.scale(0.02))); // standing against it: nudged out of the way
-			hurtMarked = true; // send the new velocity to clients now
+			syncVelocity = true; // send the new velocity to clients now
 		}
 	}
 

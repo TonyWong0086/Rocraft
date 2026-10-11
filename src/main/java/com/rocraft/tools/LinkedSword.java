@@ -42,7 +42,7 @@ public final class LinkedSword extends Item {
 			Tools.lunged(p);
 			LUNGE_UNTIL.put(p.getUUID(), sl.getGameTime() + LUNGE_TICKS);
 			com.rocraft.RbxSounds.play(p, com.rocraft.RbxSounds.LUNGE);
-			p.hurtMarked = true; // push the hop to the client
+			p.syncVelocity = true; // push the hop to the client
 		}
 		return InteractionResult.SUCCESS;
 	}

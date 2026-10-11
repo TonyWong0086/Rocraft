@@ -29,12 +29,12 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		var mc = Minecraft.getInstance();
 		Player player = mc.level != null && mc.level.getEntity(s.id) instanceof Player pl ? pl : null;
 		boolean me = player == null || player == mc.player;
-		RobloxProfile prof = me ? RocraftClient.profile : RocraftClient.guest;
+		RobloxProfile prof = RocraftClient.profileOf(player);
 		var helmet = player != null ? player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD) : s.headEquipment;
 		Vector3f above = character(ps, out, light, player, s.id, prof, me, s.rightHandItemStack, s.rightHandItemState, s.leftHandItemState,
-			helmet, s.attackTime, s.xRot, s.outlineColor);
+			helmet, s.swingAnimation, s.xRot, s.outlineColor);
 		if (player != null && player.isAlive() && RocraftConfig.INSTANCE.hud2018 && !(me && mc.options.getCameraType().isFirstPerson()))
-			nameTag(ps, out, s.id, me ? prof.name : player.getName().getString(), player.getHealth() / player.getMaxHealth(), above);
+			nameTag(ps, out, s.id, me || !prof.guest ? prof.name : player.getName().getString(), player.getHealth() / player.getMaxHealth(), above);
 	}
 
 	/**
@@ -69,7 +69,7 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		// HumanoidRootPart centre: R6 = torso centre, 6 units below the neck (3 studs up); R15 rides rootToFeet up
 		ps.translate(0, r15 != null ? 1.5f - r15.rootToFeet * S : 6 / 16f, 0);
 		ps.scale(-S, -S, S);         // Roblox (x, y, z) -> model (-x, -y, z), studs -> blocks
-		if (flying) ps.mulPose(new Quaternionf().rotateX((float) Math.toRadians(-pitch))); // admin fly: BodyGyro.CFrame = camera, pitch too
+		if (flying) ps.rotate(new Quaternionf().rotateX((float) Math.toRadians(-pitch))); // admin fly: BodyGyro.CFrame = camera, pitch too
 		var body = Rig.body();
 		if (body != null) {
 			Identifier skin = AvatarSkin.textureId(prof);
@@ -194,8 +194,8 @@ final class AvatarLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		ps.mulPose(arm);
 		ps.scale(-1 / S, -1 / S, 1 / S);       // Roblox studs -> Minecraft model blocks (x and y flipped)
 		ps.translate(side / 16f, -4 / 16f, 0); // arm centre -> shoulder pivot (the arm box spans -2..10 px below it)
-		ps.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90));
-		ps.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
+		ps.rotate(com.mojang.math.Axis.XP.rotationDegrees(-90));
+		ps.rotate(com.mojang.math.Axis.YP.rotationDegrees(180));
 		ps.translate(side / 16f, 2 / 16f, -10 / 16f);
 		item.submit(ps, out, light, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, outline);
 		ps.popPose();

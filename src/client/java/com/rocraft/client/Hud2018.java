@@ -158,16 +158,11 @@ final class Hud2018 {
 		m.popMatrix();
 	}
 
-	/** Classic leaderstats: Level (XP level), KOs and Wipeouts (singleplayer: read from the integrated server's stats). */
+	/** Classic leaderstats: Level (XP level), KOs and Wipeouts (the server's stats, which RocraftClient asks for every 5 s). */
 	static String[][] leaderstats(Minecraft mc) {
-		int kos = 0, wipeouts = 0;
-		var srv = mc.getSingleplayerServer();
-		var sp = srv == null ? null : srv.getPlayerList().getPlayer(mc.player.getUUID());
-		if (sp != null) { // ponytail: multiplayer would need the server to send these
-			var st = sp.getStats();
-			kos = st.getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.MOB_KILLS) + st.getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.PLAYER_KILLS);
-			wipeouts = st.getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.DEATHS);
-		}
+		var st = mc.player.getStats();
+		int kos = st.getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.MOB_KILLS) + st.getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.PLAYER_KILLS);
+		int wipeouts = st.getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.DEATHS);
 		return new String[][]{{"Level", String.valueOf(mc.player.experienceLevel)}, {"KOs", String.valueOf(kos)}, {"Wipeouts", String.valueOf(wipeouts)}};
 	}
 

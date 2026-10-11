@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 /**
  * Roblox's emote wheel (EmotesMenu, Large textures from the install): eight slots around a dark circle, slot 1 at the
@@ -142,12 +142,12 @@ public final class EmoteWheel extends Screen {
 	@Override
 	public boolean keyPressed(KeyEvent e) {
 		int key = e.key();
-		if (key >= GLFW.GLFW_KEY_1 && key <= GLFW.GLFW_KEY_8) {
-			if (slots[key - GLFW.GLFW_KEY_1] != null) play(key - GLFW.GLFW_KEY_1);
+		if (key >= InputConstants.KEY_1 && key <= InputConstants.KEY_8) {
+			if (slots[key - InputConstants.KEY_1] != null) play(key - InputConstants.KEY_1);
 			onClose();
 			return true;
 		}
-		if (key == GLFW.GLFW_KEY_PERIOD) { onClose(); return true; }
+		if (key == InputConstants.KEY_PERIOD) { onClose(); return true; }
 		return super.keyPressed(e);
 	}
 
@@ -155,17 +155,16 @@ public final class EmoteWheel extends Screen {
 		var mc = Minecraft.getInstance();
 		if (mc.player == null || RocraftClient.profile.r15 == null) return;
 		var sl = slots[i];
-		var animator = Animator.of(mc.player.getId());
-		if (sl.anim() != 0) { animator.emote(sl.anim()); return; }
+		if (sl.anim() != 0) { RocraftClient.emote(sl.anim()); return; }
 		Long known = ANIM_OF.get(sl.asset());
-		if (known != null) { animator.emote(known); return; }
+		if (known != null) { RocraftClient.emote(known); return; }
 		Thread.startVirtualThread(() -> { // an emote asset is a model holding the Animation that points at the animation
 			try {
 				var anim = com.rocraft.rbx.RbxModel.read(RobloxApi.asset(sl.asset())).first("Animation");
 				long id = anim == null ? -1 : anim.assetId("AnimationId");
 				if (id <= 0) return;
 				ANIM_OF.put(sl.asset(), id);
-				mc.execute(() -> animator.emote(id));
+				mc.execute(() -> RocraftClient.emote(id));
 			} catch (Exception ex) { Rocraft.LOGGER.warn("emote {} unavailable: {}", sl.asset(), ex.toString()); }
 		});
 	}

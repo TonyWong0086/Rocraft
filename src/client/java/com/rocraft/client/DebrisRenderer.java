@@ -45,7 +45,7 @@ final class DebrisRenderer extends EntityRenderer<Debris, DebrisRenderer.State> 
 	public void submit(State s, PoseStack ps, SubmitNodeCollector out, CameraRenderState cam) {
 		ps.pushPose();
 		ps.translate(0, 0.5f, 0);
-		ps.mulPose(s.rot);
+		ps.rotate(s.rot);
 		ps.translate(-0.5f, -0.5f, -0.5f);
 		s.block.submit(ps, out, s.lightCoords, OverlayTexture.NO_OVERLAY, s.outlineColor);
 		ps.popPose();
