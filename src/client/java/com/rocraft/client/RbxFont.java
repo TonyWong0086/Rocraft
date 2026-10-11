@@ -30,9 +30,13 @@ final class RbxFont {
 
 	private static Font base(boolean bold) { return base(bold ? "SourceSansPro-Bold.ttf" : "SourceSansPro-Regular.ttf"); }
 
+	private static final String ARIAL = java.util.stream.Stream.of("C:/Windows/Fonts/arial.ttf", "/System/Library/Fonts/Supplemental/Arial.ttf",
+		"/Library/Fonts/Arial.ttf", "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", "/usr/share/fonts/TTF/arial.ttf", "/usr/share/fonts/corefonts/arial.ttf")
+		.filter(f -> java.nio.file.Files.exists(java.nio.file.Path.of(f))).findFirst().orElse("/missing/arial.ttf");
+
 	private static Font base(String n) {
 		if (!RocraftConfig.INSTANCE.robloxFont) return null;
-		if (n.equals(LEGACY)) n = "C:/Windows/Fonts/arial.ttf";
+		if (n.equals(LEGACY)) n = ARIAL; // the system's Arial (Windows, macOS, Linux msttcorefonts), else Roblox's SourceSans
 		return BASE.computeIfAbsent(n, k -> {
 			var p = k.contains("/") ? (java.nio.file.Files.exists(java.nio.file.Path.of(k)) ? java.nio.file.Path.of(k) : RobloxAssets.file("fonts/SourceSansPro-Regular.ttf"))
 				: RobloxAssets.file("fonts/" + k);

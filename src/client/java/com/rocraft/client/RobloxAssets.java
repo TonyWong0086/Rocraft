@@ -13,14 +13,44 @@ final class RobloxAssets {
 	static final Path CONTENT = find();
 	private static final Map<String, Optional<Identifier>> TEX = new HashMap<>();
 
+	/** Where Roblox Player/Studio keep their files on each OS; "*" matches any one folder. */
+	private static final String[] INSTALLS = {
+		"%LOCALAPPDATA%/Roblox/Versions", "C:/Program Files (x86)/Roblox/Versions", "C:/Program Files/Roblox/Versions",
+		"/Applications/Roblox.app/Contents/Resources", "/Applications/RobloxStudio.app/Contents/Resources",
+		"~/Applications/Roblox.app/Contents/Resources", "~/Applications/RobloxStudio.app/Contents/Resources",
+		// Linux: Sober (Player), Vinegar (Studio, Flatpak or not), and plain Wine / Grapejuice prefixes
+		"~/.var/app/org.vinegarhq.Sober/data/sober", "~/.var/app/org.vinegarhq.Vinegar/data/vinegar", "~/.local/share/vinegar",
+		"~/.wine/drive_c/users/*/AppData/Local/Roblox/Versions",
+		"~/.local/share/grapejuice/prefixes/*/drive_c/users/*/AppData/Local/Roblox/Versions"};
+
+	/** The newest Roblox content/ folder (one holding fonts/) under any known install, or null. */
 	private static Path find() {
-		try (var s = Files.list(Path.of(System.getenv("LOCALAPPDATA"), "Roblox", "Versions"))) {
-			return s.map(p -> p.resolve("content")).filter(Files::isDirectory)
-				.max(Comparator.comparingLong(p -> p.toFile().lastModified())).orElse(null);
-		} catch (Exception e) {
-			Rocraft.LOGGER.info("No Roblox install found; using placeholder UI");
-			return null;
+		String home = System.getProperty("user.home"), local = System.getenv("LOCALAPPDATA");
+		List<Path> found = new ArrayList<>();
+		for (String pattern : INSTALLS) {
+			if (pattern.startsWith("%LOCALAPPDATA%") && local == null) continue;
+			for (Path root : expand(pattern.replace("%LOCALAPPDATA%", String.valueOf(local)).replaceFirst("^~", home.replace('\\', '/'))))
+				try (var s = Files.find(root, 4, (p, a) -> a.isDirectory() && p.getFileName().toString().equals("content") && Files.isDirectory(p.resolve("fonts")))) {
+					s.forEach(found::add);
+				} catch (Exception ignored) {}
 		}
+		Path best = found.stream().max(Comparator.comparingLong(p -> p.toFile().lastModified())).orElse(null);
+		Rocraft.LOGGER.info(best == null ? "No Roblox install found; using placeholder UI" : "Roblox content: " + best);
+		return best;
+	}
+
+	/** Existing folders matching a path whose "*" segments match any one folder. */
+	private static List<Path> expand(String pattern) {
+		List<Path> out = new ArrayList<>(List.of(Path.of(pattern.startsWith("/") ? "/" : pattern.substring(0, pattern.indexOf('/') + 1))));
+		for (String seg : pattern.substring(pattern.indexOf('/') + 1).split("/")) {
+			List<Path> next = new ArrayList<>();
+			for (Path p : out)
+				if (!seg.equals("*")) next.add(p.resolve(seg));
+				else try (var s = Files.list(p)) { s.filter(Files::isDirectory).forEach(next::add); } catch (Exception ignored) {}
+			out = next;
+		}
+		out.removeIf(p -> !Files.isDirectory(p));
+		return out;
 	}
 
 	/** Classic files exported from the user's Roblox Studio (tools/export_classic_tools.luau). */

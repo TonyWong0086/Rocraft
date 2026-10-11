@@ -75,7 +75,7 @@ No Roblox asset is in the jar. Everything loads from your own Roblox install and
 
 | Step | |
 |:-:|---|
-| **1** | **Install Roblox** and open it once so it finishes downloading. Rocraft finds it automatically in `%LOCALAPPDATA%\Roblox\Versions`. |
+| **1** | **Install Roblox** and open it once so it finishes downloading. Rocraft finds it automatically: `%LOCALAPPDATA%\Roblox\Versions` on Windows, `Roblox.app` or `RobloxStudio.app` in Applications on macOS, and Sober, Vinegar or a Wine/Grapejuice prefix on Linux. |
 | **2** | **Create an API key** ([how](#getting-an-api-key)). |
 | **3** | **Install Fabric Loader** for 26.3, then put **Fabric API** and the **Rocraft jar** in your `mods` folder. Any launcher works; Modrinth App is tested. |
 | **4** | **Launch the game.** Rocraft's settings open on first run: enter your Roblox username and key, then press **Load Avatar**. |
@@ -302,7 +302,7 @@ The **Graphics** tab adds:
 <summary><b>Where do the Roblox assets come from?</b></summary>
 
 From two places, both on your side:
-1. **Your Roblox install** (`%LOCALAPPDATA%\Roblox\Versions\...`): R6 meshes, fonts, UI and particle textures, and character sounds.
+1. **Your Roblox install** (Windows `%LOCALAPPDATA%\Roblox\Versions`, macOS `Roblox.app`, Linux Sober, Vinegar or Wine): R6 meshes, fonts, UI and particle textures, and character sounds.
 2. **Roblox Open Cloud**, with your key: avatar items, animations, gear and hat models, textures, icons and sounds.
 
 The oldest tools (Rocket Launcher, Superball, Slingshot, Bomb, Trowel, foods, Teddy) used built-in `rbxasset://` files that Roblox no longer ships. Roblox keeps website copies with normal asset IDs. Rocraft carries only that ID list and each tool's grip and size numbers (`classic_tools.json`), and downloads the rest. Everything is stored privately in your Minecraft folder: the resource pack, `config/rocraft/cache` and `config/rocraft/legacy`.
