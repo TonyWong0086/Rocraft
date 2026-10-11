@@ -10,11 +10,11 @@ import net.minecraft.resources.Identifier;
 
 /** Reads UI textures and fonts from the user's own Roblox install at runtime. Nothing is copied into the mod. */
 final class RobloxAssets {
-	/** Where Roblox Player/Studio keep their files on each OS; "*" matches any one folder. Must stay above CONTENT (static init order). */
+	/** Where Roblox Player/Studio keep their files on each OS; "*" in a folder name matches anything (case-insensitive). Must stay above CONTENT (static init order). */
 	private static final String[] INSTALLS = {
 		"%LOCALAPPDATA%/Roblox/Versions", "C:/Program Files (x86)/Roblox/Versions", "C:/Program Files/Roblox/Versions",
-		"/Applications/Roblox.app/Contents/Resources", "/Applications/RobloxStudio.app/Contents/Resources",
-		"~/Applications/Roblox.app/Contents/Resources", "~/Applications/RobloxStudio.app/Contents/Resources",
+		// macOS: Roblox.app, "Roblox Studio.app", RobloxStudio.app, ... in either Applications folder
+		"/Applications/*roblox*.app/Contents/Resources", "~/Applications/*roblox*.app/Contents/Resources",
 		// Linux: Sober (Player), Vinegar (Studio, Flatpak or not), and plain Wine / Grapejuice prefixes
 		"~/.var/app/org.vinegarhq.Sober/data/sober", "~/.var/app/org.vinegarhq.Vinegar/data/vinegar", "~/.local/share/vinegar",
 		"~/.wine/drive_c/users/*/AppData/Local/Roblox/Versions",
@@ -54,8 +54,12 @@ final class RobloxAssets {
 		for (String seg : pattern.substring(pattern.indexOf('/') + 1).split("/")) {
 			List<Path> next = new ArrayList<>();
 			for (Path p : out)
-				if (!seg.equals("*")) next.add(p.resolve(seg));
-				else try (var s = Files.list(p)) { s.filter(Files::isDirectory).forEach(next::add); } catch (Exception ignored) {}
+				if (!seg.contains("*")) next.add(p.resolve(seg));
+				else try (var s = Files.list(p)) {
+					var name = java.util.regex.Pattern.compile("(?i)" + java.util.Arrays.stream(seg.split("\\*", -1))
+						.map(java.util.regex.Pattern::quote).collect(java.util.stream.Collectors.joining(".*")));
+					s.filter(c -> Files.isDirectory(c) && name.matcher(c.getFileName().toString()).matches()).forEach(next::add);
+				} catch (Exception ignored) {}
 			out = next;
 		}
 		out.removeIf(p -> !Files.isDirectory(p));
