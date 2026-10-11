@@ -13,7 +13,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
  * (Roblox's stats tick about that often), not every frame.
  */
 public final class RobloxStats {
-	static final int BG = 0x55202020, PAD = 6;
+	static final int BG = 0x70202020, PAD = 6; // about 44% black, as Roblox's stats panels
 	private static List<String[]> left = List.of(), right = List.of();
 	private static long builtAt;
 
@@ -38,7 +38,7 @@ public final class RobloxStats {
 	 * of its budget, drawn as a meter bar after the values: green under 75%, yellow to 100%, red over) or {GRAPH}.
 	 */
 	private static int panel(GuiGraphicsExtractor g, List<String[]> rows, int x, int y, int px, int line) {
-		String f = RbxFont.LEGACY;
+		String f = RbxFont.CODE;
 		int col = 0, val = 0, w = 0, bar = px * 6, graphH = line * 3;
 		boolean meters = false;
 		for (String[] r : rows) if (r.length >= 2) { col = Math.max(col, RbxFont.width(r[0], px, f)); if (r.length == 3) { meters = true; val = Math.max(val, RbxFont.width(": " + r[1], px, f)); } }
@@ -90,8 +90,7 @@ public final class RobloxStats {
 	}
 
 	private static void text(GuiGraphicsExtractor g, String s, int x, int y, int px) {
-		RbxFont.draw(g, s, x + 1, y + 1, px, RbxFont.LEGACY, 0xFF000000);
-		RbxFont.draw(g, s, x, y, px, RbxFont.LEGACY, 0xFFFFFFFF);
+		RbxFont.draw(g, s, x, y, px, RbxFont.CODE, 0xFFFFFFFF); // plain white, no shadow, as Roblox's stats
 	}
 
 	private static void build(Minecraft mc) {

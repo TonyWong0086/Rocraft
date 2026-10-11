@@ -25,6 +25,8 @@ final class RbxFont {
 
 	/** Roblox's Legacy font (humanoid name displays): Arial. */
 	static final String LEGACY = "arial";
+	/** Roblox's Code font (the stats panels): Inconsolata, from the install. */
+	static final String CODE = "Inconsolata-Regular.ttf";
 
 	private static Font base(boolean bold) { return base(bold ? "SourceSansPro-Bold.ttf" : "SourceSansPro-Regular.ttf"); }
 
