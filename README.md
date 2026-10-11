@@ -2,6 +2,8 @@
 
 **2018-era Roblox inside Minecraft 26.2 (Fabric).** Your real Roblox avatar (R6 or R15), Roblox's animations and emotes, the classic Roblox gear, the Roblox camera and mouse, the 2018 top bar, chat and settings menu, and Roblox movement physics, all inside a normal Minecraft world.
 
+![Your avatar and the Robloxian mobs in a Minecraft world, with the 2018 top bar and the classic gear in the backpack hotbar](screenshots/robloxians.png)
+
 > **This mod is vibecoded.** It was built almost entirely by AI (Claude Code) from prompts, with the user testing in game. Expect rough edges.
 >
 > Inspired by [@coah80](https://x.com/coah80) on X.
@@ -98,6 +100,8 @@ Shedletsky, Stickmasterluke, Roblox, builderman, Nikilis, clockwork, mrflimflam,
 - **2018 chat:** fills from the top like Roblox's, opening with `Chat '/?' or '/help' for a list of chat commands.`. `[Name]: message` in SourceSans, names colored by Roblox's own name-color algorithm, messages fading after 30 seconds, and the classic hint `To chat click here or press "/" key`. `/?` and `/help` list the chat commands; `/help <command>` still explains a Minecraft command.
 - **Roblox notifications** (the see-through 2018 boxes in the bottom right) replace Minecraft's "Advancement Made!" and "New Recipes Unlocked!" toasts.
 - **Settings menu:** open it with the **Rocraft** button next to Friends on the title screen. It looks like the 2018 Roblox settings menu, with **Avatar**, **Gameplay** and **Graphics** tabs.
+
+![The Rocraft settings menu: Avatar tab with username, Open Cloud key, Avatar Type and a live render of the loaded avatar](screenshots/settings.png)
 
 ### Performance
 Two common optimisation-mod features are built in, each in the settings menu's Graphics tab:
