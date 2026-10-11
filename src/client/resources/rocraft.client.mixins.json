@@ -6,6 +6,7 @@
 		"AdvancementToastAccessor",
 		"AvatarStateMixin",
 		"BobMixin",
+		"PackSelectMixin",
 		"CameraMixin",
 		"ChatComponentAccessor",
 		"ChatScreenAccessor",

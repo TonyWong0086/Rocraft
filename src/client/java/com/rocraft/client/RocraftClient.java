@@ -19,12 +19,14 @@ public class RocraftClient implements ClientModInitializer {
 	/** How players without a Roblox username (or without Rocraft on the server) look: the 2017 Guest. */
 	public static volatile RobloxProfile guest = new RobloxProfile();
 	static volatile boolean loading;
+	/** The private Roblox asset pack's id, for PackSelectMixin. */
+	public static final String ROBLOX_PACK = RobloxPack.ID;
 
 	@Override
 	public void onInitializeClient() {
 		GearSpecial.register();
 		RbxParticle.register();
-		RobloxPack.build();
+		RobloxPack.build(); // PackSelectMixin selects it before the first resource load
 		Hud2018.register();
 		net.fabricmc.fabric.api.client.rendering.v1.LivingEntityRenderLayerRegistrationCallback.EVENT.register((type, renderer, helper, ctx) -> {
 			if (renderer instanceof net.minecraft.client.renderer.entity.player.AvatarRenderer<?> r) helper.register(new AvatarLayer(r));
@@ -89,7 +91,6 @@ public class RocraftClient implements ClientModInitializer {
 		Thread.startVirtualThread(() -> guest = RobloxProfile.load("", RocraftConfig.INSTANCE.apiKey));
 		com.rocraft.tools.Robloxian.USERS.forEach(RobloxianRenderer::profile); // preload every mob's avatar at startup
 		boolean[] firstRun = {RocraftConfig.FIRST_RUN};
-		boolean[] packOn = {false};
 		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
 			if (!(screen instanceof TitleScreen)) return;
 			var widgets = Screens.getWidgets(screen);
@@ -104,7 +105,6 @@ public class RocraftClient implements ClientModInitializer {
 				}
 			}
 			widgets.add(new RocraftButton(bx, by, () -> mc.setScreenAndShow(new SettingsScreen(screen, 0))));
-			if (!packOn[0]) { packOn[0] = true; RobloxPack.enable(mc); }
 			if (firstRun[0]) { firstRun[0] = false; mc.setScreenAndShow(new SettingsScreen(screen, 0)); }
 		});
 	}

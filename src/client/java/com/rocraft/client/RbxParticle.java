@@ -102,18 +102,25 @@ final class RbxParticle extends SingleQuadParticle {
 		return add ? additive : soft;
 	}
 
+	/** textures/particles/<name> from the install as .dds (Windows) or .png, null if it has neither. */
+	static java.awt.image.BufferedImage image(String name) throws java.io.IOException {
+		var dds = RobloxAssets.file("textures/particles/" + name + ".dds");
+		if (dds != null) {
+			var d = Dds.read(Files.readAllBytes(dds));
+			var img = new java.awt.image.BufferedImage(d.width, d.height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+			img.setRGB(0, 0, d.width, d.height, d.argb, 0, d.width);
+			return img;
+		}
+		var png = RobloxAssets.file("textures/particles/" + name + ".png");
+		return png == null ? null : javax.imageio.ImageIO.read(png.toFile());
+	}
+
 	/** ARGB of a Roblox ramp at age t (x) and row r (y), 0..1; white if the install doesn't have it. */
 	static int ramp(String name, float t, float r) {
 		int[][] img = RAMPS.computeIfAbsent(name, n -> {
 			try {
-				var dds = RobloxAssets.file("textures/particles/" + n + ".dds");
-				if (dds != null) {
-					var d = Dds.read(Files.readAllBytes(dds));
-					int[][] out = new int[d.height][d.width];
-					for (int y = 0; y < d.height; y++) System.arraycopy(d.argb, y * d.width, out[y], 0, d.width);
-					return out;
-				}
-				var png = javax.imageio.ImageIO.read(RobloxAssets.file("textures/particles/" + n + ".png").toFile());
+				var png = image(n);
+				if (png == null) return new int[][]{{0xFFFFFFFF}};
 				int[][] out = new int[png.getHeight()][png.getWidth()];
 				for (int y = 0; y < png.getHeight(); y++) for (int x = 0; x < png.getWidth(); x++) out[y][x] = png.getRGB(x, y);
 				return out;
@@ -212,9 +219,8 @@ final class RbxParticle extends SingleQuadParticle {
 		for (var e : TEXTURES.entrySet()) try {
 			var out = assets.resolve("textures/particle/" + e.getKey() + ".png");
 			if (Files.exists(out)) continue;
-			var d = Dds.read(Files.readAllBytes(RobloxAssets.file("textures/particles/" + e.getValue() + ".dds")));
-			var img = new java.awt.image.BufferedImage(d.width, d.height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-			img.setRGB(0, 0, d.width, d.height, d.argb, 0, d.width);
+			var img = image(e.getValue());
+			if (img == null) { Rocraft.LOGGER.info("Roblox particle {} not in this install", e.getKey()); continue; }
 			Files.createDirectories(out.getParent());
 			javax.imageio.ImageIO.write(img, "png", out.toFile());
 		} catch (Exception ex) { Rocraft.LOGGER.warn("Roblox particle {} unavailable: {}", e.getKey(), ex.toString()); }

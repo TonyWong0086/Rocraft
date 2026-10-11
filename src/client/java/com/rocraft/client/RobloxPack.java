@@ -40,8 +40,9 @@ final class RobloxPack {
 	static void build() {
 		try {
 			Files.createDirectories(DIR);
-			Files.writeString(DIR.resolve("pack.mcmeta"),
-				"{\"pack\":{\"description\":\"Roblox assets for Rocraft (local, private)\",\"min_format\":88,\"max_format\":88}}");
+			int format = net.minecraft.SharedConstants.getCurrentVersion().packVersion(net.minecraft.server.packs.PackType.CLIENT_RESOURCES).major();
+			Files.writeString(DIR.resolve("pack.mcmeta"), // this game's own format, so the pack stays compatible across updates
+				"{\"pack\":{\"description\":\"Roblox assets for Rocraft (local, private)\",\"min_format\":" + format + ",\"max_format\":" + format + "}}");
 			copyLocal("sounds/oof.ogg", ASSETS.resolve("sounds/oof.ogg"));
 			RbxParticle.writeTextures(ASSETS);
 			for (var e : GEAR.entrySet()) gear(e.getKey(), e.getValue());
@@ -115,14 +116,6 @@ final class RobloxPack {
 	}
 
 	/** Turns the pack on once (first title screen); reloads if new files arrived. */
-	static void enable(Minecraft mc) {
-		var repo = mc.getResourcePackRepository();
-		repo.reload();
-		if (repo.getSelectedIds().contains(ID) || !repo.isAvailable(ID)) return;
-		repo.addPack(ID);
-		mc.options.updateResourcePacks(repo);
-		mc.reloadResourcePacks();
-	}
 
 	/** A user's official 150x150 avatar headshot (public endpoints, no key). */
 	static BufferedImage headshot(String username) throws Exception {
